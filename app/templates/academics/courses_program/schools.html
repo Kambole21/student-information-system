@@ -1,0 +1,259 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='schools.css')}}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-building"></i> Schools Management</h1>
+                <p class="text-muted">Manage all schools and their details</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="action-buttons">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSchoolModal">
+                        <i class="bi bi-plus-circle"></i> Add New School
+                    </button>
+                    <a href="{{ url_for('courses_programs.programs_management') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-diagram-3"></i> Manage Programs
+                    </a>
+                    <a href="{{ url_for('courses_programs.courses_management') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-book"></i> Manage Courses
+                    </a>
+                </div>
+                <div class="search-box">
+                    <input type="text" class="form-control" placeholder="Search schools..." id="searchInput">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schools Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">All Schools ({{ schools|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="schoolsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Code</th>
+                                    <th>School Name</th>
+                                    <th>Dean</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for school in schools %}
+                                <tr>
+                                    <td><strong>{{ school.code }}</strong></td>
+                                    <td>
+                                        <div class="school-info">
+                                            <h6 class="mb-0">{{ school.name }}</h6>
+                                        </div>
+                                    </td>
+                                    <td>{{ school.dean or 'Not assigned' }}</td>
+                                    <td>
+                                        <span class="description-truncate" title="{{ school.description }}">
+                                            {{ school.description[:50] }}{% if school.description|length > 50 %}...{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if school.status == 'active' else 'secondary' }}">
+                                            {{ school.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editSchoolModal"
+                                                    data-id="{{ school._id }}"
+                                                    data-name="{{ school.name }}"
+                                                    data-code="{{ school.code }}"
+                                                    data-dean="{{ school.dean }}"
+                                                    data-description="{{ school.description }}"
+                                                    data-status="{{ school.status }}">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </button>
+                                            <a href="{{ url_for('courses_programs.delete_school', school_id=school._id) }}" 
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('Are you sure you want to delete this school? This action cannot be undone.')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    {% if not schools %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-building display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No Schools Found</h4>
+                        <p class="text-muted">Get started by adding your first school.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSchoolModal">
+                            <i class="bi bi-plus-circle"></i> Add School
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add School Modal -->
+<div class="modal fade" id="addSchoolModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New School</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('courses_programs.add_school') }}">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">School Name *</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">School Code *</label>
+                                <input type="text" class="form-control" name="code" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dean</label>
+                        <input type="text" class="form-control" name="dean" placeholder="Enter dean's name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="4" placeholder="Enter school description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add School</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit School Modal -->
+<div class="modal fade" id="editSchoolModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit School</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="editSchoolForm">
+                <div class="modal-body">
+                    <input type="hidden" name="school_id" id="editSchoolId">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">School Name *</label>
+                                <input type="text" class="form-control" name="name" id="editSchoolName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">School Code *</label>
+                                <input type="text" class="form-control" name="code" id="editSchoolCode" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dean</label>
+                        <input type="text" class="form-control" name="dean" id="editSchoolDean">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" id="editSchoolDescription" rows="4"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" id="editSchoolStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update School</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// School Modal Handler
+document.getElementById('editSchoolModal').addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    var modal = this;
+    
+    modal.querySelector('#editSchoolId').value = button.getAttribute('data-id');
+    modal.querySelector('#editSchoolName').value = button.getAttribute('data-name');
+    modal.querySelector('#editSchoolCode').value = button.getAttribute('data-code');
+    modal.querySelector('#editSchoolDean').value = button.getAttribute('data-dean');
+    modal.querySelector('#editSchoolDescription').value = button.getAttribute('data-description');
+    modal.querySelector('#editSchoolStatus').value = button.getAttribute('data-status');
+    
+    modal.querySelector('#editSchoolForm').action = '/edit_school/' + button.getAttribute('data-id');
+});
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#schoolsTable tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

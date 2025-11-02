@@ -1,0 +1,140 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='grades.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-journal-check"></i> Grades Management</h1>
+                <p class="text-muted">Manage student grades and transcripts</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card action-card final-grades">
+                <div class="card-body text-center">
+                    <i class="bi bi-trophy display-4 mb-3"></i>
+                    <h3>Final Grades</h3>
+                    <p class="text-muted">Manage final examination grades</p>
+                    <a href="{{ url_for('grades.final_grades') }}" class="btn btn-primary">
+                        <i class="bi bi-arrow-right"></i> Manage Final Grades
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card action-card mock-grades">
+                <div class="card-body text-center">
+                    <i class="bi bi-pencil-square display-4 mb-3"></i>
+                    <h3>Mock Grades</h3>
+                    <p class="text-muted">Manage mock examination grades</p>
+                    <a href="{{ url_for('grades.mock_grades') }}" class="btn btn-warning">
+                        <i class="bi bi-arrow-right"></i> Manage Mock Grades
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade Scale Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Grade Scale Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered grade-scale-table">
+                            <thead>
+                                <tr>
+                                    <th>Grade</th>
+                                    <th>Marks Range</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="table-success">
+                                    <td><strong>A+</strong></td>
+                                    <td>86 - 100</td>
+                                    <td>Distinction</td>
+                                    <td><span class="badge bg-success">Pass</span></td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>A</strong></td>
+                                    <td>76 - 85</td>
+                                    <td>Distinction</td>
+                                    <td><span class="badge bg-success">Pass</span></td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>B+</strong></td>
+                                    <td>66 - 75</td>
+                                    <td>Meritorious</td>
+                                    <td><span class="badge bg-success">Pass</span></td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>B</strong></td>
+                                    <td>60 - 65</td>
+                                    <td>Credit</td>
+                                    <td><span class="badge bg-success">Pass</span></td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>C+</strong></td>
+                                    <td>55 - 59</td>
+                                    <td>Clear Pass</td>
+                                    <td><span class="badge bg-success">Pass</span></td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>C</strong></td>
+                                    <td>50 - 54</td>
+                                    <td>Bare Pass</td>
+                                    <td><span class="badge bg-success">Pass</span></td>
+                                </tr>
+                                <tr class="table-warning">
+                                    <td><strong>D+</strong></td>
+                                    <td>45 - 49</td>
+                                    <td>Bare Fail</td>
+                                    <td><span class="badge bg-warning">Fail</span></td>
+                                </tr>
+                                <tr class="table-danger">
+                                    <td><strong>D</strong></td>
+                                    <td>0 - 44</td>
+                                    <td>Definite Fail</td>
+                                    <td><span class="badge bg-danger">Fail</span></td>
+                                </tr>
+                                <tr class="table-info">
+                                    <td><strong>F, U, P, S, WP, DC, EX, INC, DEF, SP, DISQ</strong></td>
+                                    <td>N/A</td>
+                                    <td>Special Grades</td>
+                                    <td><span class="badge bg-info">Special</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <strong>Note:</strong> Passing mark is 50 and above. Grades D+ and below require course repetition or supplementary exams.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

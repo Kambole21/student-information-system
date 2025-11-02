@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='staff.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-person-badge"></i> Staff Management</h1>
+                <p class="text-muted">Manage your institution's staff members</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-primary">{{ total_staff }}</h3>
+                            <p class="text-muted mb-0">Total Staff</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people display-4 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-success">{{ active_staff }}</h3>
+                            <p class="text-muted mb-0">Active Staff</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-check display-4 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('staff.staff_registration') }}" class="btn btn-primary w-100 h-100 py-3">
+                                <i class="bi bi-person-plus fs-1"></i>
+                                <div class="mt-2">Register New Staff</div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('staff.staff_list') }}" class="btn btn-success w-100 h-100 py-3">
+                                <i class="bi bi-list-ul fs-1"></i>
+                                <div class="mt-2">View All Staff</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Staff management dashboard. Use the quick actions to manage staff members.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Register new staff members
+                            <span class="badge bg-primary">Add</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            View and manage existing staff
+                            <span class="badge bg-success">Manage</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Update roles and permissions
+                            <span class="badge bg-warning">Edit</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

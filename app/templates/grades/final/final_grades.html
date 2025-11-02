@@ -1,0 +1,537 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='grades.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-trophy"></i> Final Grades Management</h1>
+                <p class="text-muted">Manage final examination grades for students</p>
+            </div>
+        </div>
+    </div>
+
+<!-- Search and Filter Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-search"></i> Search & Filter Students</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label">Search Students</label>
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="Search by student number, name, or email...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Course Code</label>
+                        <input type="text" class="form-control" id="courseCodeFilter" 
+                               placeholder="e.g., CS101, MATH201">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">School</label>
+                        <select class="form-select" id="schoolFilter">
+                            <option value="">All Schools</option>
+                            {% for school in schools %}
+                            <option value="{{ school._id }}">{{ school.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Program</label>
+                        <select class="form-select" id="programFilter">
+                            <option value="">All Programs</option>
+                            {% for program in programs %}
+                            <option value="{{ program._id }}">{{ program.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Academic Year</label>
+                        <select class="form-select" id="academicYearFilter">
+                            <option value="">All Years</option>
+                            {% for year in academic_years %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Course Type</label>
+                        <select class="form-select" id="courseTypeFilter">
+                            <option value="">All Types</option>
+                            <option value="graded">Graded</option>
+                            <option value="ungraded">Ungraded</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary me-2" onclick="clearFilters()">
+                                <i class="bi bi-arrow-clockwise"></i> Clear Filters
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="searchStudents()">
+                                <i class="bi bi-search"></i> Search Students
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Students Results -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Students</h5>
+                </div>
+                <div class="card-body">
+                    <div id="studentsResults">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-search display-4"></i>
+                            <p class="mt-2">Use the search filters above to find students</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grades Form (Hidden by default) -->
+    <div class="row" id="gradesSection" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" id="studentInfoHeader">Final Grades</h5>
+                    <div>
+                        <button type="button" class="btn btn-success me-2" onclick="saveGrades()">
+                            <i class="bi bi-check-circle"></i> Save Grades
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="closeGradesSection()">
+                            <i class="bi bi-arrow-left"></i> Back to Search
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Academic Year</label>
+                            <select class="form-select" id="academicYearSelect">
+                                {% for year in academic_years %}
+                                <option value="{{ year }}" {% if year == '2025/2026' %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Semester</label>
+                            <select class="form-select" id="semesterSelect">
+                                {% for semester in semesters %}
+                                <option value="{{ semester }}" {% if semester == '1' %}selected{% endif %}>Semester {{ semester }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="button" class="btn btn-primary w-100" onclick="loadStudentCourses()">
+                                <i class="bi bi-arrow-clockwise"></i> Load Courses
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="gradesTable">
+                            <thead>
+                                <tr>
+                                    <th>Course Code</th>
+                                    <th>Course Name</th>
+                                    <th>Marks</th>
+                                    <th>Grade</th>
+                                    <th>Remarks</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradesTableBody">
+                                <!-- Grades will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentStudentId = null;
+let currentStudentInfo = null;
+
+function searchStudents() {
+    const searchTerm = document.getElementById('searchInput').value;
+    const courseCode = document.getElementById('courseCodeFilter').value;
+    const schoolId = document.getElementById('schoolFilter').value;
+    const programId = document.getElementById('programFilter').value;
+    const academicYear = document.getElementById('academicYearFilter').value;
+    const courseType = document.getElementById('courseTypeFilter').value;
+    
+    const resultsDiv = document.getElementById('studentsResults');
+    resultsDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border" role="status"></div><p class="mt-2">Searching...</p></div>';
+    
+    const params = new URLSearchParams();
+    if (searchTerm) params.append('search', searchTerm);
+    if (courseCode) params.append('course_code', courseCode);
+    if (schoolId) params.append('school_id', schoolId);
+    if (programId) params.append('program_id', programId);
+    if (academicYear) params.append('academic_year', academicYear);
+    if (courseType) params.append('course_type', courseType);
+    
+    fetch(`/grades/search_students?${params}`)
+        .then(response => response.json())
+        .then(students => {
+            if (students.error) {
+                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${students.error}</div>`;
+                return;
+            }
+            
+            if (students.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-person-x display-4"></i>
+                        <p class="mt-2">No students found matching your criteria</p>
+                        <button type="button" class="btn btn-outline-primary mt-2" onclick="clearFilters(); searchStudents();">
+                            Clear filters and show all students
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="row g-3">';
+            students.forEach(student => {
+                html += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card student-card">
+                            <div class="card-body">
+                                <h6 class="card-title">${student.f_name} ${student.l_name}</h6>
+                                <p class="card-text mb-1">
+                                    <strong>Student #:</strong> ${student.student_number}
+                                </p>
+                                <p class="card-text mb-1">
+                                    <strong>Program:</strong> ${student.program_name}
+                                </p>
+                                <p class="card-text mb-1">
+                                    <strong>School:</strong> ${student.school_name}
+                                </p>
+                                <p class="card-text mb-2">
+                                    <strong>Year:</strong> ${student.academic_year || 'N/A'}
+                                </p>
+                                ${student.matching_courses ? `
+                                <p class="card-text mb-2">
+                                    <strong>Matching Courses:</strong> ${student.matching_courses}
+                                </p>
+                                ` : ''}
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="selectStudent('${student.id}', '${student.f_name} ${student.l_name}', '${student.student_number}')">
+                                        <i class="bi bi-pencil"></i> Enter Grades
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm" onclick="viewStudentResults('${student.id}')">
+                                        <i class="bi bi-eye"></i> View Results
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            resultsDiv.innerHTML = '<div class="alert alert-danger">Error searching students</div>';
+        });
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('courseCodeFilter').value = '';
+    document.getElementById('schoolFilter').value = '';
+    document.getElementById('programFilter').value = '';
+    document.getElementById('academicYearFilter').value = '';
+    document.getElementById('courseTypeFilter').value = '';
+}
+
+function selectStudent(studentId, studentName, studentNumber) {
+    currentStudentId = studentId;
+    currentStudentInfo = { name: studentName, number: studentNumber };
+    
+    // Show grades section
+    document.getElementById('gradesSection').style.display = 'block';
+    document.getElementById('studentInfoHeader').textContent = `Final Grades for ${studentName} (${studentNumber})`;
+    
+    // Scroll to grades section
+    document.getElementById('gradesSection').scrollIntoView({ behavior: 'smooth' });
+    
+    // Load courses for default academic year and semester
+    loadStudentCourses();
+}
+
+function closeGradesSection() {
+    document.getElementById('gradesSection').style.display = 'none';
+    currentStudentId = null;
+    currentStudentInfo = null;
+}
+
+function viewStudentResults(studentId) {
+    window.open(`/grades/student_results/${studentId}`, '_blank');
+}
+
+function loadStudentCourses() {
+    if (!currentStudentId) return;
+    
+    const academicYear = document.getElementById('academicYearSelect').value;
+    const semester = document.getElementById('semesterSelect').value;
+    const courseCode = document.getElementById('courseCodeFilter').value; // Get course code from filter
+    
+    const tbody = document.getElementById('gradesTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Loading courses...</td></tr>';
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    params.append('academic_year', academicYear);
+    params.append('semester', semester);
+    if (courseCode) {
+        params.append('course_code', courseCode);
+    }
+    
+    // Load student courses
+    fetch(`/grades/get_student_courses/${currentStudentId}?${params}`)
+        .then(response => response.json())
+        .then(courses => {
+            if (courses.error) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error: ${courses.error}</td></tr>`;
+                return;
+            }
+            
+            if (courses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No courses found for the selected academic year and semester</td></tr>';
+                return;
+            }
+            
+            // Load existing grades for these courses
+            loadExistingGrades(courses, academicYear, semester);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading courses</td></tr>';
+        });
+}
+
+function loadExistingGrades(courses, academicYear, semester) {
+    fetch(`/grades/get_grades/${currentStudentId}/final?academic_year=${academicYear}&semester=${semester}`)
+        .then(response => response.json())
+        .then(existingGrades => {
+            renderGradesTable(courses, existingGrades);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            renderGradesTable(courses, []);
+        });
+}
+
+function renderGradesTable(courses, existingGrades) {
+    const tbody = document.getElementById('gradesTableBody');
+    let html = '';
+    
+    courses.forEach(course => {
+        const existingGrade = existingGrades.find(g => g.course_id === course.course_id);
+        const marks = existingGrade ? existingGrade.marks : '';
+        const grade = existingGrade ? existingGrade.grade : '';
+        
+        // Determine status and remarks
+        let status = 'Not Graded';
+        let statusClass = 'secondary';
+        let remarks = '';
+        
+        if (grade) {
+            const passingGrades = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'P', 'S', 'EX'];
+            status = passingGrades.includes(grade) ? 'Pass' : 'Fail';
+            statusClass = passingGrades.includes(grade) ? 'success' : 'danger';
+            remarks = passingGrades.includes(grade) ? 'Proceed' : 'Repeat';
+        }
+        
+        html += `
+            <tr>
+                <td>${course.course_code}</td>
+                <td>${course.course_name}</td>
+                <td>
+                    <input type="number" class="form-control form-control-sm marks-input" 
+                           data-course-id="${course.course_id}" 
+                           value="${marks}" min="0" max="100" 
+                           onchange="calculateGrade(this)">
+                </td>
+                <td>
+                    <select class="form-select form-select-sm grade-select" 
+                            data-course-id="${course.course_id}"
+                            onchange="updateRemarks(this)">
+                        <option value="">Select Grade</option>
+                        <option value="A+" ${grade === 'A+' ? 'selected' : ''}>A+</option>
+                        <option value="A" ${grade === 'A' ? 'selected' : ''}>A</option>
+                        <option value="B+" ${grade === 'B+' ? 'selected' : ''}>B+</option>
+                        <option value="B" ${grade === 'B' ? 'selected' : ''}>B</option>
+                        <option value="C+" ${grade === 'C+' ? 'selected' : ''}>C+</option>
+                        <option value="C" ${grade === 'C' ? 'selected' : ''}>C</option>
+                        <option value="D+" ${grade === 'D+' ? 'selected' : ''}>D+</option>
+                        <option value="D" ${grade === 'D' ? 'selected' : ''}>D</option>
+                        <option value="F" ${grade === 'F' ? 'selected' : ''}>F</option>
+                        <option value="U" ${grade === 'U' ? 'selected' : ''}>U</option>
+                        <option value="P" ${grade === 'P' ? 'selected' : ''}>P</option>
+                        <option value="S" ${grade === 'S' ? 'selected' : ''}>S</option>
+                        <option value="WP" ${grade === 'WP' ? 'selected' : ''}>WP</option>
+                        <option value="DC" ${grade === 'DC' ? 'selected' : ''}>DC</option>
+                        <option value="EX" ${grade === 'EX' ? 'selected' : ''}>EX</option>
+                        <option value="INC" ${grade === 'INC' ? 'selected' : ''}>INC</option>
+                        <option value="DEF" ${grade === 'DEF' ? 'selected' : ''}>DEF</option>
+                        <option value="SP" ${grade === 'SP' ? 'selected' : ''}>SP</option>
+                        <option value="DISQ" ${grade === 'DISQ' ? 'selected' : ''}>DISQ</option>
+                    </select>
+                </td>
+                <td>
+                    <span class="remarks-display" data-course-id="${course.course_id}">${remarks}</span>
+                </td>
+                <td>
+                    <span class="badge bg-${statusClass}">${status}</span>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+function calculateGrade(input) {
+    const marks = parseInt(input.value);
+    const courseId = input.getAttribute('data-course-id');
+    const gradeSelect = document.querySelector(`.grade-select[data-course-id="${courseId}"]`);
+    
+    if (!isNaN(marks)) {
+        let calculatedGrade = '';
+        if (marks >= 86) calculatedGrade = 'A+';
+        else if (marks >= 76) calculatedGrade = 'A';
+        else if (marks >= 66) calculatedGrade = 'B+';
+        else if (marks >= 60) calculatedGrade = 'B';
+        else if (marks >= 55) calculatedGrade = 'C+';
+        else if (marks >= 50) calculatedGrade = 'C';
+        else if (marks >= 45) calculatedGrade = 'D+';
+        else calculatedGrade = 'D';
+        
+        gradeSelect.value = calculatedGrade;
+        updateRemarks(gradeSelect);
+    }
+}
+
+function updateRemarks(select) {
+    const courseId = select.getAttribute('data-course-id');
+    const grade = select.value;
+    const remarksDisplay = document.querySelector(`.remarks-display[data-course-id="${courseId}"]`);
+    const row = select.closest('tr');
+    const statusBadge = row.querySelector('.badge');
+    
+    let remarks = '';
+    let status = 'Not Graded';
+    let statusClass = 'secondary';
+    
+    if (grade) {
+        const passingGrades = ['A+', 'A', 'B+', 'B', 'C+', 'C', 'P', 'S', 'EX'];
+        status = passingGrades.includes(grade) ? 'Pass' : 'Fail';
+        statusClass = passingGrades.includes(grade) ? 'success' : 'danger';
+        remarks = passingGrades.includes(grade) ? 'Proceed' : 'Repeat';
+    }
+    
+    remarksDisplay.textContent = remarks;
+    statusBadge.textContent = status;
+    statusBadge.className = `badge bg-${statusClass}`;
+}
+
+function saveGrades() {
+    if (!currentStudentId) {
+        alert('Please select a student first');
+        return;
+    }
+    
+    const academicYear = document.getElementById('academicYearSelect').value;
+    const semester = document.getElementById('semesterSelect').value;
+    
+    const grades = [];
+    const gradeInputs = document.querySelectorAll('.grade-select');
+    
+    gradeInputs.forEach(select => {
+        const courseId = select.getAttribute('data-course-id');
+        const marksInput = document.querySelector(`.marks-input[data-course-id="${courseId}"]`);
+        
+        if (select.value) {
+            grades.push({
+                course_id: courseId,
+                marks: marksInput.value ? parseInt(marksInput.value) : null,
+                grade: select.value
+                // Remarks will be auto-generated in the backend
+            });
+        }
+    });
+    
+    if (grades.length === 0) {
+        alert('Please enter at least one grade');
+        return;
+    }
+    
+    fetch(`/grades/save_grades/${currentStudentId}/final`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            academic_year: academicYear,
+            semester: semester,
+            grades: grades
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('Error saving grades: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving grades');
+    });
+}
+
+// Add event listener for Enter key in search
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchStudents();
+    }
+});
+</script>
+{% endblock %}

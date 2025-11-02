@@ -1,0 +1,394 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='academic_manager.css')}}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <div class="header-content">
+                    <h1><i class="bi bi-mortarboard"></i> Academic Manager</h1>
+                    <p class="text-muted">Comprehensive overview of academic programs, schools, and courses</p>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <i class="bi bi-building"></i>
+                        <span class="stat-number">{{ schools_count }}</span>
+                        <span class="stat-label">Schools</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="bi bi-diagram-3"></i>
+                        <span class="stat-number">{{ programs_count }}</span>
+                        <span class="stat-label">Programs</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="bi bi-book"></i>
+                        <span class="stat-number">{{ courses_count }}</span>
+                        <span class="stat-label">Courses</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card quick-actions-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa-solid fa-truck-fast"></i> Easy Access</h5>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions-grid">
+                        <a href="{{ url_for('courses_programs.schools_management') }}" class="quick-action-item">
+                            <div class="action-icon school">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div class="action-content">
+                                <h6>Manage Schools</h6>
+                                <p>Add, edit, or remove schools</p>
+                                <span class="action-count">{{ schools_count }} schools</span>
+                            </div>
+                            <div class="action-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('courses_programs.programs_management') }}" class="quick-action-item">
+                            <div class="action-icon program">
+                                <i class="bi bi-diagram-3"></i>
+                            </div>
+                            <div class="action-content">
+                                <h6>Manage Programs</h6>
+                                <p>Manage academic programs</p>
+                                <span class="action-count">{{ programs_count }} programs</span>
+                            </div>
+                            <div class="action-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('courses_programs.courses_management') }}" class="quick-action-item">
+                            <div class="action-icon course">
+                                <i class="bi bi-book"></i>
+                            </div>
+                            <div class="action-content">
+                                <h6>Manage Courses</h6>
+                                <p>Handle course catalog</p>
+                                <span class="action-count">{{ courses_count }} courses</span>
+                            </div>
+                            <div class="action-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+
+                        <button class="quick-action-item" data-bs-toggle="modal" data-bs-target="#quickAddModal">
+                            <div class="action-icon add">
+                                <i class="bi bi-plus-circle"></i>
+                            </div>
+                            <div class="action-content">
+                                <h6>Quick Add</h6>
+                                <p>Add new school, program, or course</p>
+                                <span class="action-count">Multiple options</span>
+                            </div>
+                            <div class="action-arrow">
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-card-icon school">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3>{{ schools_count }}</h3>
+                        <p>Total Schools</p>
+                        <div class="stat-progress">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ (schools_count / (1|max(schools_count))) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-card-icon program">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3>{{ programs_count }}</h3>
+                        <p>Total Programs</p>
+                        <div class="stat-progress">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ (programs_count / (1|max(programs_count))) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-card-icon course">
+                        <i class="bi bi-book"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3>{{ courses_count }}</h3>
+                        <p>Total Courses</p>
+                        <div class="stat-progress">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ (courses_count / (1|max(courses_count))) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Overview -->
+    <div class="row">
+        <!-- Recent Schools -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Schools</h5>
+                    <a href="{{ url_for('courses_programs.schools_management') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_schools %}
+                    <div class="list-group list-group-flush">
+                        {% for school in recent_schools %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ school.name }}</h6>
+                                    <p class="mb-1 text-muted small">{{ school.code }}</p>
+                                    {% if school.dean %}
+                                    <small class="text-muted">Dean: {{ school.dean }}</small>
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-{{ 'success' if school.status == 'active' else 'secondary' }}">
+                                    {{ school.status|title }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-building text-muted display-6"></i>
+                        <p class="text-muted mt-2">No schools found</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Programs -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Programs</h5>
+                    <a href="{{ url_for('courses_programs.programs_management') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_programs %}
+                    <div class="list-group list-group-flush">
+                        {% for program in recent_programs %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ program.name }}</h6>
+                                    <p class="mb-1 text-muted small">{{ program.code }}</p>
+                                    <small class="text-muted">{{ program.duration }} • {{ program.credits_required }} credits</small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if program.status == 'active' else 'secondary' }}">
+                                    {{ program.status|title }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-diagram-3 text-muted display-6"></i>
+                        <p class="text-muted mt-2">No programs found</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Courses -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Courses</h5>
+                    <a href="{{ url_for('courses_programs.courses_management') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_courses %}
+                    <div class="list-group list-group-flush">
+                        {% for course in recent_courses %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ course.name }}</h6>
+                                    <p class="mb-1 text-muted small">{{ course.code }}</p>
+                                    <small class="text-muted">{{ course.credits }} credits • Level {{ course.level }}</small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if course.status == 'active' else 'secondary' }}">
+                                    {{ course.status|title }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-book text-muted display-6"></i>
+                        <p class="text-muted mt-2">No courses found</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> System Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="status-item">
+                                <div class="status-indicator active"></div>
+                                <div class="status-content">
+                                    <h6>Schools</h6>
+                                    <p>{{ active_schools_count }} active</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="status-item">
+                                <div class="status-indicator active"></div>
+                                <div class="status-content">
+                                    <h6>Programs</h6>
+                                    <p>{{ active_programs_count }} active</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="status-item">
+                                <div class="status-indicator active"></div>
+                                <div class="status-content">
+                                    <h6>Courses</h6>
+                                    <p>{{ active_courses_count }} active</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="status-item">
+                                <div class="status-indicator active"></div>
+                                <div class="status-content">
+                                    <h6>System</h6>
+                                    <p>All systems operational</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick Add</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="quick-add-options">
+                    <a href="#" class="quick-add-option" data-bs-toggle="modal" data-bs-target="#addSchoolModal" data-bs-dismiss="modal">
+                        <div class="option-icon school">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div class="option-content">
+                            <h6>Add School</h6>
+                            <p>Create a new school</p>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="quick-add-option" data-bs-toggle="modal" data-bs-target="#addProgramModal" data-bs-dismiss="modal">
+                        <div class="option-icon program">
+                            <i class="bi bi-diagram-3"></i>
+                        </div>
+                        <div class="option-content">
+                            <h6>Add Program</h6>
+                            <p>Create a new program</p>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="quick-add-option" data-bs-toggle="modal" data-bs-target="#addCourseModal" data-bs-dismiss="modal">
+                        <div class="option-icon course">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <div class="option-content">
+                            <h6>Add Course</h6>
+                            <p>Create a new course</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include the existing modals from individual pages -->
+{% include 'academics/courses_program/modals/add_school.html' %}
+{% include 'academics/courses_program/modals/add_program.html' %}
+{% include 'academics/courses_program/modals/add_course.html' %}
+
+<script>
+// Quick Add Modal handlers
+document.addEventListener('DOMContentLoaded', function() {
+    // You can add any dashboard-specific JavaScript here
+    console.log('Academic Manager Dashboard loaded');
+});
+</script>
+{% endblock %}

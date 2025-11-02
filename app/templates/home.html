@@ -1,0 +1,159 @@
+{% extends 'layout.html' %}
+ {% block content %}
+
+ <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='home.css')}}">
+
+
+
+             <!-- Main Content -->
+            <div class="col-lg-10 col-md-9 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0">Student Information</h1>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i> Export
+                    </button>
+                </div>
+
+                <!-- Student ID and Status Section -->
+                <div class="card info-section">
+                    <div class="card-header">Student Information</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">Student ID</div>
+                                <div class="info-value">10:01:00</div>
+                                
+                                <div class="info-label">Student Status</div>
+                                <div class="info-value">
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                                
+                                <div class="info-label">Residency Status</div>
+                                <div class="info-value">Accommodant</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">Class Standing</div>
+                                <div class="info-value">Senior</div>
+                                
+                                <div class="info-label">Location</div>
+                                <div class="info-value">Main Campus</div>
+                                
+                                <div class="info-label">Primary Program of Study</div>
+                                <div class="info-value">Biological Sciences Major</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="card info-section">
+                    <div class="card-header">Contact Information - Public</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">Phone</div>
+                                <div class="info-value">+1 213 735-0977</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">atm.med@email.saynet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Activity -->
+                <div class="card info-section">
+                    <div class="card-header">Account Activity</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="balance-card">
+                                    <div class="info-label">Total Account Balance</div>
+                                    <div class="balance-amount">$21,526.00</div>
+                                    
+                                    <div class="info-label">Due Now</div>
+                                    <div class="due-amount">$14,931.74</div>
+                                    
+                                    <button class="btn btn-light">
+                                        <i class="bi bi-credit-card me-1"></i> Make a Payment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Progress -->
+                <div class="card info-section">
+                    <div class="card-header">Academic Progress</div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Biological Sciences Major</span>
+                            <span>11.3%</span>
+                        </div>
+                        <div class="progress-bar mb-2">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="text-muted">21 Satisfied / 47.12 Requirements</div>
+                    </div>
+                </div>
+
+                <!-- Housing Assignment -->
+                <div class="card info-section">
+                    <div class="card-header">Housing Assignment</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>Location</th>
+                                        <td>William Hall</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Room #</th>
+                                        <td>701-651</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Room Type</th>
+                                        <td>Double</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Assignment Status</th>
+                                        <td>In Room</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Academic Period</th>
+                                        <td>2025 Spring Semester</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Check in Date</th>
+                                        <td>01/07/2025 12:00 AM</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Check Out Date</th>
+                                        <td>05/17/2025 12:00 PM</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <div class="card info-section">
+                    <div class="card-header">Skills</div>
+                    <div class="card-body">
+                        <div class="skill-tag">Biology</div>
+                        <div class="skill-tag">Dentistry Medical Quantum (MQC)</div>
+                        <div class="skill-tag">Microbiology</div>
+                        <div class="skill-tag">Molecular Cell Biology</div>
+                        <div class="skill-tag">Molecular Genetics</div>
+                        <div class="skill-tag">Violin</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+ {% endblock  %}

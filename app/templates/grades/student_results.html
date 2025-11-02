@@ -1,0 +1,216 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='grades.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-file-text"></i> Student Results</h1>
+                <p class="text-muted">Academic results for {{ student.f_name }} {{ student.l_name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person"></i> Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Student Number:</strong><br>
+                            <strong>Name:</strong><br>
+                            <strong>Program:</strong><br>
+                            <strong>School:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ student.student_number }}<br>
+                            {{ student.f_name }} {{ student.l_name }}<br>
+                            {{ program.name if program else 'N/A' }}<br>
+                            {{ school.name if school else 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Performance Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3>{{ final_grades|length }}</h3>
+                            <small class="text-muted">Final Exams</small>
+                        </div>
+                        <div class="col-4">
+                            <h3>{{ mock_grades|length }}</h3>
+                            <small class="text-muted">Mock Exams</small>
+                        </div>
+                        <div class="col-4">
+                            <h3>{{ (final_grades + mock_grades)|length }}</h3>
+                            <small class="text-muted">Total Records</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Exam Results -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-trophy"></i> Final Examination Results</h5>
+                </div>
+                <div class="card-body">
+                    {% if final_grades %}
+                        {% for grade_doc in final_grades %}
+                        <div class="mb-4">
+                            <h6>{{ grade_doc.academic_year }} - Semester {{ grade_doc.semester }}</h6>
+                            <small class="text-muted">Entered on: {{ grade_doc.entered_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Course Code</th>
+                                            <th>Course Name</th>
+                                            <th>Marks</th>
+                                            <th>Grade</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for grade in grade_doc.grades %}
+                                        {% set course = courses_dict.get(grade.course_id) %}
+                                        {% if course %}
+                                        <tr class="{{ 'table-success' if grade.remarks == 'Proceed' else 'table-danger' }}">
+                                            <td>{{ course.code }}</td>
+                                            <td>{{ course.name }}</td>
+                                            <td>{{ grade.marks if grade.marks else 'N/A' }}</td>
+                                            <td><strong>{{ grade.grade }}</strong></td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if grade.remarks == 'Proceed' else 'danger' }}">
+                                                    {{ grade.remarks }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr class="table-warning">
+                                            <td colspan="5" class="text-center">Course information not found</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% if not loop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-trophy display-4 text-muted"></i>
+                            <p class="text-muted mt-3">No final examination results available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mock Exam Results -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Mock Examination Results</h5>
+                </div>
+                <div class="card-body">
+                    {% if mock_grades %}
+                        {% for grade_doc in mock_grades %}
+                        <div class="mb-4">
+                            <h6>{{ grade_doc.academic_year }} - Semester {{ grade_doc.semester }}</h6>
+                            <small class="text-muted">Entered on: {{ grade_doc.entered_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Course Code</th>
+                                            <th>Course Name</th>
+                                            <th>Marks</th>
+                                            <th>Grade</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for grade in grade_doc.grades %}
+                                        {% set course = courses_dict.get(grade.course_id) %}
+                                        {% if course %}
+                                        <tr class="{{ 'table-success' if grade.remarks == 'Proceed' else 'table-danger' }}">
+                                            <td>{{ course.code }}</td>
+                                            <td>{{ course.name }}</td>
+                                            <td>{{ grade.marks if grade.marks else 'N/A' }}</td>
+                                            <td><strong>{{ grade.grade }}</strong></td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if grade.remarks == 'Proceed' else 'danger' }}">
+                                                    {{ grade.remarks }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr class="table-warning">
+                                            <td colspan="5" class="text-center">Course information not found</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% if not loop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-pencil-square display-4 text-muted"></i>
+                            <p class="text-muted mt-3">No mock examination results available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('grades.final_grades') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Back to Grades Management
+                </a>
+                <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-info">
+                    <i class="bi bi-person"></i> View Student Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

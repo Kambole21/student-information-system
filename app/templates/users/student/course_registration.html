@@ -1,0 +1,334 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-journal-plus"></i> Course Registration</h1>
+                <p class="text-muted">Register courses for {{ student.f_name }} {{ student.l_name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Student Info -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person"></i> Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}" 
+                             alt="{{ student.f_name }} {{ student.l_name }}" 
+                             class="student-photo me-3">
+                        <div>
+                            <h6 class="mb-0">{{ student.f_name }} {{ student.l_name }}</h6>
+                            <small class="text-muted">#{{ student.student_number }}</small>
+                        </div>
+                    </div>
+                    <div class="student-info">
+                        <p><strong>Program:</strong> {{ program.name if program else 'N/A' }}</p>
+                        <p><strong>School:</strong> {{ school.name if school else 'N/A' }}</p>
+                        <p><strong>Year:</strong> {{ student.year_of_enrollment }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Registration Info</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('student.enroll_courses', student_id=student._id) }}" id="registrationForm">
+                        <div class="mb-3">
+                            <label class="form-label">Academic Year *</label>
+                            <select class="form-select" name="academic_year" id="academicYearSelect" required>
+                                <option value="">Select Academic Year</option>
+                                {% for year in academic_years %}
+                                <option value="{{ year }}">{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Semester *</label>
+                            <select class="form-select" name="semester" id="semesterSelect" required>
+                                <option value="">Select Semester</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Hidden field to store selected courses -->
+                        <input type="hidden" name="selected_courses" id="selectedCoursesInput">
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                                <i class="bi bi-check-circle"></i> Register Selected Courses
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Selection -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-journal-text"></i> Available Courses</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="selectAll">
+                        <label class="form-check-label" for="selectAll">Select All</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- School Filter -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Filter by School</label>
+                            <select class="form-select" id="schoolFilter">
+                                <option value="">All Schools</option>
+                                {% for school in all_schools %}
+                                <option value="{{ school._id }}">{{ school.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Filter by Semester</label>
+                            <select class="form-select" id="semesterFilter">
+                                <option value="">All Semesters</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {% if available_courses %}
+                    <div class="row g-3" id="coursesContainer">
+                        {% for course in available_courses %}
+                        <div class="col-md-6 course-item" data-school="{{ course.school_id }}" data-semester="{{ course.semester }}">
+                            <div class="course-card {{ 'course-selected' if course._id|string in enrolled_course_ids else '' }} {{ 'course-other-school' if not course.is_student_program else '' }}">
+                                <div class="form-check">
+                                    <input class="form-check-input course-checkbox" type="checkbox" 
+                                           name="courses" 
+                                           value="{{ course._id }}" 
+                                           id="course{{ course._id }}"
+                                           data-course-id="{{ course._id }}"
+                                           {{ 'checked' if course._id|string in enrolled_course_ids else '' }}>
+                                    <label class="form-check-label w-100" for="course{{ course._id }}">
+                                        <div class="course-info">
+                                            <h6 class="course-title">{{ course.name }}</h6>
+                                            <p class="course-code mb-1">{{ course.code }}</p>
+                                            <p class="course-credits mb-1">
+                                                <i class="bi bi-award"></i> {{ course.credits }} Credits
+                                            </p>
+                                            <p class="course-semester mb-1">
+                                                <i class="bi bi-calendar"></i> Semester {{ course.semester }}
+                                            </p>
+                                            <div class="course-meta">
+                                                <span class="badge bg-primary mb-1">{{ course.program_name }}</span>
+                                                <span class="badge bg-secondary school-badge">{{ course.school_name }}</span>
+                                                {% if not course.is_student_program %}
+                                                <span class="badge bg-warning text-dark">Cross-School</span>
+                                                {% endif %}
+                                            </div>
+                                            {% if course.description %}
+                                            <p class="course-description">{{ course.description[:100] }}{% if course.description|length > 100 %}...{% endif %}</p>
+                                            {% endif %}
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-journal-x display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No Courses Available</h4>
+                        <p class="text-muted">There are no courses available for this student's program.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const courseCheckboxes = document.querySelectorAll('.course-checkbox');
+    const registrationForm = document.getElementById('registrationForm');
+    const semesterSelect = document.getElementById('semesterSelect');
+    const academicYearSelect = document.getElementById('academicYearSelect');
+    const submitBtn = document.getElementById('submitBtn');
+    const selectedCoursesInput = document.getElementById('selectedCoursesInput');
+    const schoolFilter = document.getElementById('schoolFilter');
+    const semesterFilter = document.getElementById('semesterFilter');
+    const courseItems = document.querySelectorAll('.course-item');
+
+    // Filter courses by school and semester
+    function filterCourses() {
+        const selectedSchool = schoolFilter.value;
+        const selectedSemester = semesterFilter.value;
+        
+        courseItems.forEach(item => {
+            const schoolMatch = !selectedSchool || item.getAttribute('data-school') === selectedSchool;
+            const semesterMatch = !selectedSemester || item.getAttribute('data-semester') === selectedSemester;
+            
+            if (schoolMatch && semesterMatch) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // School filter change
+    schoolFilter.addEventListener('change', filterCourses);
+    semesterFilter.addEventListener('change', filterCourses);
+
+    // Select all functionality
+    selectAllCheckbox.addEventListener('change', function() {
+        const visibleCourses = document.querySelectorAll('.course-item[style=""] .course-checkbox, .course-item:not([style]) .course-checkbox');
+        visibleCourses.forEach(checkbox => {
+            checkbox.checked = this.checked;
+            updateCourseCard(checkbox);
+        });
+        updateSubmitButton();
+    });
+
+    // Update course card appearance when checked
+    courseCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateCourseCard(this);
+            updateSubmitButton();
+            updateSelectAllCheckbox();
+        });
+        // Initialize card appearance
+        updateCourseCard(checkbox);
+    });
+
+    // Semester and academic year selection change
+    semesterSelect.addEventListener('change', updateSubmitButton);
+    academicYearSelect.addEventListener('change', updateSubmitButton);
+
+    function updateCourseCard(checkbox) {
+        const courseCard = checkbox.closest('.course-card');
+        if (checkbox.checked) {
+            courseCard.classList.add('course-selected');
+        } else {
+            courseCard.classList.remove('course-selected');
+        }
+    }
+
+    function updateSelectAllCheckbox() {
+        const visibleCourses = document.querySelectorAll('.course-item[style=""] .course-checkbox, .course-item:not([style]) .course-checkbox');
+        const allChecked = visibleCourses.length > 0 && 
+                          Array.from(visibleCourses).every(checkbox => checkbox.checked);
+        selectAllCheckbox.checked = allChecked;
+    }
+
+    function updateSubmitButton() {
+        const selectedCourses = document.querySelectorAll('.course-checkbox:checked');
+        const semester = semesterSelect.value;
+        const academicYear = academicYearSelect.value;
+        
+        if (selectedCourses.length > 0 && semester && academicYear) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="bi bi-check-circle"></i> Register ${selectedCourses.length} Courses for ${academicYear}, Semester ${semester}`;
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="bi bi-check-circle"></i> Register Selected Courses`;
+        }
+    }
+
+    // Form submission - collect selected courses and put them in hidden input
+    registrationForm.addEventListener('submit', function(e) {
+        const selectedCourses = document.querySelectorAll('.course-checkbox:checked');
+        const semester = semesterSelect.value;
+        const academicYear = academicYearSelect.value;
+        
+        console.log("Form submission - Selected courses:", selectedCourses.length);
+        console.log("Form submission - Semester:", semester);
+        console.log("Form submission - Academic Year:", academicYear);
+        
+        if (!semester) {
+            e.preventDefault();
+            alert('Please select a semester.');
+            return;
+        }
+        
+        if (!academicYear) {
+            e.preventDefault();
+            alert('Please select an academic year.');
+            return;
+        }
+        
+        if (selectedCourses.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one course.');
+            return;
+        }
+
+        // Collect selected course IDs and store in hidden input
+        const courseIds = Array.from(selectedCourses).map(checkbox => checkbox.value);
+        selectedCoursesInput.value = courseIds.join(',');
+        
+        console.log("Course IDs being submitted:", courseIds);
+        
+        // Create hidden inputs for each course (alternative method)
+        // Remove any existing hidden course inputs first
+        document.querySelectorAll('input[name="courses"]').forEach(input => input.remove());
+        
+        // Add hidden inputs for each selected course
+        courseIds.forEach(courseId => {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'courses';
+            hiddenInput.value = courseId;
+            registrationForm.appendChild(hiddenInput);
+        });
+
+        // Log each selected course
+        selectedCourses.forEach((checkbox, index) => {
+            console.log(`Selected course ${index + 1}:`, checkbox.value, checkbox.id);
+        });
+    });
+
+    // Initialize button state and filters
+    updateSubmitButton();
+    filterCourses();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-people-fill"></i> Student Management</h1>
+                <p class="text-muted">Manage your institution's students and academic records</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-primary">{{ total_students }}</h3>
+                            <p class="text-muted mb-0">Total Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people display-4 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-success">{{ active_students }}</h3>
+                            <p class="text-muted mb-0">Active Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-check display-4 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-info">{{ total_students - active_students }}</h3>
+                            <p class="text-muted mb-0">Inactive Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-x display-4 text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-warning">0</h3>
+                            <p class="text-muted mb-0">Pending Registrations</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clock display-4 text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('student.student_registration') }}" class="btn btn-primary w-100 h-100 py-3">
+                                <i class="bi bi-person-plus fs-1"></i>
+                                <div class="mt-2">Register New Student</div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('student.student_list') }}" class="btn btn-success w-100 h-100 py-3">
+                                <i class="bi bi-list-ul fs-1"></i>
+                                <div class="mt-2">View All Students</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Student management dashboard. Use the quick actions to manage students.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Register new students
+                            <span class="badge bg-primary">Add</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            View and manage student records
+                            <span class="badge bg-success">Manage</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Course registration and enrollment
+                            <span class="badge bg-warning">Enroll</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Update academic information
+                            <span class="badge bg-info">Update</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

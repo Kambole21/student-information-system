@@ -1,0 +1,553 @@
+/* Student Management Styles */
+.page-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.student-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+}
+
+.student-profile-photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Stat Cards */
+.stat-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card .display-4 {
+    opacity: 0.8;
+}
+
+/* Role Badge Styles */
+.role-badge {
+    font-size: 0.75em;
+    padding: 0.4em 0.8em;
+    text-transform: capitalize;
+}
+
+.role-badge.student {
+    background-color: #28a745 !important;
+    color: white;
+}
+
+/* Form Styles */
+.card {
+    border: none;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    border-radius: 10px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.card-header h5 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Table Styles */
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 1rem 0.75rem;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.btn-outline-primary {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.btn-outline-primary:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Profile Styles */
+.profile-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.meta-item:last-child {
+    border-bottom: none;
+}
+
+.meta-item i {
+    width: 20px;
+    color: #28a745;
+}
+
+.meta-item span {
+    flex: 1;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.meta-item strong {
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.info-group {
+    margin-bottom: 1.5rem;
+}
+
+.info-group:last-child {
+    margin-bottom: 0;
+}
+
+.info-group label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    margin: 0;
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.info-group a {
+    color: #28a745;
+    text-decoration: none;
+}
+
+.info-group a:hover {
+    color: #218838;
+    text-decoration: underline;
+}
+
+/* Course Registration Styles */
+.course-card {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.course-card:hover {
+    border-color: #28a745;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.course-card.course-selected {
+    border-color: #28a745;
+    background-color: #f8fff9;
+}
+
+.course-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.course-code {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.course-credits, .course-semester {
+    color: #495057;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.course-description {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+
+.course-checkbox {
+    margin-right: 0.5rem;
+}
+
+.form-check-label {
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Student Info in Course Registration */
+.student-info p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.student-info strong {
+    color: #495057;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .student-profile-photo {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .student-photo {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .meta-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .course-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animation for profile elements */
+.profile-image-container {
+    transition: transform 0.3s ease;
+}
+
+.profile-image-container:hover {
+    transform: scale(1.05);
+}
+
+/* Status indicator pulse for active students */
+.status-indicator .badge.bg-success {
+    position: relative;
+}
+
+.status-indicator .badge.bg-success::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: inherit;
+    border-radius: inherit;
+    opacity: 0.4;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.2;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+}
+
+/* Quick Actions */
+.btn-action {
+    padding: 1.5rem;
+    text-align: center;
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Search Box */
+#searchInput {
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+}
+
+/* Dropdown Styles */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Alert Styles */
+.alert {
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background-color: #d1f2eb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Course Registration Specific Styles */
+.course-prerequisites {
+    font-size: 0.75rem;
+    margin-bottom: 0;
+    padding: 0.25rem 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #ffc107;
+}
+
+.alert-link {
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Disabled state styles */
+.form-select:disabled, .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Warning states */
+.text-warning {
+    color: #fd7e14 !important;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+#edit-photo{
+    width: 90px;
+    height: 90;
+    border-radius: 50px;
+}
+
+/* Style for courses from other schools */
+.course-other-school {
+    border-left: 4px solid #ffc107;
+    background-color: #fffbf0;
+}
+
+.course-other-school .course-checkbox:checked ~ .course-info .course-title {
+    color: #856404;
+}
+
+.course-meta .badge {
+    font-size: 0.7em;
+    margin-right: 0.3rem;
+}
+/* Button states */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Course selection states */
+.course-selected {
+    border-color: #0d6efd !important;
+    background-color: #f8f9fa !important;
+}
+
+.course-checkbox:checked ~ .course-info .course-title {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+/* Academic Year and Semester Styles */
+.academic-year-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 0.8em;
+}
+
+.semester-badge {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    font-size: 0.8em;
+}
+
+/* Course Filter Styles */
+.course-item {
+    transition: all 0.3s ease;
+}
+
+.course-item:hover {
+    transform: translateY(-2px);
+}
+
+/* School Badge Styles */
+.school-badge {
+    font-size: 0.7em;
+}
+
+/* Table enhancements for courses */
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+/* Statistics Cards */
+.card .text-center h3 {
+    font-weight: 700;
+}
+
+.card .text-center h5 {
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .course-item {
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Filter section styles */
+#schoolFilter, #semesterFilter {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+/* Course grouping headers */
+.card-header h5 .bi-calendar-range {
+    color: #6f42c1;
+}
+
+.input-group .btn {
+    border-left: 0;
+}
+
+.card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.info-group {
+    margin-bottom: 1rem;
+}
+
+.info-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.info-value {
+    color: #212529;
+    margin-bottom: 0;
+}

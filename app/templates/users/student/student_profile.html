@@ -1,0 +1,458 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-person-badge"></i> Student Profile</h1>
+                <p class="text-muted">View student details and academic information</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Profile Info -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="profile-image-container mb-4">
+                        <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}" 
+                             alt="{{ student.f_name }} {{ student.l_name }}" 
+                             class="student-profile-photo">
+                    </div>
+                    <h3 class="mb-1">{{ student.f_name }} {{ student.l_name }}</h3>
+                    <p class="text-muted mb-2">{{program.name}}</p>
+                    <span class="badge role-badge student mb-3">
+                        Student
+                    </span>
+                    
+                    <div class="status-indicator mb-3">
+                        <span class="badge bg-{{ 'success' if student.status == 'active' else 'secondary' }}">
+                            <i class="bi bi-circle-fill me-1"></i>
+                            {{ student.status|title }}
+                        </span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('student.edit_student', student_id=student._id) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit Profile
+                        </a>
+                        <a href="{{ url_for('student.course_registration', student_id=student._id) }}" class="btn btn-outline-warning">
+                            <i class="bi bi-journal-plus"></i> Register Courses
+                        </a>
+                        <a href="{{ url_for('student.student_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Profile Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="bi bi-person"></i>
+                            <span>Student ID:</span>
+                            <strong>{{ student.student_number}}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-calendar"></i>
+                            <span>Enrolled:</span>
+                            <strong>{{ student.year_of_enrollment }}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>Exam Location:</span>
+                            <strong>{{ student.exam_location }}</strong>
+                        </div>
+                        {% if student.updated_at %}
+                        <div class="meta-item">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            <span>Last updated:</span>
+                            <strong>{{ student.updated_at.strftime('%b %d, %Y') }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Details -->
+        <div class="col-lg-8">
+            <!-- Personal Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>First Name</label>
+                            <p class="info-value">{{ student.f_name }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Last Name</label>
+                            <p class="info-value">{{ student.l_name }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Student Number</label>
+                            <p class="info-value">#{{ student.student_number }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>National ID</label>
+                            <p class="info-value">{{ student.national_id }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Gender</label>
+                            <p class="info-value">{{ student.gender|title }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Date of Birth</label>
+                            <p class="info-value">
+                                {% if student.birthday %}
+                                    {{ student.birthday.strftime('%B %d, %Y') }}
+                                {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Year of Enrollment</label>
+                            <p class="info-value">{{ student.year_of_enrollment }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-envelope"></i> Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Email Address</label>
+                                <p class="info-value">
+                                    <a href="mailto:{{ student.email }}">{{ student.email }}</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Exam Location</label>
+                                <p class="info-value">{{ student.exam_location }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-group">
+                        <label>Residential Address</label>
+                        <p class="info-value">{{ student.residential_address }}</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Town/City</label>
+                                <p class="info-value">{{ student.town }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Country</label>
+                                <p class="info-value">{{ student.country }}</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-book"></i> Academic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>School</label>
+                                <p class="info-value">
+                                    {% if school %}
+                                        {{ school.name }}
+                                    {% else %}
+                                        <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Program</label>
+                                <p class="info-value">
+                                    {% if program %}
+                                        {{ program.name }}
+                                    {% else %}
+                                        <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-group">
+                        <label>Status</label>
+                        <p class="info-value">
+                            <span class="badge bg-{{ 'success' if student.status == 'active' else 'secondary' }}">
+                                {{ student.status|title }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Enrolled Courses Section - Updated with Debug Info -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-journal-check"></i> Recently Enrolled Courses</h5>
+                    <div>
+                        {% if total_courses_count > 5 %}
+                        <a href="{{ url_for('student.student_courses', student_id=student._id) }}" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="bi bi-list-ul"></i> View All Courses ({{ total_courses_count }})
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('student.course_registration', student_id=student._id) }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-journal-plus"></i> Register Courses
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if enrolled_courses %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Course Code</th>
+                                    <th>Course Name</th>
+                                    <th>Semester</th>
+                                    <th>Academic Year</th>
+                                    <th>Credits</th>
+                                    <th>School</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ec in enrolled_courses %}
+                                <tr class="{{ 'table-warning' if ec.program and ec.program._id|string != student.program_id|string else '' }}">
+                                    <td>{{ ec.course.code }}</td>
+                                    <td>{{ ec.course.name }}</td>
+                                    <td>
+                                        <span class="badge bg-info">Semester {{ ec.semester }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ ec.academic_year }}</span>
+                                    </td>
+                                    <td>{{ ec.course.credits }}</td>
+                                    <td>
+                                        {% if ec.school %}
+                                            {{ ec.school.name }}
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if ec.status == 'enrolled' else 'warning' }}">
+                                            {{ ec.status|title }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if total_courses_count > 5 %}
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Showing 5 most recent courses of {{ total_courses_count }} total</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-journal-x display-4 text-muted"></i>
+                        <h5 class="text-muted mt-3">No Courses Enrolled</h5>
+                        <p class="text-muted">This student hasn't registered for any courses yet.</p>
+                        <a href="{{ url_for('student.course_registration', student_id=student._id) }}" class="btn btn-primary">
+                            <i class="bi bi-journal-plus"></i> Register Courses
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-person-heart"></i> Next of Kin Information</h5>
+    </div>
+    <div class="card-body">
+        {% if student.next_of_kin %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label>Full Name</label>
+                    <p class="info-value">{{ student.next_of_kin.name }}</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-group">
+                    <label>Relationship</label>
+                    <p class="info-value">{{ student.next_of_kin.relationship }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="info-group">
+            <label>Address</label>
+            <p class="info-value">{{ student.next_of_kin.address }}</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="info-group">
+                    <label>Town/City</label>
+                    <p class="info-value">{{ student.next_of_kin.town }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-group">
+                    <label>Country</label>
+                    <p class="info-value">{{ student.next_of_kin.country }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-group">
+                    <label>Phone Number</label>
+                    <p class="info-value">
+                        <a href="tel:{{ student.next_of_kin.phone }}">{{ student.next_of_kin.phone }}</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="info-group">
+            <label>Email Address</label>
+            <p class="info-value">
+                {% if student.next_of_kin.email %}
+                    <a href="mailto:{{ student.next_of_kin.email }}">{{ student.next_of_kin.email }}</a>
+                {% else %}
+                    <span class="text-muted">Not provided</span>
+                {% endif %}
+            </p>
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+            <i class="bi bi-person-x display-4 text-muted"></i>
+            <p class="text-muted mt-2">No next of kin information provided</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<!-- Grades Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-trophy"></i> Academic Results</h5>
+        <a href="{{ url_for('grades.student_results', student_id=student._id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-eye"></i> View All Results
+        </a>
+    </div>
+    <div class="card-body">
+        {% set student_grades = [] %}
+        {% set final_grades = grades_collection.find({'student_id': student._id, 'exam_type': 'final'}).sort([('academic_year', -1), ('semester', -1)]).limit(3) %}
+        {% set mock_grades = grades_collection.find({'student_id': student._id, 'exam_type': 'mock'}).sort([('academic_year', -1), ('semester', -1)]).limit(3) %}
+        
+        {% for grade in final_grades %}
+            {% set _ = student_grades.append(grade) %}
+        {% endfor %}
+        {% for grade in mock_grades %}
+            {% set _ = student_grades.append(grade) %}
+        {% endfor %}
+        
+        {% if student_grades %}
+            <div class="row">
+                {% for grade_doc in student_grades %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">{{ grade_doc.exam_type|title }} Exam - {{ grade_doc.academic_year }} S{{ grade_doc.semester }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <small class="text-muted">Entered: {{ grade_doc.entered_at.strftime('%Y-%m-%d') }}</small>
+                            <div class="mt-2">
+                                {% set pass_count = 0 %}
+                                {% set total_count = grade_doc.grades|length %}
+                                {% for grade in grade_doc.grades %}
+                                    {% if grade.remarks == 'Proceed' %}
+                                        {% set pass_count = pass_count + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                <div class="progress mb-2" style="height: 10px;">
+                                    <div class="progress-bar bg-success" style="width: {{ (pass_count/total_count*100) if total_count > 0 else 0 }}%"></div>
+                                </div>
+                                <small>{{ pass_count }} of {{ total_count }} courses passed</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-3">
+                <i class="bi bi-journal-x display-4 text-muted"></i>
+                <p class="text-muted mt-2">No academic results available</p>
+                <a href="{{ url_for('grades.final_grades') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Grades
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+    </div>
+</div>
+{% endblock %}

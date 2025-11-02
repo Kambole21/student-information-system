@@ -1,0 +1,257 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-person-plus"></i> Register Student</h1>
+                <p class="text-muted">Add new students to the system</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Student Registration Form</h5>
+                    <a href="{{ url_for('student.student_list') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Back to Student List
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('student.add_student') }}" enctype="multipart/form-data" id="studentForm">
+                        
+                        <!-- Basic Info -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name *</label>
+                                <input type="text" class="form-control" name="f_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name *</label>
+                                <input type="text" class="form-control" name="l_name" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" name="phone_number" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Student Number *</label>
+                                <input type="text" class="form-control" name="student_number" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">National ID *</label>
+                                <input type="text" class="form-control" name="national_id" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gender *</label>
+                                <select class="form-select" name="gender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" name="birthday" max="{{ datetime.now().strftime('%Y-%m-%d') }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Residential Address *</label>
+                            <textarea class="form-control" name="residential_address" rows="2" required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Town/City *</label>
+                                <input type="text" class="form-control" name="town" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Country *</label>
+                                <input type="text" class="form-control" name="country" value="Zambia" required>
+                            </div>
+                        </div>
+
+                        <!-- Enrollment Info -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Year of Enrollment *</label>
+                                <select class="form-select" name="year_of_enrollment" required>
+                                    <option value="">Select Year</option>
+                                    {% for year in range(2019, 2031) %}
+                                    <option value="{{ year }}">{{ year }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Exam Location *</label>
+                                <input type="text" class="form-control" name="exam_location" required>
+                            </div>
+                        </div>
+
+                        <!-- School and Program -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">School *</label>
+                                <select class="form-select" name="school_id" id="schoolSelect" required>
+                                    <option value="">Select School</option>
+                                    {% for school in schools %}
+                                    <option value="{{ school._id }}">{{ school.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Program *</label>
+                                <select class="form-select" name="program_id" id="programSelect" required>
+                                    <option value="">Select Program</option>
+                                    {% for program in programs %}
+                                    <option value="{{ program._id }}">{{ program.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label class="form-label">Account Password</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="password" id="passwordInput" placeholder="Auto-generate or enter custom password">
+                                <button type="button" class="btn btn-outline-secondary" onclick="generatePassword()">
+                                    <i class="bi bi-arrow-repeat"></i> Generate
+                                </button>
+                            </div>
+                            <div class="form-text">Leave empty to auto-generate 4-character password.</div>
+                        </div>
+
+                        <!-- Profile Image -->
+                        <div class="mb-3">
+                            <label class="form-label">Profile Image</label>
+                            <input type="file" class="form-control" name="profile_image" accept="image/*">
+                            <div class="form-text">Allowed: PNG, JPG, JPEG, GIF. Default used if not provided.</div>
+                        </div>
+
+                        <!-- Next of Kin -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-person-heart"></i> Next of Kin Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" name="nok_name">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Relationship</label>
+                                        <select class="form-select" name="nok_relationship">
+                                            <option value="">Select Relationship</option>
+                                            <option>Parent</option>
+                                            <option>Spouse</option>
+                                            <option>Sibling</option>
+                                            <option>Guardian</option>
+                                            <option>Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control" name="nok_address" rows="2"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Town/City</label>
+                                        <input type="text" class="form-control" name="nok_town">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Country</label>
+                                        <input type="text" class="form-control" name="nok_country" value="Zambia">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" name="nok_phone">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" name="nok_email">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                            <button type="reset" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-person-plus"></i> Register Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generatePassword() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < 4; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('passwordInput').value = password;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const schoolSelect = document.getElementById('schoolSelect');
+    const programSelect = document.getElementById('programSelect');
+    schoolSelect.addEventListener('change', function() {
+        const schoolId = this.value;
+        if (schoolId) {
+            fetch(`/get_programs_by_school/${schoolId}`)
+                .then(res => res.json())
+                .then(programs => {
+                    programSelect.innerHTML = '<option value="">Select Program</option>';
+                    programs.forEach(p => programSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`);
+                })
+                .catch(() => programSelect.innerHTML = '<option value="">Select Program</option>');
+        } else {
+            programSelect.innerHTML = '<option value="">Select Program</option>';
+        }
+    });
+    if (!document.getElementById('passwordInput').value) generatePassword();
+});
+</script>
+
+{% endblock %}

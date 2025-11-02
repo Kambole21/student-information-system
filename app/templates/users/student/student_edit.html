@@ -1,0 +1,434 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-pencil-square"></i> Edit Student</h1>
+                <p class="text-muted">Update student information and academic details</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-person-gear"></i> Edit {{ student.f_name }} {{ student.l_name }}</h5>
+                    <div>
+                        <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-info btn-sm me-2">
+                            <i class="bi bi-eye"></i> View Profile
+                        </a>
+                        <a href="{{ url_for('student.student_list') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('student.update_student', student_id=student._id) }}" enctype="multipart/form-data" id="editStudentForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">First Name *</label>
+                                    <input type="text" class="form-control" name="f_name" value="{{ student.f_name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Last Name *</label>
+                                    <input type="text" class="form-control" name="l_name" value="{{ student.l_name }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" name="email" value="{{ student.email }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Student Number *</label>
+                                    <input type="text" class="form-control" name="student_number" value="{{ student.student_number }}" required>
+                                    <div class="form-text">Unique student identification number</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Gender *</label>
+                                    <select class="form-select" name="gender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="male" {% if student.gender == 'male' %}selected{% endif %}>Male</option>
+                                        <option value="female" {% if student.gender == 'female' %}selected{% endif %}>Female</option>
+                                        <option value="other" {% if student.gender == 'other' %}selected{% endif %}>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">National ID *</label>
+                                    <input type="text" class="form-control" name="national_id" value="{{ student.national_id }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Residential Address *</label>
+                            <textarea class="form-control" name="residential_address" rows="2" required>{{ student.residential_address }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Town/City *</label>
+                                    <input type="text" class="form-control" name="town" value="{{ student.town }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Country *</label>
+                                    <input type="text" class="form-control" name="country" value="{{ student.country }}" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" name="birthday" 
+                                           value="{{ student.birthday.strftime('%Y-%m-%d') if student.birthday else '' }}" 
+                                           max="{{ datetime.now().strftime('%Y-%m-%d') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Account Password</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="password" 
+                                               placeholder="Enter new password to change" id="passwordInput">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="generatePassword()">
+                                            <i class="bi bi-arrow-repeat"></i> Generate
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Leave empty to keep current password</div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Year of Enrollment *</label>
+                                    <select class="form-select" name="year_of_enrollment" required>
+                                        <option value="">Select Year</option>
+                                        {% for year in range(2020, 2031) %}
+                                        <option value="{{ year }}" {% if student.year_of_enrollment == year|string %}selected{% endif %}>{{ year }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Exam Location *</label>
+                                    <input type="text" class="form-control" name="exam_location" value="{{ student.exam_location }}" required>
+                                    <div class="form-text">Location where student will take exams</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">School *</label>
+                                    <select class="form-select" name="school_id" id="schoolSelect" required>
+                                        <option value="">Select School</option>
+                                        {% for school in schools %}
+                                        <option value="{{ school._id }}" 
+                                                {% if student.school_id|string == school._id|string %}selected{% endif %}>
+                                            {{ school.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Program *</label>
+                                    <select class="form-select" name="program_id" id="programSelect" required>
+                                        <option value="">Select Program</option>
+                                        {% for program in programs %}
+                                        <option value="{{ program._id }}"
+                                                {% if student.program_id|string == program._id|string %}selected{% endif %}>
+                                            {{ program.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" name="status">
+                                        <option value="active" {% if student.status == 'active' %}selected{% endif %}>Active</option>
+                                        <option value="inactive" {% if student.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                                        <option value="suspended" {% if student.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                                        <option value="graduated" {% if student.status == 'graduated' %}selected{% endif %}>Graduated</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Privilege Level</label>
+                                    <input type="text" class="form-control" value="Student" readonly disabled>
+                                    <input type="hidden" name="privilege_level" value="student">
+                                    <div class="form-text">Student role cannot be changed</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Profile Image</label>
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}" 
+                                     alt="{{ student.f_name }} {{ student.l_name }}" 
+                                     class="student-photo-large me-3" id="edit-photo">
+                                <div>
+                                    <div>Current Image</div>
+                                    <small class="text-muted">Upload new image to replace</small>
+                                </div>
+                            </div>
+                            <input type="file" class="form-control" name="profile_image" accept="image/*">
+                            <div class="form-text">Allowed formats: PNG, JPG, JPEG, GIF. Max size: 5MB</div>
+                        </div>
+
+                        <!-- Student Information Summary -->
+                        <div class="card bg-light mt-4">
+                            <div class="card-body">
+                                <h6><i class="bi bi-info-circle"></i> Student Information Summary</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small><strong>Student ID:</strong> {{ student._id }}</small><br>
+                                        <small><strong>Created:</strong> {{ student.created_at.strftime('%Y-%m-%d %H:%M') if student.created_at else 'N/A' }}</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if student.updated_at %}
+                                        <small><strong>Last Updated:</strong> {{ student.updated_at.strftime('%Y-%m-%d %H:%M') }}</small><br>
+                                        {% endif %}
+                                        <small><strong>Current Status:</strong> 
+                                            <span class="badge bg-{{ 'success' if student.status == 'active' else 'secondary' }}">
+                                                {{ student.status|title }}
+                                            </span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mt-4">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-person-heart"></i> Next of Kin Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-control" name="nok_name" 
+                                               value="{{ student.next_of_kin.name if student.next_of_kin else '' }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Relationship</label>
+                                        <select class="form-select" name="nok_relationship">
+                                            <option value="">Select Relationship</option>
+                                            <option value="Parent" {% if student.next_of_kin and student.next_of_kin.relationship == 'Parent' %}selected{% endif %}>Parent</option>
+                                            <option value="Spouse" {% if student.next_of_kin and student.next_of_kin.relationship == 'Spouse' %}selected{% endif %}>Spouse</option>
+                                            <option value="Sibling" {% if student.next_of_kin and student.next_of_kin.relationship == 'Sibling' %}selected{% endif %}>Sibling</option>
+                                            <option value="Guardian" {% if student.next_of_kin and student.next_of_kin.relationship == 'Guardian' %}selected{% endif %}>Guardian</option>
+                                            <option value="Other" {% if student.next_of_kin and student.next_of_kin.relationship == 'Other' %}selected{% endif %}>Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Address</label>
+                                <textarea class="form-control" name="nok_address" rows="2">{{ student.next_of_kin.address if student.next_of_kin else '' }}</textarea>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Town/City</label>
+                                        <input type="text" class="form-control" name="nok_town" 
+                                               value="{{ student.next_of_kin.town if student.next_of_kin else '' }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Country</label>
+                                        <input type="text" class="form-control" name="nok_country" 
+                                               value="{{ student.next_of_kin.country if student.next_of_kin else 'Zambia' }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" name="nok_phone" 
+                                               value="{{ student.next_of_kin.phone if student.next_of_kin else '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-control" name="nok_email" 
+                                       value="{{ student.next_of_kin.email if student.next_of_kin else '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Update Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generatePassword() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < 4; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('passwordInput').value = password;
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const schoolSelect = document.getElementById('schoolSelect');
+    const programSelect = document.getElementById('programSelect');
+    const editStudentForm = document.getElementById('editStudentForm');
+
+    const passwordInput = document.getElementById('passwordInput');
+    if (passwordInput && !passwordInput.value) {
+        generatePassword();
+    }
+
+    // Load programs when school is selected
+    schoolSelect.addEventListener('change', function() {
+        const schoolId = this.value;
+        
+        if (schoolId) {
+            fetch(`/get_programs_by_school/${schoolId}`)
+                .then(response => response.json())
+                .then(programs => {
+                    programSelect.innerHTML = '<option value="">Select Program</option>';
+                    programs.forEach(program => {
+                        programSelect.innerHTML += `<option value="${program.id}">${program.name}</option>`;
+                    });
+                    
+                    // Try to preserve the current program selection if it belongs to the new school
+                    const currentProgramId = '{{ student.program_id }}';
+                    if (currentProgramId) {
+                        const currentProgramOption = programSelect.querySelector(`option[value="${currentProgramId}"]`);
+                        if (currentProgramOption) {
+                            currentProgramOption.selected = true;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading programs:', error);
+                    programSelect.innerHTML = '<option value="">Select Program</option>';
+                });
+        } else {
+            programSelect.innerHTML = '<option value="">Select Program</option>';
+        }
+    });
+
+    // Form validation
+    editStudentForm.addEventListener('submit', function(e) {
+        const email = document.querySelector('input[name="email"]').value;
+        const studentNumber = document.querySelector('input[name="student_number"]').value;
+        const nationalId = document.querySelector('input[name="national_id"]').value;
+        
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            e.preventDefault();
+            alert('Please enter a valid email address.');
+            return;
+        }
+        
+        // Check if required fields are filled
+        if (!studentNumber.trim()) {
+            e.preventDefault();
+            alert('Student number is required.');
+            return;
+        }
+        
+        if (!nationalId.trim()) {
+            e.preventDefault();
+            alert('National ID is required.');
+            return;
+        }
+    });
+
+    // Show confirmation before leaving if form has changes
+    let formChanged = false;
+    const formInputs = editStudentForm.querySelectorAll('input, select, textarea');
+    
+    formInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            formChanged = true;
+        });
+        
+        input.addEventListener('input', function() {
+            formChanged = true;
+        });
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Reset formChanged when form is submitted
+    editStudentForm.addEventListener('submit', function() {
+        formChanged = false;
+    });
+});
+</script>
+{% endblock %}

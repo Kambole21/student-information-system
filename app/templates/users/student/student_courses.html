@@ -1,0 +1,189 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-journal-check"></i> All Enrolled Courses</h1>
+                <p class="text-muted">Complete course history for {{ student.f_name }} {{ student.l_name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Student Info -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person"></i> Student Information</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="profile-image-container mb-3">
+                        <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}" 
+                             alt="{{ student.f_name }} {{ student.l_name }}" 
+                             class="student-profile-photo">
+                    </div>
+                    <h6>{{ student.f_name }} {{ student.l_name }}</h6>
+                    <p class="text-muted mb-2">#{{ student.student_number }}</p>
+                    <p class="mb-1"><strong>Program:</strong> {{ program.name if program else 'N/A' }}</p>
+                    <p class="mb-1"><strong>School:</strong> {{ school.name if school else 'N/A' }}</p>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Back to Profile
+                        </a>
+                        <a href="{{ url_for('student.course_registration', student_id=student._id) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-journal-plus"></i> Register More Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Statistics -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-graph-up"></i> Course Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <h3 class="text-primary">{{ total_courses }}</h3>
+                        <p class="text-muted mb-0">Total Courses</p>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h5 class="mb-0">{{ courses_by_semester|length }}</h5>
+                            <small class="text-muted">Semesters</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="mb-0">
+                                {% set total_credits = 0 %}
+                                {% for semester, courses in courses_by_semester.items() %}
+                                    {% for course_info in courses %}
+                                        {% set total_credits = total_credits + course_info.course.credits %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ total_credits }}
+                            </h5>
+                            <small class="text-muted">Total Credits</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Courses List -->
+        <div class="col-md-9">
+            {% if courses_by_semester %}
+                {% for semester_key, semester_courses in courses_by_semester.items() %}
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calendar-range"></i> {{ semester_key }}
+                        </h5>
+                        <span class="badge bg-primary">{{ semester_courses|length }} courses</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>Credits</th>
+                                        <th>School</th>
+                                        <th>Program</th>
+                                        <th>Status</th>
+                                        <th>Enrolled Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course_info in semester_courses %}
+                                    <tr class="{{ 'table-warning' if course_info.program and course_info.program._id|string != student.program_id|string else '' }}">
+                                        <td>{{ course_info.course.code }}</td>
+                                        <td>
+                                            <strong>{{ course_info.course.name }}</strong>
+                                            {% if course_info.program and course_info.program._id|string != student.program_id|string %}
+                                            <br>
+                                            <small class="text-warning">
+                                                <i class="bi bi-info-circle"></i> Cross-school course
+                                            </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ course_info.course.credits }}</td>
+                                        <td>
+                                            {% if course_info.school %}
+                                                {{ course_info.school.name }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if course_info.program %}
+                                                {{ course_info.program.name }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if course_info.status == 'enrolled' else 'warning' }}">
+                                                {{ course_info.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ course_info.enrolled_at.strftime('%Y-%m-%d') if course_info.enrolled_at else 'N/A' }}
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="2" class="text-end"><strong>Semester Total:</strong></td>
+                                        <td><strong>
+                                            {% set semester_credits = 0 %}
+                                            {% for course_info in semester_courses %}
+                                                {% set semester_credits = semester_credits + course_info.course.credits %}
+                                            {% endfor %}
+                                            {{ semester_credits }}
+                                        </strong></td>
+                                        <td colspan="4"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-journal-x display-1 text-muted"></i>
+                    <h4 class="text-muted mt-3">No Courses Enrolled</h4>
+                    <p class="text-muted">This student hasn't registered for any courses yet.</p>
+                    <a href="{{ url_for('student.course_registration', student_id=student._id) }}" class="btn btn-primary">
+                        <i class="bi bi-journal-plus"></i> Register Courses
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

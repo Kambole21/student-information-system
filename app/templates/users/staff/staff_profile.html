@@ -1,0 +1,332 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='staff.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-person-badge"></i> Staff Profile</h1>
+                <p class="text-muted">View staff member details and information</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Profile Info -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="profile-image-container mb-4">
+                        <img src="{{ url_for('static', filename='uploads/staff/' + staff.profile_image) if staff.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}" 
+                             alt="{{ staff.f_name }} {{ staff.l_name }}" 
+                             class="staff-profile-photo">
+                    </div>
+                    <h3 class="mb-1">{{ staff.f_name }} {{ staff.l_name }}</h3>
+                    <p class="text-muted mb-2">@{{ staff.username }}</p>
+                    <span class="badge role-badge {{ staff.privilege_level }} mb-3">
+                        {{ staff.privilege_level|replace('_', ' ')|title }}
+                    </span>
+                    
+                    <div class="status-indicator mb-3">
+                        <span class="badge bg-{{ 'success' if staff.status == 'active' else 'secondary' }}">
+                            <i class="bi bi-circle-fill me-1"></i>
+                            {{ staff.status|title }}
+                        </span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('staff.edit_staff', staff_id=staff._id) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit Profile
+                        </a>
+                        <a href="{{ url_for('staff.staff_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Profile Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="bi bi-person"></i>
+                            <span>Staff ID:</span>
+                            <strong>{{ staff._id }}</strong>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-calendar"></i>
+                            <span>Member since:</span>
+                            <strong>{{ staff.created_at.strftime('%b %d, %Y') if staff.created_at else 'N/A' }}</strong>
+                        </div>
+                        {% if staff.updated_at %}
+                        <div class="meta-item">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            <span>Last updated:</span>
+                            <strong>{{ staff.updated_at.strftime('%b %d, %Y') }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Details -->
+        <div class="col-lg-8">
+            <!-- Personal Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>First Name</label>
+                                <p class="info-value">{{ staff.f_name }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Last Name</label>
+                                <p class="info-value">{{ staff.l_name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Username</label>
+                                <p class="info-value">@{{ staff.username }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Phone Number</label>
+                                <p class="info-value">{{ staff.phone_number }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-envelope"></i> Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Email Address</label>
+                                <p class="info-value">
+                                    <a href="mailto:{{ staff.email }}">{{ staff.email }}</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Phone Number</label>
+                                <p class="info-value">
+                                    <a href="tel:{{ staff.phone_number }}">{{ staff.phone_number }}</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if staff.residential_address %}
+                    <div class="info-group">
+                        <label>Residential Address</label>
+                        <p class="info-value">{{ staff.residential_address }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="row">
+                        {% if staff.town %}
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Town/City</label>
+                                <p class="info-value">{{ staff.town }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Country</label>
+                                <p class="info-value">{{ staff.country }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-briefcase"></i> Professional Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Role/Position</label>
+                                <p class="info-value">
+                                    <span class="badge role-badge {{ staff.privilege_level }}">
+                                        {{ staff.privilege_level|replace('_', ' ')|title }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label>Status</label>
+                                <p class="info-value">
+                                    <span class="badge bg-{{ 'success' if staff.status == 'active' else 'secondary' }}">
+                                        {{ staff.status|title }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if school_name %}
+                    <div class="info-group">
+                        <label>School</label>
+                        <p class="info-value">{{ school_name }}</p>
+                    </div>
+                    {% endif %}
+                    {% if staff.department %}
+                    <div class="info-group">
+                        <label>Department</label>
+                        <p class="info-value">{{ staff.department }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <a href="{{ url_for('staff.edit_staff', staff_id=staff._id) }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-pencil"></i> Edit Profile
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-warning w-100" onclick="showChangeRoleModal('{{ staff._id }}', '{{ staff.privilege_level }}', '{{ staff.department }}')">
+                                <i class="bi bi-person-gear"></i> Change Role
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-danger w-100" onclick="confirmDelete('{{ staff._id }}', '{{ staff.f_name }} {{ staff.l_name }}')">
+                                <i class="bi bi-trash"></i> Delete Staff
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Role Modal -->
+<div class="modal fade" id="changeRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Staff Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="changeRoleForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">New Role</label>
+                        <select class="form-select" name="privilege_level" id="modalPrivilegeLevel" required>
+                            <option value="">Select Role</option>
+                            <option value="lecturer">Lecturer</option>
+                            <option value="hod">Head of Department (HOD)</option>
+                            <option value="deputy_dean">Deputy Dean</option>
+                            <option value="dean">Dean</option>
+                            <option value="dean_of_students">Dean of Students</option>
+                            <option value="accounts">Accounts</option>
+                            <option value="hall_attendant">Hall Attendant</option>
+                            <option value="registrar">Registrar</option>
+                            <option value="ict">ICT</option>
+                            <option value="academics">Academics</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <input type="text" class="form-control" name="department" id="modalDepartment" placeholder="Enter department name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteStaffName"></strong>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" class="btn btn-danger" id="confirmDeleteBtn">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showChangeRoleModal(staffId, currentRole, currentDepartment) {
+    document.getElementById('modalPrivilegeLevel').value = currentRole;
+    document.getElementById('modalDepartment').value = currentDepartment || '';
+    
+    const form = document.getElementById('changeRoleForm');
+    form.action = "{{ url_for('staff.change_role', staff_id='') }}" + staffId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('changeRoleModal'));
+    modal.show();
+}
+
+function confirmDelete(staffId, staffName) {
+    document.getElementById('deleteStaffName').textContent = staffName;
+    document.getElementById('confirmDeleteBtn').href = "{{ url_for('staff.delete_staff', staff_id='') }}" + staffId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}
