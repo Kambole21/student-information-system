@@ -1,0 +1,390 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ca.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header ca-header">
+                <h1><i class="bi bi-pencil-square"></i> Manage Continuous Assessments</h1>
+                <p class="text-light">Enter and manage CA scores for students</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card search-section">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Academic Year</label>
+                            <select class="form-select" id="academicYear">
+                                {% for year in academic_years %}
+                                <option value="{{ year }}" {{ 'selected' if year == '2025/2026' }}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Semester</label>
+                            <select class="form-select" id="semester">
+                                {% for sem in semesters %}
+                                <option value="{{ sem }}">Semester {{ sem }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">School</label>
+                            <select class="form-select" id="schoolFilter">
+                                <option value="">All Schools</option>
+                                {% for school in schools %}
+                                <option value="{{ school._id }}">{{ school.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Program</label>
+                            <select class="form-select" id="programFilter">
+                                <option value="">All Programs</option>
+                                {% for program in programs %}
+                                <option value="{{ program._id }}">{{ program.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-ca-primary w-100" onclick="searchStudents()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search by student name or number...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchStudents()">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students List -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Students</h5>
+                </div>
+                <div class="card-body">
+                    <div id="studentsList" class="list-group list-group-flush">
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-people display-4"></i>
+                            <p>Use search filters to find students</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CA Scores Form -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Continuous Assessment Scores</h5>
+                    <div id="studentInfo" class="d-none">
+                        <span class="badge bg-primary" id="selectedStudentInfo"></span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="noStudentSelected" class="text-center py-5">
+                        <i class="bi bi-person-x display-4 text-muted"></i>
+                        <h5 class="text-muted mt-3">No Student Selected</h5>
+                        <p class="text-muted">Please select a student from the list to enter CA scores</p>
+                    </div>
+
+                    <div id="caFormContainer" class="d-none">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Academic Year:</strong> <span id="currentAcademicYear"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Semester:</strong> <span id="currentSemester"></span>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered ca-table">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>CA Score</th>
+                                        <th>Total Score</th>
+                                        <th>Percentage</th>
+                                        <th>Assessment Type</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="caScoresTable">
+                                    <!-- CA scores will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3">
+                            <button class="btn btn-ca-primary" onclick="saveCAScores()">
+                                <i class="bi bi-save"></i> Save All Scores
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearSelection()">
+                                <i class="bi bi-x-circle"></i> Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+let selectedStudentId = null;
+
+function searchStudents() {
+    const searchTerm = document.getElementById('searchInput').value;
+    const schoolId = document.getElementById('schoolFilter').value;
+    const programId = document.getElementById('programFilter').value;
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
+
+    fetch(`/ca/search_students?search=${encodeURIComponent(searchTerm)}&school_id=${schoolId}&program_id=${programId}&academic_year=${academicYear}&semester=${semester}`)
+        .then(response => response.json())
+        .then(students => {
+            const studentsList = document.getElementById('studentsList');
+            studentsList.innerHTML = '';
+
+            if (students.length === 0) {
+                studentsList.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-search display-4"></i>
+                        <p>No students found matching your criteria</p>
+                    </div>
+                `;
+                return;
+            }
+
+            students.forEach(student => {
+                const studentElement = document.createElement('div');
+                studentElement.className = `list-group-item list-group-item-action student-ca-card ${selectedStudentId === student.id ? 'selected' : ''}`;
+                studentElement.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${student.f_name} ${student.l_name}</h6>
+                        <small>${student.enrolled_courses_count} courses</small>
+                    </div>
+                    <p class="mb-1">${student.student_number}</p>
+                    <small>${student.program_name} • ${student.school_name}</small>
+                `;
+                studentElement.onclick = () => selectStudent(student.id, student);
+                studentsList.appendChild(studentElement);
+            });
+        })
+        .catch(error => {
+            console.error('Error searching students:', error);
+            alert('Error searching students');
+        });
+}
+
+function selectStudent(studentId, student) {
+    selectedStudentId = studentId;
+    
+    // Update UI
+    document.querySelectorAll('.student-ca-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+    
+    // Show student info
+    document.getElementById('studentInfo').classList.remove('d-none');
+    document.getElementById('selectedStudentInfo').textContent = `${student.f_name} ${student.l_name} (${student.student_number})`;
+    
+    // Show CA form
+    document.getElementById('noStudentSelected').classList.add('d-none');
+    document.getElementById('caFormContainer').classList.remove('d-none');
+    
+    // Set current academic year and semester
+    document.getElementById('currentAcademicYear').textContent = document.getElementById('academicYear').value;
+    document.getElementById('currentSemester').textContent = document.getElementById('semester').value;
+    
+    // Load student courses
+    loadStudentCourses(studentId);
+}
+
+function loadStudentCourses(studentId) {
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
+
+    fetch(`/ca/get_student_courses/${studentId}?academic_year=${academicYear}&semester=${semester}`)
+        .then(response => response.json())
+        .then(courses => {
+            const caScoresTable = document.getElementById('caScoresTable');
+            caScoresTable.innerHTML = '';
+
+            courses.forEach(course => {
+                const percentage = course.ca_score ? ((course.ca_score / course.total_score) * 100).toFixed(1) : 0;
+                const percentageClass = percentage >= 50 ? 'text-success' : percentage >= 40 ? 'text-warning' : 'text-danger';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${course.course_code}</td>
+                    <td>${course.course_name}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm ca-score-input" 
+                               value="${course.ca_score || ''}" 
+                               min="0" max="${course.total_score}" step="0.1"
+                               data-course-id="${course.course_id}">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm ca-total-score-input" 
+                               value="${course.total_score}" 
+                               min="1" max="100" step="1"
+                               data-course-id="${course.course_id}">
+                    </td>
+                    <td>
+                        <span class="percentage-badge badge ${percentageClass}">${percentage}%</span>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm assessment-type" data-course-id="${course.course_id}">
+                            <option value="assignment" ${course.assessment_type === 'assignment' ? 'selected' : ''}>Assignment</option>
+                            <option value="quiz" ${course.assessment_type === 'quiz' ? 'selected' : ''}>Quiz</option>
+                            <option value="project" ${course.assessment_type === 'project' ? 'selected' : ''}>Project</option>
+                            <option value="lab" ${course.assessment_type === 'lab' ? 'selected' : ''}>Lab Work</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="date" class="form-control form-control-sm assessment-date" 
+                               value="${course.assessment_date}" 
+                               data-course-id="${course.course_id}">
+                    </td>
+                `;
+                caScoresTable.appendChild(row);
+            });
+
+            // Add event listeners for real-time percentage calculation
+            addScoreEventListeners();
+        })
+        .catch(error => {
+            console.error('Error loading student courses:', error);
+            alert('Error loading student courses');
+        });
+}
+
+function addScoreEventListeners() {
+    document.querySelectorAll('.ca-score-input, .ca-total-score-input').forEach(input => {
+        input.addEventListener('input', updatePercentage);
+    });
+}
+
+function updatePercentage() {
+    const row = this.closest('tr');
+    const scoreInput = row.querySelector('.ca-score-input');
+    const totalInput = row.querySelector('.ca-total-score-input');
+    const percentageBadge = row.querySelector('.percentage-badge');
+    
+    const score = parseFloat(scoreInput.value) || 0;
+    const total = parseFloat(totalInput.value) || 1;
+    const percentage = total > 0 ? (score / total * 100).toFixed(1) : 0;
+    
+    const percentageClass = percentage >= 50 ? 'text-success' : percentage >= 40 ? 'text-warning' : 'text-danger';
+    percentageBadge.className = `percentage-badge badge ${percentageClass}`;
+    percentageBadge.textContent = `${percentage}%`;
+}
+
+function saveCAScores() {
+    if (!selectedStudentId) {
+        alert('Please select a student first');
+        return;
+    }
+
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
+    
+    const caScores = [];
+    document.querySelectorAll('tr').forEach(row => {
+        const scoreInput = row.querySelector('.ca-score-input');
+        const totalInput = row.querySelector('.ca-total-score-input');
+        const typeSelect = row.querySelector('.assessment-type');
+        const dateInput = row.querySelector('.assessment-date');
+        
+        if (scoreInput && totalInput) {
+            caScores.push({
+                course_id: scoreInput.dataset.courseId,
+                score: scoreInput.value ? parseFloat(scoreInput.value) : null,
+                total_score: parseFloat(totalInput.value),
+                assessment_type: typeSelect.value,
+                assessment_date: dateInput.value
+            });
+        }
+    });
+
+    fetch(`/ca/save_scores/${selectedStudentId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            academic_year: academicYear,
+            semester: semester,
+            ca_scores: caScores
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(result.message);
+            // Reload courses to show updated scores
+            loadStudentCourses(selectedStudentId);
+        } else {
+            alert('Error saving scores: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error saving scores:', error);
+        alert('Error saving scores');
+    });
+}
+
+function clearSelection() {
+    selectedStudentId = null;
+    document.getElementById('studentInfo').classList.add('d-none');
+    document.getElementById('caFormContainer').classList.add('d-none');
+    document.getElementById('noStudentSelected').classList.remove('d-none');
+    document.querySelectorAll('.student-ca-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    searchStudents();
+});
+</script>
+{% endblock %}

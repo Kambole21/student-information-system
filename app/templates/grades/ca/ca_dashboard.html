@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ca.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header ca-header">
+                <h1><i class="bi bi-clipboard-data"></i> Continuous Assessment Management</h1>
+                <p class="text-light">Manage student continuous assessments and assignments</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card ca-action-card manage-ca">
+                <div class="card-body text-center">
+                    <i class="bi bi-pencil-square display-4 mb-3"></i>
+                    <h3>Manage CA Scores</h3>
+                    <p class="text-light">Enter and manage continuous assessment scores for students</p>
+                    <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-light">
+                        <i class="bi bi-arrow-right"></i> Manage Assessments
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card ca-action-card bulk-upload">
+                <div class="card-body text-center">
+                    <i class="bi bi-upload display-4 mb-3"></i>
+                    <h3>Bulk Upload</h3>
+                    <p class="text-light">Upload CA scores in bulk using CSV files</p>
+                    <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-light">
+                        <i class="bi bi-arrow-right"></i> Upload Scores
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CA Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> About Continuous Assessment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>CA Components</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <i class="bi bi-journal-text text-primary me-2"></i>
+                                    Assignments
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-question-circle text-success me-2"></i>
+                                    Quizzes
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-briefcase text-warning me-2"></i>
+                                    Projects
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-gear text-info me-2"></i>
+                                    Laboratory Work
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Grading Guidelines</h6>
+                            <div class="alert alert-info">
+                                <strong>Default Total Score:</strong> 30 marks<br>
+                                <strong>Passing Percentage:</strong> 50% and above<br>
+                                <strong>Assessment Types:</strong> Assignment, Quiz, Project, Lab
+                            </div>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-success" style="width: 50%">50% Pass</div>
+                                <div class="progress-bar bg-warning" style="width: 30%">30% Average</div>
+                                <div class="progress-bar bg-danger" style="width: 20%">20% Fail</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

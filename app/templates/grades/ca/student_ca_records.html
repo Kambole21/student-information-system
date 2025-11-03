@@ -1,0 +1,167 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ca.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header ca-header">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-clipboard-data"></i> CA Records - {{ student.f_name }} {{ student.l_name }}</h1>
+                        <p class="text-light">{{ student.student_number }} • {{ program.name if program else 'Unknown Program' }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-light me-2">
+                            <i class="bi bi-arrow-left"></i> Back to CA Management
+                        </a>
+                        <button class="btn btn-light" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card student-info-card">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Student Information</h5>
+                    <div class="row text-white">
+                        <div class="col-6">
+                            <strong>Name:</strong><br>
+                            {{ student.f_name }} {{ student.l_name }}
+                        </div>
+                        <div class="col-6">
+                            <strong>Student Number:</strong><br>
+                            {{ student.student_number }}
+                        </div>
+                    </div>
+                    <div class="row text-white mt-2">
+                        <div class="col-6">
+                            <strong>Program:</strong><br>
+                            {{ program.name if program else 'N/A' }}
+                        </div>
+                        <div class="col-6">
+                            <strong>School:</strong><br>
+                            {{ school.name if school else 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">CA Summary</h5>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="display-6 text-primary">{{ ca_records|length }}</div>
+                            <small class="text-muted">Total Assessments</small>
+                        </div>
+                        <div class="col-4">
+                            {% set passed = ca_records|selectattr('percentage', '>=', 50)|list %}
+                            <div class="display-6 text-success">{{ passed|length }}</div>
+                            <small class="text-muted">Passed</small>
+                        </div>
+                        <div class="col-4">
+                            {% set average_score = ca_records|map(attribute='percentage')|sum / ca_records|length if ca_records %}
+                            <div class="display-6 text-info">{{ "%.1f"|format(average_score) if ca_records else 0 }}%</div>
+                            <small class="text-muted">Average Score</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CA Records -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Continuous Assessment Records</h5>
+                </div>
+                <div class="card-body">
+                    {% if ca_records %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered ca-table">
+                            <thead>
+                                <tr>
+                                    <th>Academic Year</th>
+                                    <th>Semester</th>
+                                    <th>Course Code</th>
+                                    <th>Course Name</th>
+                                    <th>Score</th>
+                                    <th>Total</th>
+                                    <th>Percentage</th>
+                                    <th>Assessment Type</th>
+                                    <th>Date</th>
+                                    <th>Entered</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in ca_records %}
+                                <tr>
+                                    <td>{{ record.academic_year }}</td>
+                                    <td>Semester {{ record.semester }}</td>
+                                    <td>{{ record.course_code }}</td>
+                                    <td>{{ record.course_name }}</td>
+                                    <td>
+                                        <strong>{{ record.score if record.score is not none else 'N/A' }}</strong>
+                                    </td>
+                                    <td>{{ record.total_score }}</td>
+                                    <td>
+                                        {% set percentage = record.percentage %}
+                                        <span class="badge 
+                                            {% if percentage >= 80 %}badge-ca-excellent
+                                            {% elif percentage >= 60 %}badge-ca-good
+                                            {% elif percentage >= 50 %}badge-ca-average
+                                            {% else %}badge-ca-poor{% endif %}">
+                                            {{ "%.1f"|format(percentage) }}%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-assessment badge-{{ record.assessment_type }}">
+                                            {{ record.assessment_type|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ record.assessment_date }}</td>
+                                    <td>{{ record.entered_at }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-clipboard-x display-4 text-muted"></i>
+                        <h5 class="text-muted mt-3">No CA Records Found</h5>
+                        <p class="text-muted">This student doesn't have any continuous assessment records yet.</p>
+                        <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-ca-primary">
+                            <i class="bi bi-plus-circle"></i> Add CA Scores
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
