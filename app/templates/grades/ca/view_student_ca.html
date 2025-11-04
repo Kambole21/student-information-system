@@ -21,14 +21,11 @@
             <div class="page-header ca-header">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h1><i class="bi bi-clipboard-data"></i> Continuous Assessment Records</h1>
-                        <p class="text-light mb-0">Detailed view of all continuous assessments for {{ student.f_name }} {{ student.l_name }}</p>
+                        <h1><i class="bi bi-clipboard-data"></i> CA Records - {{ student.f_name }} {{ student.l_name }}</h1>
+                        <p class="text-light mb-0">{{ student.student_number }} • {{ program.name if program else 'Unknown Program' }}</p>
                     </div>
                     <div class="col-md-4 text-end">
                         <div class="btn-group">
-                            <a href="{{ url_for('student.student_profile', student_id=student._id|string) }}" class="btn btn-light">
-                                <i class="bi bi-person"></i> Student Profile
-                            </a>
                             <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-light">
                                 <i class="bi bi-arrow-left"></i> Back to CA
                             </a>
@@ -42,7 +39,7 @@
         </div>
     </div>
 
-    <!-- Student Information Card -->
+    <!-- Student Information -->
     <div class="row mb-4">
         <div class="col-md-8">
             <div class="card student-info-card">
@@ -52,33 +49,23 @@
                             <h4 class="text-white mb-3">{{ student.f_name }} {{ student.l_name }}</h4>
                             <div class="row text-white">
                                 <div class="col-sm-6 mb-2">
-                                    <strong><i class="bi bi-person-badge"></i> Student Number:</strong><br>
+                                    <strong>Student Number:</strong><br>
                                     {{ student.student_number }}
                                 </div>
                                 <div class="col-sm-6 mb-2">
-                                    <strong><i class="bi bi-book"></i> Program:</strong><br>
+                                    <strong>Program:</strong><br>
                                     {{ program.name if program else 'N/A' }}
                                 </div>
                                 <div class="col-sm-6 mb-2">
-                                    <strong><i class="bi bi-building"></i> School:</strong><br>
+                                    <strong>School:</strong><br>
                                     {{ school.name if school else 'N/A' }}
                                 </div>
                                 <div class="col-sm-6 mb-2">
-                                    <strong><i class="bi bi-calendar"></i> Enrollment Year:</strong><br>
-                                    {{ student.year_of_enrollment }}
+                                    <strong>Status:</strong><br>
+                                    <span class="badge bg-{{ 'success' if student.status == 'active' else 'secondary' }}">
+                                        {{ student.status|title if student.status else 'Unknown' }}
+                                    </span>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <div class="student-avatar">
-                                <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image and student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}"
-                                     alt="{{ student.f_name }} {{ student.l_name }}"
-                                     class="rounded-circle" width="80" height="80">
-                            </div>
-                            <div class="mt-2">
-                                <span class="badge bg-{{ 'success' if student.status == 'active' else 'secondary' }}">
-                                    {{ student.status|title if student.status else 'Unknown' }}
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -88,25 +75,23 @@
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body text-center">
-                    <h5 class="card-title">Overall CA Summary</h5>
+                    <h5 class="card-title">CA Summary</h5>
                     <div class="row mt-4">
                         <div class="col-6">
-                            <div class="display-6 text-primary">{{ overall_stats.total_assessments }}</div>
-                            <small class="text-muted">Total Assessments</small>
+                            <div class="display-6 text-primary">{{ overall_stats.total_assessments if overall_stats else 0 }}</div>
+                            <small class="text-muted">Total Courses</small>
                         </div>
                         <div class="col-6">
-                            <div class="display-6 text-success">{{ overall_stats.passed_courses }}</div>
-                            <small class="text-muted">Passed Courses</small>
+                            <div class="display-6 text-success">{{ overall_stats.passed_courses if overall_stats else 0 }}</div>
+                            <small class="text-muted">Passed</small>
                         </div>
                     </div>
                     <div class="row mt-3">
-                        <div class="col-6">
-                            <div class="display-6 text-info">{{ overall_stats.total_semesters }}</div>
-                            <small class="text-muted">Semesters</small>
-                        </div>
-                        <div class="col-6">
-                            <div class="display-6 text-warning">{{ "%.1f"|format(overall_stats.average_percentage_all) }}%</div>
-                            <small class="text-muted">Avg. Percentage</small>
+                        <div class="col-12">
+                            <div class="display-6 text-info">
+                                {{ "%.1f"|format(overall_stats.average_percentage_all) if overall_stats and overall_stats.average_percentage_all else 0 }}%
+                            </div>
+                            <small class="text-muted">Average Score</small>
                         </div>
                     </div>
                 </div>
@@ -119,26 +104,14 @@
         {% for semester_key, semester_data in records_by_semester.items() %}
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card semester-card">
+                <div class="card">
                     <div class="card-header bg-light">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-journal-text"></i>
-                                    {{ semester_data.academic_year }} - Semester {{ semester_data.semester }}
-                                </h5>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <div class="btn-group">
-                                    <span class="badge bg-primary me-2">
-                                        {{ semester_data.stats.total_courses }} Courses
-                                    </span>
-                                    <span class="badge bg-success">
-                                        {{ "%.1f"|format(semester_data.stats.average_percentage) }}% Average
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                        <h5 class="mb-0">
+                            <i class="bi bi-journal-text"></i>
+                            {{ semester_data.academic_year }} - Semester {{ semester_data.semester }}
+                            <span class="badge bg-primary ms-2">{{ semester_data.records|length }} courses</span>
+                            <span class="badge bg-success ms-1">{{ "%.1f"|format(semester_data.stats.average_percentage) }}% average</span>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -147,25 +120,18 @@
                                     <tr>
                                         <th>Course Code</th>
                                         <th>Course Name</th>
-                                        <th>Credits</th>
                                         <th>CA Score</th>
                                         <th>Total Score</th>
                                         <th>Percentage</th>
                                         <th>Grade</th>
-                                        <th>Remarks</th>
-                                        <th>Assessment Type</th>
-                                        <th>Assessment Date</th>
-                                        <th>Entered On</th>
+                                        <th>Assessment Details</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for record in semester_data.records %}
-                                    <tr class="{% if record.percentage >= 50 %}table-success{% else %}table-danger{% endif %}">
-                                        <td>
-                                            <strong>{{ record.course_code }}</strong>
-                                        </td>
+                                    <tr>
+                                        <td><strong>{{ record.course_code }}</strong></td>
                                         <td>{{ record.course_name }}</td>
-                                        <td class="text-center">{{ record.credits }}</td>
                                         <td class="text-center">
                                             <strong>{{ record.score if record.score is not none else 'N/A' }}</strong>
                                         </td>
@@ -190,45 +156,32 @@
                                                 {{ record.grade }}
                                             </span>
                                         </td>
-                                        <td class="text-center">
-                                            <span class="badge {% if record.remarks == 'Pass' %}bg-success{% else %}bg-danger{% endif %}">
-                                                {{ record.remarks }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge badge-assessment badge-{{ record.assessment_type }}">
-                                                {{ record.assessment_type|title }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center">{{ record.assessment_date }}</td>
-                                        <td class="text-center">
-                                            <small class="text-muted">{{ record.entered_at }}</small>
+                                        <td>
+                                            {% if record.assessment_breakdown and record.assessment_breakdown|length > 0 %}
+                                                <div class="assessment-breakdown">
+                                                    {% for item in record.assessment_breakdown %}
+                                                    <div class="breakdown-item mb-1">
+                                                        <span class="badge badge-{{ item.type }} me-1">
+                                                            {{ item.name if item.name else item.type|title }}
+                                                        </span>
+                                                        <small>{{ item.score }}/{{ item.max_score }} ({{ "%.1f"|format((item.score / item.max_score * 100) if item.max_score > 0 else 0) }}%)</small>
+                                                    </div>
+                                                    {% endfor %}
+                                                    <div class="breakdown-total mt-1 pt-1 border-top">
+                                                        <small class="text-muted">
+                                                            <strong>Total: {{ record.score if record.score is not none else 0 }}/{{ record.total_score }}</strong>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <small class="text-muted">
+                                                    <i class="bi bi-info-circle"></i> No breakdown available
+                                                </small>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="3" class="text-end"><strong>Semester Totals:</strong></td>
-                                        <td class="text-center"><strong>{{ "%.1f"|format(semester_data.stats.total_score) }}</strong></td>
-                                        <td class="text-center"><strong>{{ "%.1f"|format(semester_data.stats.total_possible) }}</strong></td>
-                                        <td class="text-center">
-                                            <strong>{{ "%.1f"|format(semester_data.stats.average_percentage) }}%</strong>
-                                        </td>
-                                        <td colspan="5" class="text-center">
-                                            <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar 
-                                                    {% if semester_data.stats.average_percentage >= 80 %}bg-success
-                                                    {% elif semester_data.stats.average_percentage >= 60 %}bg-info
-                                                    {% elif semester_data.stats.average_percentage >= 50 %}bg-warning
-                                                    {% else %}bg-danger{% endif %}" 
-                                                    style="width: {{ semester_data.stats.average_percentage }}%">
-                                                    {{ "%.1f"|format(semester_data.stats.average_percentage) }}%
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
                     </div>
@@ -237,7 +190,6 @@
         </div>
         {% endfor %}
     {% else %}
-    <!-- No Records Found -->
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -245,55 +197,9 @@
                     <i class="bi bi-clipboard-x display-1 text-muted"></i>
                     <h3 class="text-muted mt-3">No CA Records Found</h3>
                     <p class="text-muted">This student doesn't have any continuous assessment records yet.</p>
-                    <div class="mt-4">
-                        <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-ca-primary btn-lg me-2">
-                            <i class="bi bi-plus-circle"></i> Add CA Scores
-                        </a>
-                        <a href="{{ url_for('student.student_profile', student_id=student._id|string) }}" class="btn btn-outline-secondary btn-lg">
-                            <i class="bi bi-person"></i> Back to Profile
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Grade Legend -->
-    {% if records_by_semester %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Grade Legend</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-2">
-                            <span class="badge bg-success p-2">A (80-100%)</span>
-                            <small class="d-block text-muted mt-1">Excellent</small>
-                        </div>
-                        <div class="col-md-2">
-                            <span class="badge bg-info p-2">B (70-79%)</span>
-                            <small class="d-block text-muted mt-1">Very Good</small>
-                        </div>
-                        <div class="col-md-2">
-                            <span class="badge bg-warning p-2">C (60-69%)</span>
-                            <small class="d-block text-muted mt-1">Good</small>
-                        </div>
-                        <div class="col-md-2">
-                            <span class="badge bg-primary p-2">D (50-59%)</span>
-                            <small class="d-block text-muted mt-1">Pass</small>
-                        </div>
-                        <div class="col-md-2">
-                            <span class="badge bg-danger p-2">F (0-49%)</span>
-                            <small class="d-block text-muted mt-1">Fail</small>
-                        </div>
-                        <div class="col-md-2">
-                            <span class="badge bg-secondary p-2">N/A</span>
-                            <small class="d-block text-muted mt-1">No Score</small>
-                        </div>
-                    </div>
+                    <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-ca-primary mt-3">
+                        <i class="bi bi-plus-circle"></i> Add CA Scores
+                    </a>
                 </div>
             </div>
         </div>
@@ -301,134 +207,28 @@
     {% endif %}
 </div>
 
-<!-- JavaScript for Enhanced Functionality -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add print styles
-    const style = document.createElement('style');
-    style.textContent = `
-        @media print {
-            .btn, .ca-header .btn-group, .card-header .btn-group {
-                display: none !important;
-            }
-            .card {
-                border: 1px solid #000 !important;
-                break-inside: avoid;
-            }
-            .ca-table {
-                font-size: 12px;
-            }
-            .badge {
-                border: 1px solid #000 !important;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Add hover effects
-    const tableRows = document.querySelectorAll('.ca-table tbody tr');
-    tableRows.forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateX(5px)';
-            this.style.transition = 'transform 0.2s ease';
-        });
-        row.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateX(0)';
-        });
-    });
-
-    // Add search functionality for large tables
-    const addSearchFunctionality = () => {
-        const tables = document.querySelectorAll('.ca-table');
-        tables.forEach((table, index) => {
-            const header = table.previousElementSibling;
-            if (header && header.classList.contains('card-header')) {
-                const searchDiv = document.createElement('div');
-                searchDiv.className = 'mb-3';
-                searchDiv.innerHTML = `
-                    <div class="input-group input-group-sm">
-                        <input type="text" class="form-control" placeholder="Search courses in this semester..." id="searchTable${index}">
-                        <button class="btn btn-outline-secondary" type="button" onclick="filterTable(${index})">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                `;
-                header.appendChild(searchDiv);
-            }
-        });
-    };
-
-    // Initialize search if there are records
-    {% if records_by_semester %}
-    addSearchFunctionality();
-    {% endif %}
-});
-
-function filterTable(tableIndex) {
-    const searchInput = document.getElementById(`searchTable${tableIndex}`);
-    const filter = searchInput.value.toLowerCase();
-    const tables = document.querySelectorAll('.ca-table');
-    const table = tables[tableIndex];
-    const rows = table.querySelectorAll('tbody tr');
-    
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        if (text.includes(filter)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
+<style>
+.assessment-breakdown {
+    max-width: 250px;
+    font-size: 0.85rem;
 }
 
-// Export functionality
-function exportToCSV() {
-    let csv = [];
-    
-    // Add headers
-    csv.push(['Student CA Records', '', '', '', '', '', '', '', '', '', '']);
-    csv.push(['Student:', '{{ student.f_name }} {{ student.l_name }}', '', 'Student Number:', '{{ student.student_number }}', '', 'Program:', '{{ program.name if program else "N/A" }}', '', 'School:', '{{ school.name if school else "N/A" }}']);
-    csv.push([]);
-    
-    // Add data for each semester
-    {% for semester_key, semester_data in records_by_semester.items() %}
-    csv.push(['Academic Year:', '{{ semester_data.academic_year }}', '', 'Semester:', '{{ semester_data.semester }}']);
-    csv.push(['Course Code', 'Course Name', 'Credits', 'CA Score', 'Total Score', 'Percentage', 'Grade', 'Remarks', 'Assessment Type', 'Assessment Date', 'Entered On']);
-    
-    {% for record in semester_data.records %}
-    csv.push([
-        '{{ record.course_code }}',
-        '{{ record.course_name }}',
-        '{{ record.credits }}',
-        '{{ record.score if record.score is not none else "N/A" }}',
-        '{{ record.total_score }}',
-        '{{ "%.1f"|format(record.percentage) }}%',
-        '{{ record.grade }}',
-        '{{ record.remarks }}',
-        '{{ record.assessment_type|title }}',
-        '{{ record.assessment_date }}',
-        '{{ record.entered_at }}'
-    ]);
-    {% endfor %}
-    
-    csv.push(['Semester Average:', '', '', '', '', '{{ "%.1f"|format(semester_data.stats.average_percentage) }}%', '', '', '', '', '']);
-    csv.push([]);
-    {% endfor %}
-    
-    // Convert to CSV string
-    const csvString = csv.map(row => row.map(field => `"${field}"`).join(',')).join('\n');
-    
-    // Create download link
-    const blob = new Blob([csvString], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = 'CA_Records_{{ student.student_number }}_{{ student.f_name }}_{{ student.l_name }}.csv';
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-</script>
+
+.breakdown-total {
+    font-size: 0.8rem;
+}
+
+/* Badge colors for assessment types */
+.badge-assignment { background-color: #17a2b8; }
+.badge-quiz { background-color: #6f42c1; }
+.badge-project { background-color: #e83e8c; }
+.badge-lab { background-color: #fd7e14; }
+.badge-presentation { background-color: #20c997; }
+.badge-participation { background-color: #6c757d; }
+</style>
 {% endblock %}
