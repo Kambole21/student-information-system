@@ -61,7 +61,7 @@
                             <select class="form-select" id="programFilter">
                                 <option value="">All Programs</option>
                                 {% for program in programs %}
-                                <option value="{{ program._id }}">{{ program.name }}</option>
+                                <option value="{{ program._id }}>{{ program.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -91,8 +91,11 @@
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-people"></i> Students</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewStudentCA()" id="viewStudentBtn" disabled>
+                        <i class="bi bi-eye"></i> View CA
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="studentsList" class="list-group list-group-flush">
@@ -138,10 +141,10 @@
                                         <th>Course Code</th>
                                         <th>Course Name</th>
                                         <th>CA Score</th>
-                                        <th>Total Score</th>
+                                        <th>Total CA Score</th>
                                         <th>Percentage</th>
                                         <th>Assessment Type</th>
-                                        <th>Date</th>
+                                        <th>Breakdown</th>
                                     </tr>
                                 </thead>
                                 <tbody id="caScoresTable">
@@ -165,9 +168,80 @@
     </div>
 </div>
 
+<!-- Assessment Breakdown Modal -->
+<div class="modal fade" id="assessmentBreakdownModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assessment Breakdown - <span id="modalCourseName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Assessment Type</th>
+                                <th>Score</th>
+                                <th>Max Score</th>
+                                <th>Percentage</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="breakdownTable">
+                            <!-- Breakdown items will be populated here -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2"><strong>Total Score:</strong></td>
+                                <td><strong id="totalMaxScore">40</strong></td>
+                                <td><strong id="totalPercentage">0%</strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label>Assessment Type</label>
+                        <select class="form-select" id="newAssessmentType">
+                            <option value="assignment">Assignment</option>
+                            <option value="quiz">Quiz</option>
+                            <option value="project">Project</option>
+                            <option value="lab">Lab Work</option>
+                            <option value="presentation">Presentation</option>
+                            <option value="participation">Class Participation</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Score</label>
+                        <input type="number" class="form-control" id="newAssessmentScore" min="0" step="0.1" placeholder="Score">
+                    </div>
+                    <div class="col-md-3">
+                        <label>Max Score</label>
+                        <input type="number" class="form-control" id="newAssessmentMax" min="1" step="1" value="10" placeholder="Max">
+                    </div>
+                    <div class="col-md-2">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary w-100" onclick="addAssessmentItem()">
+                            <i class="bi bi-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveBreakdown()">Save Breakdown</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- JavaScript -->
 <script>
 let selectedStudentId = null;
+let currentCourseId = null;
+let assessmentBreakdown = [];
 
 function searchStudents() {
     const searchTerm = document.getElementById('searchInput').value;
@@ -222,6 +296,9 @@ function selectStudent(studentId, student) {
     });
     event.currentTarget.classList.add('selected');
     
+    // Enable view button
+    document.getElementById('viewStudentBtn').disabled = false;
+    
     // Show student info
     document.getElementById('studentInfo').classList.remove('d-none');
     document.getElementById('selectedStudentInfo').textContent = `${student.f_name} ${student.l_name} (${student.student_number})`;
@@ -236,6 +313,12 @@ function selectStudent(studentId, student) {
     
     // Load student courses
     loadStudentCourses(studentId);
+}
+
+function viewStudentCA() {
+    if (selectedStudentId) {
+        window.open(`/ca/student_records/${selectedStudentId}`, '_blank');
+    }
 }
 
 function loadStudentCourses(studentId) {
@@ -260,13 +343,15 @@ function loadStudentCourses(studentId) {
                         <input type="number" class="form-control form-control-sm ca-score-input" 
                                value="${course.ca_score || ''}" 
                                min="0" max="${course.total_score}" step="0.1"
-                               data-course-id="${course.course_id}">
+                               data-course-id="${course.course_id}"
+                               onchange="updateTotalFromBreakdown('${course.course_id}')">
                     </td>
                     <td>
                         <input type="number" class="form-control form-control-sm ca-total-score-input" 
                                value="${course.total_score}" 
                                min="1" max="100" step="1"
-                               data-course-id="${course.course_id}">
+                               data-course-id="${course.course_id}"
+                               readonly>
                     </td>
                     <td>
                         <span class="percentage-badge badge ${percentageClass}">${percentage}%</span>
@@ -280,9 +365,9 @@ function loadStudentCourses(studentId) {
                         </select>
                     </td>
                     <td>
-                        <input type="date" class="form-control form-control-sm assessment-date" 
-                               value="${course.assessment_date}" 
-                               data-course-id="${course.course_id}">
+                        <button class="btn btn-sm btn-outline-primary" onclick="openBreakdownModal('${course.course_id}', '${course.course_code} - ${course.course_name}')">
+                            <i class="bi bi-gear"></i> Configure
+                        </button>
                     </td>
                 `;
                 caScoresTable.appendChild(row);
@@ -318,6 +403,110 @@ function updatePercentage() {
     percentageBadge.textContent = `${percentage}%`;
 }
 
+function openBreakdownModal(courseId, courseName) {
+    currentCourseId = courseId;
+    document.getElementById('modalCourseName').textContent = courseName;
+    
+    // Load existing breakdown or initialize empty
+    assessmentBreakdown = [];
+    const courseRow = document.querySelector(`.ca-score-input[data-course-id="${courseId}"]`).closest('tr');
+    const existingScore = courseRow.querySelector('.ca-score-input').value;
+    
+    if (existingScore) {
+        // If there's an existing score but no breakdown, create a default one
+        assessmentBreakdown = [{
+            type: 'assignment',
+            score: parseFloat(existingScore),
+            max_score: 40
+        }];
+    }
+    
+    updateBreakdownTable();
+    new bootstrap.Modal(document.getElementById('assessmentBreakdownModal')).show();
+}
+
+function updateBreakdownTable() {
+    const breakdownTable = document.getElementById('breakdownTable');
+    breakdownTable.innerHTML = '';
+    
+    let totalScore = 0;
+    let totalMax = 0;
+    
+    assessmentBreakdown.forEach((item, index) => {
+        const percentage = ((item.score / item.max_score) * 100).toFixed(1);
+        totalScore += item.score;
+        totalMax += item.max_score;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</td>
+            <td>${item.score}</td>
+            <td>${item.max_score}</td>
+            <td>${percentage}%</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="removeAssessmentItem(${index})">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        `;
+        breakdownTable.appendChild(row);
+    });
+    
+    document.getElementById('totalMaxScore').textContent = totalMax;
+    document.getElementById('totalPercentage').textContent = totalMax > 0 ? ((totalScore / totalMax) * 100).toFixed(1) + '%' : '0%';
+}
+
+function addAssessmentItem() {
+    const type = document.getElementById('newAssessmentType').value;
+    const score = parseFloat(document.getElementById('newAssessmentScore').value) || 0;
+    const maxScore = parseFloat(document.getElementById('newAssessmentMax').value) || 10;
+    
+    if (score > maxScore) {
+        alert('Score cannot be greater than maximum score');
+        return;
+    }
+    
+    assessmentBreakdown.push({
+        type: type,
+        score: score,
+        max_score: maxScore
+    });
+    
+    // Clear input fields
+    document.getElementById('newAssessmentScore').value = '';
+    document.getElementById('newAssessmentMax').value = '10';
+    
+    updateBreakdownTable();
+}
+
+function removeAssessmentItem(index) {
+    assessmentBreakdown.splice(index, 1);
+    updateBreakdownTable();
+}
+
+function saveBreakdown() {
+    if (currentCourseId) {
+        const totalScore = assessmentBreakdown.reduce((sum, item) => sum + item.score, 0);
+        const totalMax = assessmentBreakdown.reduce((sum, item) => sum + item.max_score, 0);
+        
+        // Update the main form
+        const courseRow = document.querySelector(`.ca-score-input[data-course-id="${currentCourseId}"]`).closest('tr');
+        courseRow.querySelector('.ca-score-input').value = totalScore;
+        courseRow.querySelector('.ca-total-score-input').value = totalMax;
+        
+        // Update percentage
+        updatePercentage.call(courseRow.querySelector('.ca-score-input'));
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('assessmentBreakdownModal')).hide();
+    }
+}
+
+function updateTotalFromBreakdown(courseId) {
+    // This function can be used if you want to sync changes from main score input back to breakdown
+    // Currently, breakdown is the master and main score is derived from it
+}
+
 function saveCAScores() {
     if (!selectedStudentId) {
         alert('Please select a student first');
@@ -332,7 +521,6 @@ function saveCAScores() {
         const scoreInput = row.querySelector('.ca-score-input');
         const totalInput = row.querySelector('.ca-total-score-input');
         const typeSelect = row.querySelector('.assessment-type');
-        const dateInput = row.querySelector('.assessment-date');
         
         if (scoreInput && totalInput) {
             caScores.push({
@@ -340,7 +528,8 @@ function saveCAScores() {
                 score: scoreInput.value ? parseFloat(scoreInput.value) : null,
                 total_score: parseFloat(totalInput.value),
                 assessment_type: typeSelect.value,
-                assessment_date: dateInput.value
+                assessment_date: new Date().toISOString().split('T')[0],
+                assessment_breakdown: assessmentBreakdown // Include breakdown data
             });
         }
     });
@@ -377,6 +566,7 @@ function clearSelection() {
     document.getElementById('studentInfo').classList.add('d-none');
     document.getElementById('caFormContainer').classList.add('d-none');
     document.getElementById('noStudentSelected').classList.remove('d-none');
+    document.getElementById('viewStudentBtn').disabled = true;
     document.querySelectorAll('.student-ca-card').forEach(card => {
         card.classList.remove('selected');
     });

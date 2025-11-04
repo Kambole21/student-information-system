@@ -104,46 +104,23 @@
                         <table class="table table-bordered ca-table">
                             <thead>
                                 <tr>
-                                    <th>Academic Year</th>
-                                    <th>Semester</th>
                                     <th>Course Code</th>
                                     <th>Course Name</th>
-                                    <th>Score</th>
-                                    <th>Total</th>
-                                    <th>Percentage</th>
-                                    <th>Assessment Type</th>
-                                    <th>Date</th>
-                                    <th>Entered</th>
+                                    <th>CA Score</th>
+                                    <th>Total CA Score</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for record in ca_records %}
                                 <tr>
-                                    <td>{{ record.academic_year }}</td>
-                                    <td>Semester {{ record.semester }}</td>
-                                    <td>{{ record.course_code }}</td>
+                                    <td><strong>{{ record.course_code }}</strong></td>
                                     <td>{{ record.course_name }}</td>
-                                    <td>
+                                    <td class="text-center">
                                         <strong>{{ record.score if record.score is not none else 'N/A' }}</strong>
                                     </td>
-                                    <td>{{ record.total_score }}</td>
-                                    <td>
-                                        {% set percentage = record.percentage %}
-                                        <span class="badge 
-                                            {% if percentage >= 80 %}badge-ca-excellent
-                                            {% elif percentage >= 60 %}badge-ca-good
-                                            {% elif percentage >= 50 %}badge-ca-average
-                                            {% else %}badge-ca-poor{% endif %}">
-                                            {{ "%.1f"|format(percentage) }}%
-                                        </span>
+                                    <td class="text-center">
+                                        <strong>{{ record.total_score }}</strong>
                                     </td>
-                                    <td>
-                                        <span class="badge badge-assessment badge-{{ record.assessment_type }}">
-                                            {{ record.assessment_type|title }}
-                                        </span>
-                                    </td>
-                                    <td>{{ record.assessment_date }}</td>
-                                    <td>{{ record.entered_at }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

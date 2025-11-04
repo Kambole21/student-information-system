@@ -26,7 +26,7 @@
                     </div>
                     <div class="col-md-4 text-end">
                         <div class="btn-group">
-                            <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-light">
+                            <a href="{{ url_for('student.student_profile', student_id=student._id|string) }}" class="btn btn-light">
                                 <i class="bi bi-person"></i> Student Profile
                             </a>
                             <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-light">
@@ -71,13 +71,13 @@
                         </div>
                         <div class="col-md-4 text-center">
                             <div class="student-avatar">
-                                <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}"
+                                <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image and student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}"
                                      alt="{{ student.f_name }} {{ student.l_name }}"
                                      class="rounded-circle" width="80" height="80">
                             </div>
                             <div class="mt-2">
                                 <span class="badge bg-{{ 'success' if student.status == 'active' else 'secondary' }}">
-                                    {{ student.status|title }}
+                                    {{ student.status|title if student.status else 'Unknown' }}
                                 </span>
                             </div>
                         </div>
@@ -249,7 +249,7 @@
                         <a href="{{ url_for('ca.manage_ca') }}" class="btn btn-ca-primary btn-lg me-2">
                             <i class="bi bi-plus-circle"></i> Add CA Scores
                         </a>
-                        <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-secondary btn-lg">
+                        <a href="{{ url_for('student.student_profile', student_id=student._id|string) }}" class="btn btn-outline-secondary btn-lg">
                             <i class="bi bi-person"></i> Back to Profile
                         </a>
                     </div>

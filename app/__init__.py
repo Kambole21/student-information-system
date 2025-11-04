@@ -38,6 +38,5 @@ def create_grades_indexes():
     mock_grades_collection.create_index([('student_id', 1), ('academic_year', 1), ('semester', 1)])
     mock_grades_collection.create_index([('course_id', 1)])
     mock_grades_collection.create_index([('entered_at', -1)])
-
-# Call the function to create indexes
+    
 create_grades_indexes()

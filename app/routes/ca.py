@@ -114,15 +114,15 @@ def get_student_courses_ca(student_id):
                     'credits': course.get('credits', 0),
                     'program_name': program['name'] if program else 'Unknown',
                     'ca_score': ca_data.get('score') if ca_data else None,
-                    'total_score': ca_data.get('total_score', 30) if ca_data else 30,  # Default total score
+                    'total_score': ca_data.get('total_score', 40) if ca_data else 40,  # Default total score changed to 40
                     'assessment_type': ca_data.get('assessment_type', 'assignment') if ca_data else 'assignment',
-                    'assessment_date': ca_data.get('assessment_date', datetime.utcnow()).strftime('%Y-%m-%d') if ca_data else datetime.utcnow().strftime('%Y-%m-%d')
+                    'assessment_date': ca_data.get('assessment_date', datetime.utcnow()).strftime('%Y-%m-%d') if ca_data else datetime.utcnow().strftime('%Y-%m-%d'),
+                    'assessment_breakdown': ca_data.get('assessment_breakdown', []) if ca_data else []
                 })
         
         return jsonify(courses_data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 @bp.route('/ca/save_scores/<student_id>', methods=['POST'])
 def save_ca_scores(student_id):
@@ -145,6 +145,7 @@ def save_ca_scores(student_id):
                     'total_score': float(score_data['total_score']),
                     'assessment_type': score_data.get('assessment_type', 'assignment'),
                     'assessment_date': datetime.strptime(score_data['assessment_date'], '%Y-%m-%d') if score_data.get('assessment_date') else datetime.utcnow(),
+                    'assessment_breakdown': score_data.get('assessment_breakdown', []),
                     'entered_by': 'System',  # Replace with actual user
                     'entered_at': datetime.utcnow(),
                     'updated_at': datetime.utcnow()
@@ -211,14 +212,22 @@ def view_student_ca(student_id):
                         }
                     }
                 
-                percentage = (record.get('score', 0) / record.get('total_score', 1) * 100) if record.get('score') and record.get('total_score') else 0
+                # FIX: Handle None values for score and total_score
+                score = record.get('score', 0) or 0  # Convert None to 0
+                total_score = record.get('total_score', 40) or 40  # Convert None to default 40
+                
+                # FIX: Prevent division by zero
+                if total_score > 0:
+                    percentage = (score / total_score) * 100
+                else:
+                    percentage = 0
                 
                 records_by_semester[key]['records'].append({
                     'course_code': course['code'],
                     'course_name': course['name'],
                     'credits': course.get('credits', 0),
-                    'score': record.get('score'),
-                    'total_score': record.get('total_score', 30),
+                    'score': record.get('score'),  # Keep original value for display
+                    'total_score': total_score,
                     'percentage': percentage,
                     'assessment_type': record.get('assessment_type', 'assignment'),
                     'assessment_date': record.get('assessment_date', record['entered_at']).strftime('%Y-%m-%d'),
@@ -232,16 +241,43 @@ def view_student_ca(student_id):
             records = semester_data['records']
             if records:
                 semester_data['stats']['total_courses'] = len(records)
-                semester_data['stats']['total_score'] = sum(r['score'] for r in records if r['score'] is not None)
-                semester_data['stats']['total_possible'] = sum(r['total_score'] for r in records)
-                semester_data['stats']['average_percentage'] = semester_data['stats']['total_score'] / semester_data['stats']['total_possible'] * 100 if semester_data['stats']['total_possible'] > 0 else 0
+                
+                # FIX: Handle None values in statistics calculation
+                total_score = sum(r['score'] for r in records if r['score'] is not None)
+                total_possible = sum(r['total_score'] for r in records)
+                
+                semester_data['stats']['total_score'] = total_score
+                semester_data['stats']['total_possible'] = total_possible
+                
+                # FIX: Prevent division by zero in average calculation
+                if total_possible > 0:
+                    semester_data['stats']['average_percentage'] = (total_score / total_possible) * 100
+                else:
+                    semester_data['stats']['average_percentage'] = 0
         
         # Calculate overall statistics
+        total_assessments = len(ca_records)
+        total_semesters = len(records_by_semester)
+        
+        # FIX: Handle empty records_by_semester
+        if records_by_semester:
+            average_percentage_all = sum(s['stats']['average_percentage'] for s in records_by_semester.values()) / total_semesters
+        else:
+            average_percentage_all = 0
+        
+        # FIX: Handle None values in passed courses calculation
+        passed_courses = 0
+        for record in ca_records:
+            score = record.get('score', 0) or 0
+            total_score = record.get('total_score', 40) or 40
+            if total_score > 0 and (score / total_score * 100) >= 50:
+                passed_courses += 1
+        
         overall_stats = {
-            'total_assessments': len(ca_records),
-            'total_semesters': len(records_by_semester),
-            'average_percentage_all': sum(s['stats']['average_percentage'] for s in records_by_semester.values()) / len(records_by_semester) if records_by_semester else 0,
-            'passed_courses': sum(1 for r in ca_records if (r.get('score', 0) / r.get('total_score', 1) * 100) >= 50) if ca_records else 0
+            'total_assessments': total_assessments,
+            'total_semesters': total_semesters,
+            'average_percentage_all': average_percentage_all,
+            'passed_courses': passed_courses
         }
         
         return render_template('grades/ca/view_student_ca.html',
@@ -270,7 +306,7 @@ def calculate_ca_grade(percentage):
 
 @bp.route('/ca/student_records/<student_id>')
 def student_ca_records(student_id):
-    """View all CA records for a specific student"""
+    """View all CA records for a specific student - Simplified view"""
     try:
         student = students_collection.find_one({'_id': ObjectId(student_id)})
         if not student:
@@ -291,17 +327,28 @@ def student_ca_records(student_id):
         for record in ca_records:
             course = courses_collection.find_one({'_id': ObjectId(record['course_id'])})
             if course:
+                # FIX: Handle None values for score and total_score
+                score = record.get('score', 0) or 0
+                total_score = record.get('total_score', 40) or 40
+                
+                # FIX: Prevent division by zero
+                if total_score > 0:
+                    percentage = (score / total_score) * 100
+                else:
+                    percentage = 0
+                
                 enhanced_records.append({
                     'course_code': course['code'],
                     'course_name': course['name'],
                     'academic_year': record['academic_year'],
                     'semester': record['semester'],
-                    'score': record.get('score'),
-                    'total_score': record.get('total_score', 30),
-                    'percentage': (record.get('score', 0) / record.get('total_score', 30) * 100) if record.get('score') and record.get('total_score') else 0,
+                    'score': record.get('score'),  # Keep original for display
+                    'total_score': total_score,
+                    'percentage': percentage,
                     'assessment_type': record.get('assessment_type', 'assignment'),
                     'assessment_date': record.get('assessment_date', record['entered_at']).strftime('%Y-%m-%d'),
-                    'entered_at': record['entered_at'].strftime('%Y-%m-%d %H:%M')
+                    'entered_at': record['entered_at'].strftime('%Y-%m-%d %H:%M'),
+                    'assessment_breakdown': record.get('assessment_breakdown', [])
                 })
         
         return render_template('grades/ca/student_ca_records.html',

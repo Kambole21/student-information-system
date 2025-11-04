@@ -484,3 +484,124 @@
     color: #6c757d;
     font-size: 0.9rem;
 }
+.breakdown-modal .modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.breakdown-modal .modal-header {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+}
+
+.breakdown-modal .modal-body {
+    padding: 2rem;
+}
+
+.breakdown-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.breakdown-table tfoot {
+    background-color: #e9ecef;
+    font-weight: bold;
+}
+
+/* Button Enhancements */
+.btn-breakdown {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-breakdown:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);
+    color: white;
+}
+
+/* Assessment Type Badges */
+.badge-assessment {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+}
+
+.badge-assignment {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    color: white;
+}
+
+.badge-quiz {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+}
+
+.badge-project {
+    background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+    color: white;
+}
+
+.badge-lab {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    color: white;
+}
+
+.badge-presentation {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: white;
+}
+
+.badge-participation {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+/* Input Group Enhancements */
+.input-group-breakdown .form-control {
+    border-radius: 6px;
+}
+
+.input-group-breakdown .btn {
+    border-radius: 6px;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+    .breakdown-modal .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .breakdown-modal .modal-body {
+        padding: 1rem;
+    }
+    
+    .breakdown-table {
+        font-size: 0.875rem;
+    }
+}
+
+/* Hover Effects for Breakdown Table */
+.breakdown-table tbody tr:hover {
+    background-color: rgba(111, 66, 193, 0.05);
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+
+/* View Button Styles */
+#viewStudentBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#viewStudentBtn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
