@@ -1,0 +1,490 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header accounts-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-file-earmark-plus"></i> Create Invoice</h1>
+                        <p class="text-light">Generate bills and record payments for students</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('accounts.accounts_management') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to Accounts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Form -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Transaction Details</h5>
+                </div>
+                <div class="card-body">
+                    <form id="invoiceForm">
+                        <div class="mb-3">
+                            <label class="form-label">Transaction Type</label>
+                            <select class="form-select" id="transactionType" required>
+                                <option value="">Select Type</option>
+                                <option value="Billing">Billing (Charge Student)</option>
+                                <option value="Clearing">Clearing (Receive Payment)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Filter Students By</label>
+                            <select class="form-select" id="filterType">
+                                <option value="all">All Students</option>
+                                <option value="program">Program</option>
+                                <option value="school">School</option>
+                                <option value="course">Course</option>
+                                <option value="level">Level</option>
+                                <option value="individual">Individual Student</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3" id="filterValueContainer" style="display: none;">
+                            <label class="form-label" id="filterValueLabel">Select Value</label>
+                            <select class="form-select" id="filterValue">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Amount (GHS)</label>
+                            <input type="number" class="form-control" id="amount" min="0.01" step="0.01" placeholder="0.00" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Enter transaction description..." required></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100" onclick="loadStudents()">
+                            <i class="bi bi-search"></i> Load Students
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Selected Students</h5>
+                    <span class="badge bg-primary" id="selectedCount">0 students selected</span>
+                </div>
+                <div class="card-body">
+                    <div id="studentsList" class="students-list-container">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-people display-4"></i>
+                            <p>Use the filters to load students</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 d-flex gap-2">
+                        <button class="btn btn-success" id="createTransactionBtn" onclick="createTransaction()" disabled>
+                            <i class="bi bi-check-circle"></i> Create Transaction
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearSelection()">
+                            <i class="bi bi-x-circle"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedStudents = new Set();
+
+document.getElementById('filterType').addEventListener('change', function() {
+    const filterType = this.value;
+    const container = document.getElementById('filterValueContainer');
+    const label = document.getElementById('filterValueLabel');
+    const select = document.getElementById('filterValue');
+
+    if (filterType === 'all') {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+    
+    // Clear previous options
+    select.innerHTML = '<option value="">Loading...</option>';
+    
+    // Set label and load options based on filter type
+    switch(filterType) {
+        case 'program':
+            label.textContent = 'Select Program';
+            loadPrograms();
+            break;
+        case 'school':
+            label.textContent = 'Select School';
+            loadSchools();
+            break;
+        case 'course':
+            label.textContent = 'Select Course';
+            loadCourses();
+            break;
+        case 'level':
+            label.textContent = 'Select Level';
+            loadLevels();
+            break;
+        case 'individual':
+            label.textContent = 'Select Student';
+            loadAllStudents();
+            break;
+    }
+});
+
+function loadPrograms() {
+    const select = document.getElementById('filterValue');
+    
+    // Use the programs data passed from the template
+    const programs = [
+        {% for program in programs %}
+        {id: '{{ program._id }}', name: '{{ program.name }}'},
+        {% endfor %}
+    ];
+    
+    select.innerHTML = '<option value="">Select Program</option>';
+    programs.forEach(program => {
+        select.innerHTML += `<option value="${program.id}">${program.name}</option>`;
+    });
+}
+
+function loadSchools() {
+    const select = document.getElementById('filterValue');
+    
+    const schools = [
+        {% for school in schools %}
+        {id: '{{ school._id }}', name: '{{ school.name }}'},
+        {% endfor %}
+    ];
+    
+    select.innerHTML = '<option value="">Select School</option>';
+    schools.forEach(school => {
+        select.innerHTML += `<option value="${school.id}">${school.name}</option>`;
+    });
+}
+
+function loadCourses() {
+    const select = document.getElementById('filterValue');
+    
+    const courses = [
+        {% for course in courses %}
+        {id: '{{ course._id }}', name: '{{ course.code }} - {{ course.name }}'},
+        {% endfor %}
+    ];
+    
+    select.innerHTML = '<option value="">Select Course</option>';
+    courses.forEach(course => {
+        select.innerHTML += `<option value="${course.id}">${course.name}</option>`;
+    });
+}
+
+function loadLevels() {
+    const select = document.getElementById('filterValue');
+    select.innerHTML = `
+        <option value="">Select Level</option>
+        <option value="certificate">Certificate</option>
+        <option value="diploma">Diploma</option>
+        <option value="undergraduate">Undergraduate</option>
+        <option value="postgraduate">Postgraduate</option>
+    `;
+}
+
+function loadAllStudents() {
+    const select = document.getElementById('filterValue');
+    
+    // Load all students for individual selection
+    fetch('/accounts/get_students', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            filter_type: 'all',
+            filter_value: ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            select.innerHTML = '<option value="">Select Student</option>';
+            data.students.forEach(student => {
+                select.innerHTML += `<option value="${student.id}">${student.student_number} - ${student.name}</option>`;
+            });
+        } else {
+            select.innerHTML = '<option value="">Error loading students</option>';
+            console.error('Error loading students:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        select.innerHTML = '<option value="">Error loading students</option>';
+    });
+}
+
+function loadStudents() {
+    const filterType = document.getElementById('filterType').value;
+    let filterValue = '';
+    
+    if (filterType !== 'all') {
+        filterValue = document.getElementById('filterValue').value;
+        if (!filterValue) {
+            alert('Please select a filter value');
+            return;
+        }
+    }
+    
+    const transactionType = document.getElementById('transactionType').value;
+    const amount = document.getElementById('amount').value;
+    const description = document.getElementById('description').value;
+
+    if (!transactionType) {
+        alert('Please select transaction type');
+        return;
+    }
+
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+
+    if (!description.trim()) {
+        alert('Please enter a description');
+        return;
+    }
+
+    const studentsList = document.getElementById('studentsList');
+    studentsList.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Loading students...</p></div>';
+
+    fetch('/accounts/get_students', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            filter_type: filterType,
+            filter_value: filterValue
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.students && data.students.length > 0) {
+                displayStudents(data.students);
+            } else {
+                studentsList.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-people display-4"></i>
+                        <h5 class="mt-3">No Students Found</h5>
+                        <p>No students match the selected criteria.</p>
+                        <button class="btn btn-outline-primary" onclick="clearFilters()">
+                            Try Different Filters
+                        </button>
+                    </div>
+                `;
+            }
+        } else {
+            studentsList.innerHTML = `
+                <div class="text-center text-danger py-5">
+                    <i class="bi bi-exclamation-triangle display-4"></i>
+                    <h5 class="mt-3">Error Loading Students</h5>
+                    <p>${data.error || 'Unknown error occurred'}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        studentsList.innerHTML = `
+            <div class="text-center text-danger py-5">
+                <i class="bi bi-exclamation-triangle display-4"></i>
+                <h5 class="mt-3">Network Error</h5>
+                <p>Failed to load students. Please check your connection.</p>
+            </div>
+        `;
+    });
+}
+
+function displayStudents(students) {
+    const studentsList = document.getElementById('studentsList');
+    
+    let html = `
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                <label class="form-check-label" for="selectAll">
+                    <strong>Select All Students</strong>
+                </label>
+            </div>
+        </div>
+        <div class="students-grid">
+    `;
+    
+    students.forEach(student => {
+        const isSelected = selectedStudents.has(student.id);
+        html += `
+            <div class="student-card ${isSelected ? 'selected' : ''}" onclick="toggleStudent('${student.id}')">
+                <div class="student-info">
+                    <h6>${student.name}</h6>
+                    <p class="mb-1 text-muted">${student.student_number}</p>
+                    <small class="text-muted">${student.program} • ${student.school}</small>
+                    <div class="mt-2">
+                        <small class="badge ${student.current_balance > 0 ? 'bg-warning' : 'bg-success'}">
+                            Balance: GHS ${student.current_balance.toFixed(2)}
+                        </small>
+                    </div>
+                </div>
+                <div class="student-checkbox">
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleStudent('${student.id}')">
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    studentsList.innerHTML = html;
+    updateSelectedCount();
+}
+
+function toggleSelectAll(checkbox) {
+    const studentsList = document.getElementById('studentsList');
+    const studentCards = studentsList.querySelectorAll('.student-card');
+    
+    if (checkbox.checked) {
+        studentCards.forEach(card => {
+            const studentId = card.getAttribute('onclick').match(/'([^']+)'/)[1];
+            selectedStudents.add(studentId);
+        });
+    } else {
+        selectedStudents.clear();
+    }
+    
+    // Re-display to update selection states
+    const currentStudents = Array.from(studentCards).map(card => {
+        const studentId = card.getAttribute('onclick').match(/'([^']+)'/)[1];
+        return { id: studentId };
+    });
+    displayStudents(currentStudents);
+}
+
+function toggleStudent(studentId) {
+    if (selectedStudents.has(studentId)) {
+        selectedStudents.delete(studentId);
+    } else {
+        selectedStudents.add(studentId);
+    }
+    
+    // Update the select all checkbox
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        const studentsList = document.getElementById('studentsList');
+        const studentCards = studentsList.querySelectorAll('.student-card');
+        selectAllCheckbox.checked = selectedStudents.size === studentCards.length;
+    }
+    
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const count = selectedStudents.size;
+    document.getElementById('selectedCount').textContent = `${count} students selected`;
+    document.getElementById('createTransactionBtn').disabled = count === 0;
+}
+
+function clearSelection() {
+    selectedStudents.clear();
+    updateSelectedCount();
+    const studentsList = document.getElementById('studentsList');
+    studentsList.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-people display-4"></i><p>Use the filters to load students</p></div>';
+}
+
+function clearFilters() {
+    document.getElementById('filterType').value = 'all';
+    document.getElementById('filterValueContainer').style.display = 'none';
+    document.getElementById('filterValue').innerHTML = '<option value="">Select Value</option>';
+    clearSelection();
+}
+
+function createTransaction() {
+    const transactionType = document.getElementById('transactionType').value;
+    const amount = document.getElementById('amount').value;
+    const description = document.getElementById('description').value;
+
+    if (selectedStudents.size === 0) {
+        alert('Please select at least one student');
+        return;
+    }
+
+    const btn = document.getElementById('createTransactionBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Creating...';
+
+    fetch('/accounts/create_transaction', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            type: transactionType,
+            amount: parseFloat(amount),
+            description: description,
+            student_ids: Array.from(selectedStudents)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            clearSelection();
+            // Reset form
+            document.getElementById('invoiceForm').reset();
+            document.getElementById('filterValueContainer').style.display = 'none';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating transaction');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any initialization code here
+});
+</script>
+{% endblock %}

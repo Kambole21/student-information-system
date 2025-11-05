@@ -18,8 +18,9 @@ student_courses_collection = db['Student-Courses Collection']
 grades_collection = db['Grades']
 mock_grades_collection = db['Mock Grades']  
 ca_collection = db['Continus Assessment']
+accounts_collection = db['Accounts']
 
-from app.routes import home, staff, courses_program, student, grades, ca
+from app.routes import home, staff, courses_program, student, grades, ca, accounts
 
 app.register_blueprint(home.bp)
 app.register_blueprint(staff.bp)
@@ -27,6 +28,7 @@ app.register_blueprint(courses_program.bp)
 app.register_blueprint(student.bp)
 app.register_blueprint(grades.bp)
 app.register_blueprint(ca.bp)
+app.register_blueprint(accounts.bp)
 
 # Add this to your app initialization
 def create_grades_indexes():

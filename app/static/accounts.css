@@ -1,0 +1,378 @@
+/* Accounts Management Styles */
+.accounts-header {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.accounts-header h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+/* Statistics Cards */
+.stats-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stats-card .card-body {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.stats-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+    opacity: 0.8;
+}
+
+.stats-content {
+    flex-grow: 1;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.revenue-card { background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); color: white; }
+.billing-card { background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%); color: white; }
+.payment-card { background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%); color: white; }
+.balance-card { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: white; }
+
+/* Action Cards */
+.action-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.action-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.create-invoice-card { border-left: 4px solid #20c997; }
+.view-history-card { border-left: 4px solid #6f42c1; }
+
+/* Student Cards */
+.students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.student-card {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.student-card:hover {
+    border-color: #20c997;
+    background-color: #f8f9fa;
+}
+
+.student-card.selected {
+    border-color: #20c997;
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(23, 162, 184, 0.1) 100%);
+}
+
+.student-info {
+    flex-grow: 1;
+}
+
+.student-checkbox {
+    margin-left: 1rem;
+}
+
+.student-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+/* Table Styles */
+.accounts-table th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    font-weight: 600;
+    border-bottom: 2px solid #20c997;
+    padding: 0.75rem;
+}
+
+.accounts-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.table-billing {
+    background-color: rgba(253, 126, 20, 0.05);
+}
+
+.table-clearing {
+    background-color: rgba(32, 201, 151, 0.05);
+}
+
+/* Summary Cards */
+.summary-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.summary-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.billing-summary { border-left: 4px solid #fd7e14; }
+.payment-summary { border-left: 4px solid #20c997; }
+.balance-summary { border-left: 4px solid #ffc107; }
+
+/* Student Info Card */
+.student-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+/* Form Styles */
+.form-control:focus, .form-select:focus {
+    border-color: #20c997;
+    box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(32, 201, 151, 0.4);
+    background: linear-gradient(135deg, #1ea582 0%, #148a9c 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .accounts-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .stats-card .card-body {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stats-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .students-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .accounts-table {
+        font-size: 0.8rem;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Print Styles */
+@media print {
+    .btn, .card-header .btn, .action-card {
+        display: none !important;
+    }
+    
+    .accounts-table {
+        border: 1px solid #000 !important;
+    }
+    
+    .accounts-table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+    }
+}
+
+/* Badge Styles */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 15px;
+}
+
+/* Scrollbar Styling */
+.students-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.students-list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.students-list-container::-webkit-scrollbar-thumb {
+    background: #20c997;
+    border-radius: 10px;
+}
+
+.students-list-container::-webkit-scrollbar-thumb:hover {
+    background: #1ea582;
+}
+/* Add to existing accounts.css */
+
+/* Select All Checkbox */
+.form-check-input:checked {
+    background-color: #20c997;
+    border-color: #20c997;
+}
+
+.form-check-label {
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Improved Student Cards */
+.student-card {
+    position: relative;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.student-card:last-child {
+    margin-bottom: 0;
+}
+
+.student-card:hover {
+    border-color: #20c997;
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+}
+
+.student-card.selected {
+    border-color: #20c997;
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(23, 162, 184, 0.1) 100%);
+    box-shadow: 0 4px 15px rgba(32, 201, 151, 0.2);
+}
+
+.student-info {
+    flex-grow: 1;
+    padding-right: 1rem;
+}
+
+.student-info h6 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.student-checkbox {
+    display: flex;
+    align-items: flex-start;
+}
+
+.student-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Loading States */
+.spinner-border {
+    color: #20c997;
+}
+
+/* Error States */
+.text-danger .bi-exclamation-triangle {
+    color: #dc3545;
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+    .student-card {
+        flex-direction: column;
+    }
+    
+    .student-checkbox {
+        margin-top: 1rem;
+        align-self: flex-end;
+    }
+}
+
+/* Button Improvements */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Filter Section Improvements */
+#filterValueContainer {
+    transition: all 0.3s ease;
+}
+
+.form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.75rem;
+}
+
+.form-select:focus {
+    border-color: #20c997;
+    box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
+}
