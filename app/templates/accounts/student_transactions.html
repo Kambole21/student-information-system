@@ -58,7 +58,7 @@
                                 <div class="col-sm-6 mb-2">
                                     <strong>Current Balance:</strong><br>
                                     <span class="badge bg-{{ 'danger' if current_balance > 0 else 'success' }} fs-6">
-                                        GHS {{ "%.2f"|format(current_balance) }}
+                                         {{ "%.2f"|format(current_balance) }}
                                     </span>
                                 </div>
                             </div>
@@ -79,54 +79,54 @@
                 </div>
                 <div class="card-body">
                     {% if transactions %}
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover accounts-table">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Date & Time</th>
-                                    <th>Transaction Code</th>
-                                    <th>Type</th>
-                                    <th>Description</th>
-                                    <th>Debit (GHS)</th>
-                                    <th>Credit (GHS)</th>
-                                    <th>Balance (GHS)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for transaction in transactions %}
-                                <tr class="{% if transaction.type == 'Billing' %}table-billing{% else %}table-clearing{% endif %}">
-                                    <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td><strong>{{ transaction.transaction_code }}</strong></td>
-                                    <td>
-                                        <span class="badge {% if transaction.type == 'Billing' %}bg-danger{% else %}bg-success{% endif %}">
-                                            {{ transaction.type }}
-                                        </span>
-                                    </td>
-                                    <td>{{ transaction.description }}</td>
-                                    <td class="text-end">
-                                        {% if transaction.debit > 0 %}
-                                        <strong class="text-danger">{{ "%.2f"|format(transaction.debit) }}</strong>
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        {% if transaction.credit > 0 %}
-                                        <strong class="text-success">{{ "%.2f"|format(transaction.credit) }}</strong>
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        <strong class="{% if transaction.balance_after > 0 %}text-warning{% else %}text-success{% endif %}">
-                                            {{ "%.2f"|format(transaction.balance_after) }}
-                                        </strong>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover accounts-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Transaction Code</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Debit </th>
+                                <th>Credit </th>
+                                <th>Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr class="{% if transaction.type == 'Billing' %}table-billing{% else %}table-clearing{% endif %}">
+                                <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td><strong>{{ transaction.transaction_code }}</strong></td>
+                                <td>
+                                    <span class="badge {% if transaction.type == 'Billing' %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ transaction.type }}
+                                    </span>
+                                </td>
+                                <td>{{ transaction.description }}</td>
+                                <td class="text-end">
+                                    {% if transaction.debit > 0 %}
+                                    <strong class="text-danger">{{ "%.2f"|format(transaction.debit) }}</strong>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if transaction.credit > 0 %}
+                                    <strong class="text-success">{{ "%.2f"|format(transaction.credit) }}</strong>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <strong class="{% if transaction.balance_after > 0 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ "%.2f"|format(transaction.balance_after) }}
+                                    </strong>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                     {% else %}
                     <div class="text-center py-5">
                         <i class="bi bi-receipt display-4 text-muted"></i>

@@ -47,7 +47,7 @@
                         <i class="bi bi-receipt"></i>
                     </div>
                     <div class="stats-content">
-                        <h3 class="stats-number">GHS {{ "%.2f"|format(total_billing) }}</h3>
+                        <h3 class="stats-number">{{ "%.2f"|format(total_billing) }}</h3>
                         <p class="stats-label">Total Billing</p>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                         <i class="bi bi-credit-card"></i>
                     </div>
                     <div class="stats-content">
-                        <h3 class="stats-number">GHS {{ "%.2f"|format(total_clearing) }}</h3>
+                        <h3 class="stats-number"> {{ "%.2f"|format(total_clearing) }}</h3>
                         <p class="stats-label">Total Payments</p>
                     </div>
                 </div>
@@ -73,8 +73,73 @@
                         <i class="bi bi-graph-up"></i>
                     </div>
                     <div class="stats-content">
-                        <h3 class="stats-number">GHS {{ "%.2f"|format(outstanding_balance) }}</h3>
+                        <h3 class="stats-number"> {{ "%.2f"|format(outstanding_balance) }}</h3>
                         <p class="stats-label">Outstanding Balance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card search-section">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-search"></i> Find Student Transactions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Search by Student</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="studentSearch" placeholder="Enter student name or number...">
+                                <button class="btn btn-primary" type="button" onclick="searchStudents()">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Filter by School</label>
+                            <select class="form-select" id="schoolFilter">
+                                <option value="">All Schools</option>
+                                {% for school in schools %}
+                                <option value="{{ school._id }}">{{ school.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Filter by Program</label>
+                            <select class="form-select" id="programFilter">
+                                <option value="">All Programs</option>
+                                {% for program in programs %}
+                                <option value="{{ program._id }}">{{ program.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-outline-secondary w-100" onclick="clearSearch()">
+                                <i class="bi bi-arrow-clockwise"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="row mb-4" id="searchResultsSection" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Search Results</h5>
+                    <span class="badge bg-primary" id="resultsCount">0 students found</span>
+                </div>
+                <div class="card-body">
+                    <div id="searchResults" class="search-results-container">
+                        <!-- Search results will be populated here -->
                     </div>
                 </div>
             </div>
@@ -129,4 +194,194 @@
         </div>
     </div>
 </div>
+
+<script>
+// Load schools and programs when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadSchools();
+    loadPrograms();
+});
+
+function loadSchools() {
+    // Schools are already loaded from template
+    console.log('Schools loaded');
+}
+
+function loadPrograms() {
+    // Programs are already loaded from template
+    console.log('Programs loaded');
+}
+
+function searchStudents() {
+    const searchTerm = document.getElementById('studentSearch').value;
+    const schoolId = document.getElementById('schoolFilter').value;
+    const programId = document.getElementById('programFilter').value;
+
+    // Show loading state
+    const searchResults = document.getElementById('searchResults');
+    searchResults.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Searching students...</p>
+        </div>
+    `;
+
+    // Show results section
+    document.getElementById('searchResultsSection').style.display = 'block';
+
+    fetch('/accounts/search_students_transactions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            search_term: searchTerm,
+            school_id: schoolId,
+            program_id: programId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displaySearchResults(data.students);
+        } else {
+            searchResults.innerHTML = `
+                <div class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-triangle display-4"></i>
+                    <h5 class="mt-3">Search Error</h5>
+                    <p>${data.error || 'Failed to search students'}</p>
+                </div>
+            `;
+            document.getElementById('resultsCount').textContent = '0 students found';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        searchResults.innerHTML = `
+            <div class="text-center text-danger py-4">
+                <i class="bi bi-exclamation-triangle display-4"></i>
+                <h5 class="mt-3">Network Error</h5>
+                <p>Failed to search students. Please check your connection.</p>
+            </div>
+        `;
+        document.getElementById('resultsCount').textContent = '0 students found';
+    });
+}
+
+function displaySearchResults(students) {
+    const searchResults = document.getElementById('searchResults');
+    const resultsCount = students.length;
+    
+    document.getElementById('resultsCount').textContent = `${resultsCount} students found`;
+
+    if (resultsCount === 0) {
+        searchResults.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-search display-4"></i>
+                <h5 class="mt-3">No Students Found</h5>
+                <p>No students match your search criteria. Try different filters.</p>
+                <button class="btn btn-outline-primary" onclick="clearSearch()">
+                    Clear Filters
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '<div class="students-transaction-grid">';
+    
+    students.forEach(student => {
+        const balanceClass = student.current_balance > 0 ? 'balance-negative' : 'balance-positive';
+        const balanceBadge = student.current_balance > 0 ? 'bg-warning' : 'bg-success';
+        
+        html += `
+            <div class="student-transaction-card">
+                <div class="student-main-info">
+                    <div class="student-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div class="student-details">
+                        <h6 class="student-name">${student.name}</h6>
+                        <p class="student-number">${student.student_number}</p>
+                        <div class="student-meta">
+                            <span class="badge bg-light text-dark">${student.program}</span>
+                            <span class="badge bg-light text-dark">${student.school}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="student-financial-info">
+                    <div class="balance-info ${balanceClass}">
+                        <small class="text-muted">Current Balance</small>
+                        <div class="balance-amount">
+                            <span class="badge ${balanceBadge}">
+                                 ${student.current_balance.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="transaction-stats">
+                        <div class="stat-item">
+                            <small class="text-muted">Total Billing</small>
+                            <div class="stat-value text-danger"> ${student.total_billing.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <small class="text-muted">Total Payments</small>
+                            <div class="stat-value text-success"> ${student.total_payments.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="student-actions">
+                    <button class="btn btn-primary btn-sm" onclick="viewStudentTransactions('${student.id}')">
+                        <i class="bi bi-eye"></i> View Transactions
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="createStudentInvoice('${student.id}')">
+                        <i class="bi bi-plus-circle"></i> Add Transaction
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    searchResults.innerHTML = html;
+}
+
+function viewStudentTransactions(studentId) {
+    window.open(`/accounts/student_transactions/${studentId}`, '_blank');
+}
+
+function createStudentInvoice(studentId) {
+    // Redirect to create invoice page with student pre-selected
+    window.location.href = `/accounts/create_invoice?student_id=${studentId}`;
+}
+
+function clearSearch() {
+    document.getElementById('studentSearch').value = '';
+    document.getElementById('schoolFilter').value = '';
+    document.getElementById('programFilter').value = '';
+    document.getElementById('searchResultsSection').style.display = 'none';
+    document.getElementById('searchResults').innerHTML = '';
+}
+
+// Enable search on Enter key
+document.getElementById('studentSearch').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchStudents();
+    }
+});
+
+// Auto-search when filters change
+document.getElementById('schoolFilter').addEventListener('change', function() {
+    const searchTerm = document.getElementById('studentSearch').value;
+    if (searchTerm || this.value) {
+        searchStudents();
+    }
+});
+
+document.getElementById('programFilter').addEventListener('change', function() {
+    const searchTerm = document.getElementById('studentSearch').value;
+    if (searchTerm || this.value) {
+        searchStudents();
+    }
+});
+</script>
 {% endblock %}

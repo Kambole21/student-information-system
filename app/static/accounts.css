@@ -376,3 +376,184 @@
     border-color: #20c997;
     box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
 }
+/* Search Section */
+.search-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.search-section .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #20c997;
+}
+
+/* Search Results */
+.search-results-container {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.students-transaction-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.student-transaction-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1.5rem;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.student-transaction-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-color: #20c997;
+}
+
+.student-main-info {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.student-avatar {
+    font-size: 2.5rem;
+    color: #6c757d;
+    margin-right: 1rem;
+}
+
+.student-details {
+    flex-grow: 1;
+}
+
+.student-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #333;
+}
+
+.student-number {
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.student-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.student-meta .badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+}
+
+.student-financial-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.balance-info {
+    text-align: center;
+}
+
+.balance-info.balance-negative .balance-amount {
+    color: #dc3545;
+}
+
+.balance-info.balance-positive .balance-amount {
+    color: #198754;
+}
+
+.balance-amount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.transaction-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.student-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.student-actions .btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+/* Responsive Design for Search Results */
+@media (max-width: 768px) {
+    .students-transaction-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .student-transaction-card {
+        padding: 1rem;
+    }
+    
+    .student-main-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .student-avatar {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .student-financial-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .student-actions {
+        flex-direction: column;
+    }
+}
+
+/* Auto-search loading state */
+.search-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state .display-4 {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
