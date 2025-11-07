@@ -17,12 +17,10 @@ def allowed_file(filename):
 
 def get_user_identifier():
     """Get a unique identifier for the current user (session-based)"""
-    if 'user_id' in session:
-        return f"user_{session['user_id']}"
-    elif 'anonymous_id' not in session:
-        # Create a unique anonymous identifier for this session
-        session['anonymous_id'] = str(uuid.uuid4())
-    return f"anonymous_{session['anonymous_id']}"
+    # Initialize session if not exists
+    if 'user_identifier' not in session:
+        session['user_identifier'] = str(uuid.uuid4())
+    return session['user_identifier']
 
 @bp.route('/Updates')
 def news_dashboard():
@@ -101,11 +99,16 @@ def create_news():
                 'views': 0,
                 'created_at': datetime.utcnow(),
                 'updated_at': datetime.utcnow(),
-                'author_id': None  # You can add user authentication later
+                'author_id': None
             }
             
             result = news_collection.insert_one(news_data)
-            flash('News created successfully!', 'success')
+            
+            if status == 'published':
+                flash('News published successfully!', 'success')
+            else:
+                flash('News saved as draft successfully!', 'success')
+                
             return redirect(url_for('news_feed.news_dashboard'))
             
         except Exception as e:
@@ -113,13 +116,153 @@ def create_news():
     
     return render_template('news/create_news.html')
 
-@bp.route('/news/<news_id>')
-def news_detail(news_id):
-    """View full news article"""
+@bp.route('/news/drafts')
+def news_drafts():
+    """View all drafted news"""
+    drafts = list(news_collection.find({'status': 'draft'}).sort('created_at', -1))
+    
+    for draft in drafts:
+        draft['id'] = str(draft['_id'])
+        # Get author info if available
+        if draft.get('author_id'):
+            author = users_collection.find_one({'_id': ObjectId(draft['author_id'])})
+            if author:
+                draft['author_name'] = f"{author.get('f_name', '')} {author.get('l_name', '')}".strip()
+            else:
+                draft['author_name'] = 'Administrator'
+        else:
+            draft['author_name'] = 'Administrator'
+    
+    return render_template('news/news_drafts.html', drafts=drafts)
+
+@bp.route('/news/publish/<news_id>')
+def publish_news(news_id):
+    """Publish a drafted news article"""
+    try:
+        result = news_collection.update_one(
+            {'_id': ObjectId(news_id), 'status': 'draft'},
+            {'$set': {
+                'status': 'published',
+                'published_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count:
+            flash('News published successfully!', 'success')
+        else:
+            flash('News not found or already published!', 'error')
+            
+    except Exception as e:
+        flash(f'Error publishing news: {str(e)}', 'error')
+    
+    return redirect(url_for('news_feed.news_drafts'))
+
+@bp.route('/news/edit/<news_id>', methods=['GET', 'POST'])
+def edit_news(news_id):
+    """Edit news article"""
     try:
         news = news_collection.find_one({'_id': ObjectId(news_id)})
         if not news:
             flash('News article not found!', 'error')
+            return redirect(url_for('news_feed.news_dashboard'))
+        
+        if request.method == 'POST':
+            try:
+                title = request.form['title']
+                content = request.form['content']
+                summary = request.form.get('summary', '')
+                category = request.form.get('category', 'general')
+                is_featured = request.form.get('is_featured') == 'on'
+                status = request.form.get('status', 'published')
+                
+                # Handle file uploads
+                background_image = news.get('background_image')
+                document_file = news.get('document_file')
+                
+                if 'background_image' in request.files:
+                    file = request.files['background_image']
+                    if file and file.filename != '' and allowed_file(file.filename):
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{uuid.uuid4()}_{filename}"
+                        file_path = os.path.join(UPLOAD_FOLDER, 'images', unique_filename)
+                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                        file.save(file_path)
+                        background_image = unique_filename
+                
+                if 'document_file' in request.files:
+                    file = request.files['document_file']
+                    if file and file.filename != '' and allowed_file(file.filename):
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{uuid.uuid4()}_{filename}"
+                        file_path = os.path.join(UPLOAD_FOLDER, 'documents', unique_filename)
+                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                        file.save(file_path)
+                        document_file = {
+                            'filename': filename,
+                            'unique_filename': unique_filename,
+                            'original_name': filename
+                        }
+                
+                update_data = {
+                    'title': title,
+                    'content': content,
+                    'summary': summary,
+                    'category': category,
+                    'background_image': background_image,
+                    'document_file': document_file,
+                    'is_featured': is_featured,
+                    'status': status,
+                    'updated_at': datetime.utcnow()
+                }
+                
+                # If publishing for the first time, set published_at
+                if news['status'] == 'draft' and status == 'published':
+                    update_data['published_at'] = datetime.utcnow()
+                
+                news_collection.update_one(
+                    {'_id': ObjectId(news_id)},
+                    {'$set': update_data}
+                )
+                
+                if status == 'published':
+                    flash('News updated and published successfully!', 'success')
+                    return redirect(url_for('news_feed.news_dashboard'))
+                else:
+                    flash('News updated and saved as draft!', 'success')
+                    return redirect(url_for('news_feed.news_drafts'))
+                    
+            except Exception as e:
+                flash(f'Error updating news: {str(e)}', 'error')
+        
+        return render_template('news/edit_news.html', news=news)
+        
+    except Exception as e:
+        flash('Invalid news ID!', 'error')
+        return redirect(url_for('news_feed.news_dashboard'))
+
+@bp.route('/news/delete/<news_id>')
+def delete_news(news_id):
+    """Delete news article"""
+    try:
+        result = news_collection.delete_one({'_id': ObjectId(news_id)})
+        if result.deleted_count:
+            flash('News deleted successfully!', 'success')
+        else:
+            flash('News not found!', 'error')
+            
+    except Exception as e:
+        flash(f'Error deleting news: {str(e)}', 'error')
+    
+    return redirect(url_for('news_feed.news_drafts'))
+
+@bp.route('/news/<news_id>')
+def news_detail(news_id):
+    """View full news article - only for published news"""
+    try:
+        news = news_collection.find_one({'_id': ObjectId(news_id), 'status': 'published'})
+        if not news:
+            flash('News article not found or not published!', 'error')
             return redirect(url_for('news_feed.news_dashboard'))
         
         # Increment view count
@@ -171,6 +314,12 @@ def like_news(news_id):
     """Like/unlike a news article"""
     try:
         user_identifier = get_user_identifier()
+        print(f"User identifier: {user_identifier}")  # Debug print
+        
+        # Validate news_id
+        if not ObjectId.is_valid(news_id):
+            return jsonify({'success': False, 'error': 'Invalid news ID'})
+        
         news = news_collection.find_one({'_id': ObjectId(news_id)})
         
         if not news:
@@ -187,10 +336,13 @@ def like_news(news_id):
             likes.append(user_identifier)
             action = 'liked'
         
-        news_collection.update_one(
+        # Update the news article with new likes
+        result = news_collection.update_one(
             {'_id': ObjectId(news_id)},
             {'$set': {'likes': likes}}
         )
+        
+        print(f"Update result: {result.modified_count} documents modified")  # Debug print
         
         return jsonify({
             'success': True,
@@ -200,6 +352,7 @@ def like_news(news_id):
         })
         
     except Exception as e:
+        print(f"Error in like_news: {str(e)}")  # Debug print
         return jsonify({'success': False, 'error': str(e)})
 
 @bp.route('/news/category/<category>')

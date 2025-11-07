@@ -24,7 +24,7 @@
 
     <!-- News Article -->
     <div class="row justify-content-center" id="news-details">
-        <div class="col-lg-8">
+        <div class="col-lg-fluid">
             <article class="news-article">
                 <!-- Article Header -->
                 <header class="article-header">
@@ -168,14 +168,23 @@
 
 <script>
 function likeNews(newsId) {
+    console.log('Liking news:', newsId); // Debug log
+    
     fetch(`/news/like/${newsId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Like response:', data); // Debug log
+        
         if (data.success) {
             const likeButton = document.querySelector('.btn-like');
             const likeCount = document.getElementById('likeCount');

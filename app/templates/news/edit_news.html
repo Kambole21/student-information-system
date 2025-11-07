@@ -1,0 +1,171 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='news.css') }}">
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="news-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-pencil"></i> Edit News</h1>
+                        <p class="text-light">Update your news article</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('news_feed.news_drafts') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to Drafts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit News Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pencil"></i> Edit News Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="editNewsForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Title *</label>
+                                    <input type="text" class="form-control" name="title" required 
+                                           value="{{ news.title }}" 
+                                           placeholder="Enter news title...">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Summary</label>
+                                    <textarea class="form-control" name="summary" rows="3" 
+                                              placeholder="Brief summary of the news (optional)...">{{ news.summary or '' }}</textarea>
+                                    <small class="text-muted">This will be displayed on the news card</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Content *</label>
+                                    <textarea class="form-control" name="content" rows="10" required 
+                                              placeholder="Write your news content here...">{{ news.content }}</textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Sidebar for settings -->
+                                <div class="news-settings">
+                                    <div class="mb-3">
+                                        <label class="form-label">Category</label>
+                                        <select class="form-select" name="category">
+                                            <option value="general" {% if news.category == 'general' %}selected{% endif %}>General</option>
+                                            <option value="academic" {% if news.category == 'academic' %}selected{% endif %}>Academic</option>
+                                            <option value="events" {% if news.category == 'events' %}selected{% endif %}>Events</option>
+                                            <option value="announcements" {% if news.category == 'announcements' %}selected{% endif %}>Announcements</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Background Image</label>
+                                        {% if news.background_image %}
+                                        <div class="current-image mb-2">
+                                            <img src="{{ url_for('static', filename='uploads/news/images/' + news.background_image) }}" 
+                                                 class="img-thumbnail" style="max-height: 100px;">
+                                            <small class="d-block text-muted">Current image</small>
+                                        </div>
+                                        {% endif %}
+                                        <input type="file" class="form-control" name="background_image" 
+                                               accept="image/*" id="backgroundImage">
+                                        <small class="text-muted">Optional: Choose a new image to replace current one</small>
+                                        <div class="image-preview mt-2" id="imagePreview" style="display: none;">
+                                            <img id="previewImage" class="img-thumbnail">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Attach Document</label>
+                                        {% if news.document_file %}
+                                        <div class="current-document mb-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-file-earmark-text"></i> 
+                                                Current: {{ news.document_file.original_name }}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                        <input type="file" class="form-control" name="document_file"
+                                               accept=".pdf,.doc,.docx,.txt">
+                                        <small class="text-muted">Optional: Choose a new document to replace current one</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="is_featured" id="isFeatured" 
+                                                   {% if news.is_featured %}checked{% endif %}>
+                                            <label class="form-check-label" for="isFeatured">
+                                                Feature this news
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Featured news appear prominently on the dashboard</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" name="status">
+                                            <option value="published" {% if news.status == 'published' %}selected{% endif %}>Publish Now</option>
+                                            <option value="draft" {% if news.status == 'draft' %}selected{% endif %}>Save as Draft</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-check-circle"></i> Update News
+                                        </button>
+                                        <a href="{{ url_for('news_feed.news_drafts') }}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality
+document.getElementById('backgroundImage').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    
+    if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+// Form validation
+document.getElementById('editNewsForm').addEventListener('submit', function(e) {
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const content = document.querySelector('textarea[name="content"]').value.trim();
+    
+    if (!title || !content) {
+        e.preventDefault();
+        alert('Please fill in all required fields (Title and Content).');
+    }
+});
+</script>
+{% endblock %}
