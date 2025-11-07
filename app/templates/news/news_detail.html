@@ -1,0 +1,243 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='news.css') }}">
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="news-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-newspaper"></i> News Article</h1>
+                        <p class="text-light">Read the full story</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('news_feed.news_dashboard') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to News
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- News Article -->
+    <div class="row justify-content-center" id="news-details">
+        <div class="col-lg-8">
+            <article class="news-article">
+                <!-- Article Header -->
+                <header class="article-header">
+                    {% if news.background_image %}
+                    <div class="article-hero-image">
+                        <img src="{{ url_for('static', filename='uploads/news/images/' + news.background_image) }}" 
+                             alt="{{ news.title }}" class="img-fluid">
+                    </div>
+                    {% endif %}
+                    
+                    <div class="article-meta">
+                        <div class="category-badge {{ news.category }}">{{ news.category|title }}</div>
+                        {% if news.is_featured %}
+                        <div class="featured-badge">
+                            <i class="bi bi-star-fill"></i> Featured
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h1 class="article-title">{{ news.title }}</h1>
+                    
+                    <div class="article-info">
+                        <div class="author-info">
+                            <div class="author-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="author-details">
+                                <strong>{{ news.author_name }}</strong>
+                                <span>{{ news.author_role }}</span>
+                            </div>
+                        </div>
+                        <div class="article-stats">
+                            <span class="stat-item">
+                                <i class="bi bi-calendar"></i>
+                                {{ news.created_at.strftime('%B %d, %Y') }}
+                            </span>
+                            <span class="stat-item">
+                                <i class="bi bi-eye"></i>
+                                {{ news.views }} views
+                            </span>
+                            <span class="stat-item">
+                                <i class="bi bi-heart"></i>
+                                <span id="likeCount">{{ news.like_count }}</span> likes
+                            </span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Article Content -->
+                <div class="article-content">
+                    {{ news.content|replace('\n', '<br>')|safe }}
+                </div>
+
+                <!-- Article Actions -->
+                <div class="article-actions">
+                    <div class="action-buttons">
+                    <button class="btn btn-like {% if news.user_has_liked %}liked{% endif %}" 
+                            onclick="likeNews('{{ news.id }}')">
+                        <i class="bi {% if news.user_has_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                        <span id="likeText">
+                            {% if news.user_has_liked %}Liked{% else %}Like{% endif %}
+                        </span>
+                    </button>
+                        
+                        {% if news.document_file %}
+                        <a href="{{ url_for('static', filename='uploads/news/documents/' + news.document_file.unique_filename) }}" 
+                           class="btn btn-download" download="{{ news.document_file.original_name }}">
+                            <i class="bi bi-download"></i> Download Document
+                        </a>
+                        {% endif %}
+                        
+                        <button class="btn btn-share" onclick="shareNews()">
+                            <i class="bi bi-share"></i> Share
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Document Preview (if available) -->
+                {% if news.document_file %}
+                <div class="document-preview">
+                    <h5><i class="bi bi-paperclip"></i> Attached Document</h5>
+                    <div class="document-card">
+                        <div class="document-icon">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="document-info">
+                            <h6>{{ news.document_file.original_name }}</h6>
+                            <small class="text-muted">Click download to get the file</small>
+                        </div>
+                        <div class="document-action">
+                            <a href="{{ url_for('static', filename='uploads/news/documents/' + news.document_file.unique_filename) }}" 
+                               class="btn btn-sm btn-primary" download="{{ news.document_file.original_name }}">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </article>
+        </div>
+    </div>
+
+    <!-- Related News -->
+    {% if related_news and related_news|length > 0 %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="related-news-section">
+                <h3 class="section-title">Related News</h3>
+                <div class="related-news-grid">
+                    {% for related in related_news %}
+                    <div class="related-news-card">
+                        {% if related.background_image %}
+                        <div class="related-news-image">
+                            <img src="{{ url_for('static', filename='uploads/news/images/' + related.background_image) }}" 
+                                 alt="{{ related.title }}">
+                        </div>
+                        {% endif %}
+                        <div class="related-news-body">
+                            <span class="related-category {{ related.category }}">{{ related.category|title }}</span>
+                            <h5>
+                                <a href="{{ url_for('news_feed.news_detail', news_id=related.id) }}">
+                                    {{ related.title }}
+                                </a>
+                            </h5>
+                            <p>{{ related.summary or related.content|truncate(100) }}</p>
+                            <div class="related-meta">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar"></i>
+                                    {{ related.created_at.strftime('%b %d, %Y') }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function likeNews(newsId) {
+    fetch(`/news/like/${newsId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const likeButton = document.querySelector('.btn-like');
+            const likeCount = document.getElementById('likeCount');
+            const likeText = document.getElementById('likeText');
+            
+            likeCount.textContent = data.like_count;
+            
+            if (data.action === 'liked') {
+                likeButton.classList.add('liked');
+                likeButton.innerHTML = `<i class="bi bi-heart-fill"></i> <span id="likeText">Liked</span>`;
+            } else {
+                likeButton.classList.remove('liked');
+                likeButton.innerHTML = `<i class="bi bi-heart"></i> <span id="likeText">Like</span>`;
+            }
+            
+            // Add animation
+            likeButton.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                likeButton.style.transform = 'scale(1)';
+            }, 200);
+        } else {
+            console.error('Error liking news:', data.error);
+            alert('Error liking news: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error liking news. Please try again.');
+    });
+}
+
+function shareNews() {
+    const url = window.location.href;
+    const title = '{{ news.title }}';
+    
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            url: url
+        })
+        .catch(error => {
+            console.log('Error sharing:', error);
+            copyToClipboard(url);
+        });
+    } else {
+        copyToClipboard(url);
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Link copied to clipboard!');
+    }, function(err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Link copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

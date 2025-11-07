@@ -1,0 +1,253 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='news.css') }}">
+<div class="container-fluid news-container">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="news-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-newspaper"></i> Newsroom</h1>
+                        <p class="text-light">Stay updated with the latest announcements and news</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('news_feed.create_news') }}" class="btn btn-light">
+                            <i class="bi bi-plus-circle"></i> Create News
+                        </a>
+                        <div class="btn-group ms-2">
+                            <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-filter"></i> Filter
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_dashboard') }}">All News</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('news_feed.featured_news') }}">Featured</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='academic') }}">Academic</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='events') }}">Events</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='announcements') }}">Announcements</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='general') }}">General</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured News Banner -->
+    {% set featured_news = news_updates|selectattr('is_featured')|list %}
+    {% if featured_news and featured_news|length > 0 %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="featured-news-banner">
+                {% set featured = featured_news[0] %}
+                <div class="featured-news-content" 
+                     style="{% if featured.background_image %}background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('{{ url_for('static', filename='uploads/news/images/' + featured.background_image) }}');{% else %}background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);{% endif %}">
+                    <div class="featured-badge">
+                        <i class="bi bi-star-fill"></i> Featured
+                    </div>
+                    <div class="featured-text">
+                        <h2 class="featured-title">{{ featured.title }}</h2>
+                        <p class="featured-summary">{{ featured.summary or featured.content|truncate(200) }}</p>
+                        <div class="featured-meta">
+                            <span class="meta-item">
+                                <i class="bi bi-calendar"></i>
+                                {{ featured.created_at.strftime('%B %d, %Y') }}
+                            </span>
+                            <span class="meta-item">
+                                <i class="bi bi-eye"></i>
+                                {{ featured.views }} views
+                            </span>
+                            <span class="meta-item">
+                                <i class="bi bi-heart"></i>
+                                {{ featured.like_count }} likes
+                            </span>
+                        </div>
+                        <a href="{{ url_for('news_feed.news_detail', news_id=featured.id) }}" class="btn btn-light btn-featured">
+                            Read Full Story <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- News Grid -->
+    <div class="row">
+        <div class="col-12">
+            <div class="news-filters mb-4">
+                <div class="filter-buttons">
+                    <a href="{{ url_for('news_feed.news_dashboard') }}" 
+                       class="btn btn-outline-primary {% if not selected_category and not featured %}active{% endif %}">
+                        All News
+                    </a>
+                    <a href="{{ url_for('news_feed.featured_news') }}" 
+                       class="btn btn-outline-primary {% if featured %}active{% endif %}">
+                        Featured
+                    </a>
+                    <a href="{{ url_for('news_feed.news_by_category', category='academic') }}" 
+                       class="btn btn-outline-primary {% if selected_category == 'academic' %}active{% endif %}">
+                        Academic
+                    </a>
+                    <a href="{{ url_for('news_feed.news_by_category', category='events') }}" 
+                       class="btn btn-outline-primary {% if selected_category == 'events' %}active{% endif %}">
+                        Events
+                    </a>
+                    <a href="{{ url_for('news_feed.news_by_category', category='announcements') }}" 
+                       class="btn btn-outline-primary {% if selected_category == 'announcements' %}active{% endif %}">
+                        Announcements
+                    </a>
+                    <a href="{{ url_for('news_feed.news_by_category', category='general') }}" 
+                       class="btn btn-outline-primary {% if selected_category == 'general' %}active{% endif %}">
+                        General
+                    </a>
+                </div>
+            </div>
+
+            {% if news_updates and news_updates|length > 0 %}
+            <div class="news-grid">
+                {% for news in news_updates %}
+                {% if not news.is_featured or featured %}
+                <div class="news-card {% if news.is_featured %}featured-card{% endif %}">
+                    {% if news.background_image %}
+                    <div class="news-card-image">
+                        <img src="{{ url_for('static', filename='uploads/news/images/' + news.background_image) }}" 
+                             alt="{{ news.title }}">
+                        {% if news.is_featured %}
+                        <div class="featured-indicator">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="news-card-body">
+                        <div class="news-category">
+                            <span class="category-badge {{ news.category }}">{{ news.category|title }}</span>
+                            {% if news.is_featured %}
+                            <span class="featured-badge-sm">
+                                <i class="bi bi-star-fill"></i> Featured
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <h3 class="news-title">
+                            <a href="{{ url_for('news_feed.news_detail', news_id=news.id) }}">{{ news.title }}</a>
+                        </h3>
+                        
+                        <p class="news-summary">{{ news.summary or news.content|truncate(150) }}</p>
+                        
+                        <div class="news-meta">
+                            <div class="meta-left">
+                                <span class="meta-item">
+                                    <i class="bi bi-calendar"></i>
+                                    {{ news.created_at.strftime('%b %d, %Y') }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="bi bi-person"></i>
+                                    {{ news.author_name }}
+                                </span>
+                            </div>
+                            <div class="meta-right">
+                                <span class="meta-item">
+                                    <i class="bi bi-eye"></i>
+                                    {{ news.views }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="news-actions">
+						<button class="btn-like {% if news.user_has_liked %}liked{% endif %}" 
+						        onclick="likeNews('{{ news.id }}')">
+						    <i class="bi {% if news.user_has_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+						    <span class="like-count">{{ news.like_count }}</span>
+						</button>
+                            
+                            {% if news.document_file %}
+                            <a href="{{ url_for('static', filename='uploads/news/documents/' + news.document_file.unique_filename) }}" 
+                               class="btn-download" download="{{ news.document_file.original_name }}">
+                                <i class="bi bi-download"></i> Document
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('news_feed.news_detail', news_id=news.id) }}" class="btn-read-more">
+                                Read More <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-newspaper display-4 text-muted"></i>
+                <h3 class="text-muted mt-3">No News Updates</h3>
+                <p class="text-muted">There are no news updates to display at the moment.</p>
+                <a href="{{ url_for('news_feed.create_news') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create First News Update
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function likeNews(newsId) {
+    fetch(`/news/like/${newsId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const likeButton = event.target.closest('.btn-like');
+            const likeCount = likeButton.querySelector('.like-count');
+            
+            likeCount.textContent = data.like_count;
+            
+            if (data.action === 'liked') {
+                likeButton.classList.add('liked');
+                likeButton.innerHTML = `<i class="bi bi-heart-fill"></i><span class="like-count">${data.like_count}</span>`;
+            } else {
+                likeButton.classList.remove('liked');
+                likeButton.innerHTML = `<i class="bi bi-heart"></i><span class="like-count">${data.like_count}</span>`;
+            }
+            
+            // Add animation
+            likeButton.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                likeButton.style.transform = 'scale(1)';
+            }, 200);
+        } else {
+            console.error('Error liking news:', data.error);
+            alert('Error liking news: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error liking news. Please try again.');
+    });
+}
+
+// Add hover effects for news cards
+document.addEventListener('DOMContentLoaded', function() {
+    const newsCards = document.querySelectorAll('.news-card');
+    newsCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

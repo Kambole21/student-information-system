@@ -39,8 +39,21 @@
         <div class="col-md-8">
             <div class="card student-info-card">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="student-avatar" id="face">
+                                {% if student.profile_image and student.profile_image != 'profile.svg' %}
+                                    <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) }}" 
+                                         alt="{{ student.f_name }} {{ student.l_name }}" 
+                                         class="img-fluid rounded-circle">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        <i class="bi bi-person-circle" ></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col">
                             <h4 class="text-white mb-3">{{ student.f_name }} {{ student.l_name }}</h4>
                             <div class="row text-white">
                                 <div class="col-sm-6 mb-2">
@@ -75,58 +88,76 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-list-ul"></i> Transaction History</h5>
-                    <span class="badge bg-primary">{{ transactions|length }} transactions</span>
+                    <div>
+                        <span class="badge bg-primary">{{ transactions|length }} transactions</span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="exportToCSV()">
+                            <i class="bi bi-download"></i> Export CSV
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     {% if transactions %}
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover accounts-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>Transaction Code</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                                <th>Debit </th>
-                                <th>Credit </th>
-                                <th>Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transaction in transactions %}
-                            <tr class="{% if transaction.type == 'Billing' %}table-billing{% else %}table-clearing{% endif %}">
-                                <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                <td><strong>{{ transaction.transaction_code }}</strong></td>
-                                <td>
-                                    <span class="badge {% if transaction.type == 'Billing' %}bg-danger{% else %}bg-success{% endif %}">
-                                        {{ transaction.type }}
-                                    </span>
-                                </td>
-                                <td>{{ transaction.description }}</td>
-                                <td class="text-end">
-                                    {% if transaction.debit > 0 %}
-                                    <strong class="text-danger">{{ "%.2f"|format(transaction.debit) }}</strong>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </td>
-                                <td class="text-end">
-                                    {% if transaction.credit > 0 %}
-                                    <strong class="text-success">{{ "%.2f"|format(transaction.credit) }}</strong>
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </td>
-                                <td class="text-end">
-                                    <strong class="{% if transaction.balance_after > 0 %}text-warning{% else %}text-success{% endif %}">
-                                        {{ "%.2f"|format(transaction.balance_after) }}
-                                    </strong>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover accounts-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Transaction Code</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Filter Reference</th>
+                                    <th>Debit </th>
+                                    <th>Credit </th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr class="{% if transaction.type == 'Billing' %}table-billing{% else %}table-clearing{% endif %}">
+                                    <td>
+                                        <strong>{{ transaction.created_at.strftime('%Y-%m-%d') }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ transaction.created_at.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary">{{ transaction.transaction_code }}</strong>
+                                        {% if transaction.batch_transaction %}
+                                        <br><small class="badge bg-info">Batch</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if transaction.type == 'Billing' %}bg-danger{% else %}bg-success{% endif %}">
+                                            {{ transaction.type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.description }}</td>
+                                    <td>
+                                        <small class="text-muted">{{ transaction.filter_reference or 'Direct Entry' }}</small>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if transaction.debit > 0 %}
+                                        <strong class="text-danger">{{ "%.2f"|format(transaction.debit) }}</strong>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if transaction.credit > 0 %}
+                                        <strong class="text-success">{{ "%.2f"|format(transaction.credit) }}</strong>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <strong class="{% if transaction.balance_after > 0 %}text-warning{% else %}text-success{% endif %}">
+                                            {{ "%.2f"|format(transaction.balance_after) }}
+                                        </strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% else %}
                     <div class="text-center py-5">
                         <i class="bi bi-receipt display-4 text-muted"></i>
@@ -139,4 +170,44 @@
         </div>
     </div>
 </div>
+
+<script>
+function exportToCSV() {
+    let csv = [];
+    // Add headers
+    csv.push(['Date & Time', 'Transaction Code', 'Type', 'Description', 'Filter Reference', 'Debit', 'Credit', 'Balance']);
+    
+    // Add data
+    {% for transaction in transactions %}
+    csv.push([
+        '{{ transaction.created_at.strftime("%Y-%m-%d %H:%M") }}',
+        '{{ transaction.transaction_code }}',
+        '{{ transaction.type }}',
+        '{{ transaction.description }}',
+        '{{ transaction.filter_reference or "Direct Entry" }}',
+        '{{ "%.2f"|format(transaction.debit) if transaction.debit else "0.00" }}',
+        '{{ "%.2f"|format(transaction.credit) if transaction.credit else "0.00" }}',
+        '{{ "%.2f"|format(transaction.balance_after) if transaction.balance_after else "0.00" }}'
+    ]);
+    {% endfor %}
+    
+    // Convert to CSV string
+    const csvString = csv.map(row => 
+        row.map(field => `"${field}"`).join(',')
+    ).join('\n');
+    
+    // Create download link
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `student_transactions_{{ student.student_number }}_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+</script>
 {% endblock %}

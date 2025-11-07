@@ -1,0 +1,170 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='news.css') }}">
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="news-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-plus-circle"></i> Create News Update</h1>
+                        <p class="text-light">Share important updates and announcements with the community</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('news_feed.news_dashboard') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to News
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create News Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pencil"></i> News Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="newsForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Title *</label>
+                                    <input type="text" class="form-control" name="title" required 
+                                           placeholder="Enter news title...">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Summary</label>
+                                    <textarea class="form-control" name="summary" rows="3" 
+                                              placeholder="Brief summary of the news (optional)..."></textarea>
+                                    <small class="text-muted">This will be displayed on the news card</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Content *</label>
+                                    <textarea class="form-control" name="content" rows="10" required 
+                                              placeholder="Write your news content here..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Sidebar for settings -->
+                                <div class="news-settings">
+                                    <div class="mb-3">
+                                        <label class="form-label">Category</label>
+                                        <select class="form-select" name="category">
+                                            <option value="general">General</option>
+                                            <option value="academic">Academic</option>
+                                            <option value="events">Events</option>
+                                            <option value="announcements">Announcements</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Background Image</label>
+                                        <input type="file" class="form-control" name="background_image" 
+                                               accept="image/*" id="backgroundImage">
+                                        <small class="text-muted">Optional: Adds visual appeal to your news</small>
+                                        <div class="image-preview mt-2" id="imagePreview" style="display: none;">
+                                            <img id="previewImage" class="img-thumbnail">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Attach Document</label>
+                                        <input type="file" class="form-control" name="document_file"
+                                               accept=".pdf,.doc,.docx,.txt">
+                                        <small class="text-muted">Optional: PDF, Word, or Text files</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="is_featured" id="isFeatured">
+                                            <label class="form-check-label" for="isFeatured">
+                                                Feature this news
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Featured news appear prominently on the dashboard</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" name="status">
+                                            <option value="published">Publish Immediately</option>
+                                            <option value="draft">Save as Draft</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-send"></i> Publish News
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="previewNews()">
+                                            <i class="bi bi-eye"></i> Preview
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality
+document.getElementById('backgroundImage').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+    
+    if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+function previewNews() {
+    // Simple preview - in a real app, you might want a more sophisticated preview
+    const form = document.getElementById('newsForm');
+    const formData = new FormData(form);
+    
+    let previewContent = `
+        Title: ${formData.get('title')}
+        Summary: ${formData.get('summary')}
+        Content: ${formData.get('content')}
+        Category: ${formData.get('category')}
+        Featured: ${formData.get('is_featured') ? 'Yes' : 'No'}
+    `;
+    
+    alert('News Preview:\n\n' + previewContent);
+}
+
+// Form validation
+document.getElementById('newsForm').addEventListener('submit', function(e) {
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const content = document.querySelector('textarea[name="content"]').value.trim();
+    
+    if (!title || !content) {
+        e.preventDefault();
+        alert('Please fill in all required fields (Title and Content).');
+    }
+});
+</script>
+{% endblock %}
