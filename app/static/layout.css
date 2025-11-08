@@ -45,9 +45,7 @@ body {
     font-weight: 700;
 }
 
-/* ========================================
-   SIDEBAR – Desktop + Mobile Offcanvas
-   ======================================== */
+
 .sidebar {
     background-color: white;
     height: calc(100vh - 56px);
@@ -213,9 +211,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* ========================================
-   RESPONSIVE BREAKPOINTS
-   ======================================== */
 @media (max-width: 1199.98px) {
     .main-content {
         padding: 1.25rem;
