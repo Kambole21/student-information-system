@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 import os
-from app import students_collection, schools_collection, programs_collection, courses_collection, student_courses_collection, grades_collection, mock_grades_collection  # Added mock_grades_collection
+from app import students_collection, schools_collection, programs_collection, courses_collection, student_courses_collection, grades_collection, mock_grades_collection, users_collection
 from bson import ObjectId
 import uuid
 from datetime import datetime
@@ -65,31 +65,42 @@ def student_list():
                          schools_dict=schools_dict,
                          programs_dict=programs_dict)
 
+@bp.route('/student/profile')
 @bp.route('/student/profile/<student_id>')
-def student_profile(student_id):
-    """Student profile page"""
+def student_profile(student_id=None):
+    """Student profile page - can be accessed by ID or by logged-in student"""
     try:
+        # If no student_id provided, use logged-in student's ID
+        if student_id is None:
+            if 'user_type' not in session or session['user_type'] != 'student':
+                flash('Please log in as a student to view your profile.', 'error')
+                return redirect(url_for('auth.login'))
+            student_id = session.get('profile_id')
+        
         student = students_collection.find_one({'_id': ObjectId(student_id)})
         if not student:
             flash('Student not found!', 'error')
             return redirect(url_for('student.student_list'))
         
+        # Check if the logged-in user is viewing their own profile
+        is_own_profile = False
+        if 'user_type' in session and session['user_type'] == 'student':
+            is_own_profile = session.get('profile_id') == student_id
+        
         # Get school and program details
         school = schools_collection.find_one({'_id': ObjectId(student['school_id'])}) if student.get('school_id') else None
         program = programs_collection.find_one({'_id': ObjectId(student['program_id'])}) if student.get('program_id') else None
         
-        # Get enrolled courses - only show 5 most recent
+        # Rest of the function remains the same...
         enrolled_courses = list(student_courses_collection.find(
             {'student_id': ObjectId(student_id)}
-        ).sort([('enrolled_at', -1)]).limit(5)) # Sort by enrollment date, get only 5
+        ).sort([('enrolled_at', -1)]).limit(5))
         
         courses_info = []
-        
         for ec in enrolled_courses:
             try:
                 course = courses_collection.find_one({'_id': ObjectId(ec['course_id'])})
                 if course:
-                    # Get course program and school info for display
                     course_program = programs_collection.find_one({'_id': ObjectId(course['program_id'])}) if course.get('program_id') else None
                     course_school = None
                     if course_program and course_program.get('school_id'):
@@ -104,14 +115,9 @@ def student_profile(student_id):
                         'school': course_school,
                         'enrolled_at': ec.get('enrolled_at', datetime.utcnow())
                     })
-                else:
-                    # Course not found, but enrollment exists - this might indicate data inconsistency
-                    print(f"Warning: Course {ec['course_id']} not found for student {student_id}")
             except Exception as e:
-                print(f"Error processing enrolled course: {str(e)}")
                 continue
         
-        # Get total course count for the "View All" link
         total_courses_count = student_courses_collection.count_documents({'student_id': ObjectId(student_id)})
         
         return render_template('users/student/student_profile.html',
@@ -120,11 +126,9 @@ def student_profile(student_id):
                              program=program,
                              enrolled_courses=courses_info,
                              total_courses_count=total_courses_count,
-                             grades_collection=grades_collection) 
+                             grades_collection=grades_collection,
+                             is_own_profile=is_own_profile)  # Pass this to template
         
-    except Exception as e:
-        flash(f'Error loading student profile: {str(e)}', 'error')
-        return redirect(url_for('student.student_list'))
     except Exception as e:
         flash(f'Error loading student profile: {str(e)}', 'error')
         return redirect(url_for('student.student_list'))
@@ -198,7 +202,7 @@ def add_student():
         f_name = request.form['f_name']
         l_name = request.form['l_name']
         email = request.form['email']
-        phone_number = request.form ['phone_number']
+        phone_number = request.form['phone_number']  # Fixed the space in the key name
         student_number = request.form['student_number']
         gender = request.form['gender']
         national_id = request.form['national_id']
@@ -212,6 +216,7 @@ def add_student():
     
         birthday = request.form.get('birthday')
         password = request.form.get('password', generate_auto_password())
+        education_level = request.form.get('education_level', 'undergraduate')  # Add education level
         
         # NEW FIELDS: Next of Kin Information
         nok_name = request.form.get('nok_name')
@@ -253,6 +258,7 @@ def add_student():
             'f_name': f_name,
             'l_name': l_name,
             'email': email,
+            'phone_number': phone_number,  # Fixed: Added phone_number
             'student_number': student_number,
             'gender': gender,
             'national_id': national_id,
@@ -264,6 +270,7 @@ def add_student():
             'exam_location': exam_location,
             'school_id': ObjectId(school_id),
             'program_id': ObjectId(program_id),
+            'education_level': education_level,  # Added education level
             'privilege_level': 'student',
             'status': 'active',
             'created_at': datetime.utcnow(),
@@ -287,6 +294,21 @@ def add_student():
         # Insert into database
         result = students_collection.insert_one(student_data)
         flash(f'Student registered successfully! Auto-generated password: {password}', 'success')
+
+        # Create user account for login
+        user_data = {
+            'student_id': result.inserted_id,
+            'student_number': student_number,
+            'email': email,
+            'password': generate_password_hash(password),
+            'user_type': 'student',
+            'privilege_level': 'student',
+            'status': 'active',
+            'created_at': datetime.utcnow(),
+            'last_login': None
+        }
+
+        users_collection.insert_one(user_data)
         
     except Exception as e:
         flash(f'Error registering student: {str(e)}', 'error')
@@ -325,7 +347,7 @@ def update_student(student_id):
         f_name = request.form['f_name']
         l_name = request.form['l_name']
         email = request.form['email']
-        phone_number = request.form['phone_number']
+        phone_number = request.form['phone_number']  # Fixed: This was missing
         student_number = request.form['student_number']
         gender = request.form['gender']
         national_id = request.form['national_id']
@@ -338,9 +360,10 @@ def update_student(student_id):
         program_id = request.form['program_id']
         status = request.form.get('status', 'active')
         
-        # NEW FIELDS: Birthday and Password
+        # NEW FIELDS: Birthday, Password, and Education Level
         birthday = request.form.get('birthday')
         password = request.form.get('password')
+        education_level = request.form.get('education_level', 'undergraduate')  # Default to undergraduate
         
         # NEW FIELDS: Next of Kin Information
         nok_name = request.form.get('nok_name')
@@ -370,7 +393,7 @@ def update_student(student_id):
             'f_name': f_name,
             'l_name': l_name,
             'email': email,
-            'phone_number': phone_number,
+            'phone_number': phone_number,  # Added this field
             'student_number': student_number,
             'gender': gender,
             'national_id': national_id,
@@ -382,6 +405,7 @@ def update_student(student_id):
             'school_id': ObjectId(school_id),
             'program_id': ObjectId(program_id),
             'status': status,
+            'education_level': education_level,  # Added education level
             'updated_at': datetime.utcnow(),
             
             # NEW FIELDS
@@ -420,11 +444,26 @@ def update_student(student_id):
             {'_id': ObjectId(student_id)},
             {'$set': update_data}
         )
+
+        # Also update the users collection if email or password changed
+        user_update_data = {
+            'email': email,
+            'updated_at': datetime.utcnow()
+        }
+        
+        if password and password.strip():
+            user_update_data['password'] = generate_password_hash(password)
+        
+        users_collection.update_one(
+            {'student_id': ObjectId(student_id)},
+            {'$set': user_update_data}
+        )
         
         flash('Student updated successfully!', 'success')
         
     except Exception as e:
         flash(f'Error updating student: {str(e)}', 'error')
+        print(f"Detailed error: {str(e)}")  # For debugging
     
     return redirect(url_for('student.student_list'))
 
@@ -617,3 +656,22 @@ def get_courses_by_school(school_id):
         return jsonify(courses_data)
     except Exception as e:
         return jsonify([])
+
+@bp.route('/user_management')
+def user_management():
+    """User management dashboard"""
+    # Get statistics from database
+    total_students = students_collection.count_documents({})
+    total_staff = staff_collection.count_documents({})
+    total_lecturers = staff_collection.count_documents({'role': 'lecturer'})
+    total_admin = staff_collection.count_documents({'role': {'$in': ['admin', 'administrator']}})
+    
+    # Get recent activity (you'll need to implement this)
+    recent_activity = []  # This would come from your activity log
+    
+    return render_template('users/user_management.html',
+                         total_students=total_students,
+                         total_staff=total_staff,
+                         total_lecturers=total_lecturers,
+                         total_admin=total_admin,
+                         recent_activity=recent_activity)

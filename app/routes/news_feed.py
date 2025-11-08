@@ -23,6 +23,7 @@ def get_user_identifier():
     return session['user_identifier']
 
 @bp.route('/Updates')
+@bp.route('/')
 def news_dashboard():
     """News dashboard showing all updates"""
     news_updates = list(news_collection.find({'status': 'published'}).sort('created_at', -1))

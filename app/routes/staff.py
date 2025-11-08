@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
-from app import staff_collection, schools_collection, departments_collection
+from app import staff_collection, schools_collection, departments_collection, students_collection, users_collection
 from bson import ObjectId
 import uuid
 from datetime import datetime
@@ -54,7 +54,7 @@ def add_staff():
         department = request.form.get('department', '')
         school_id = request.form.get('school_id', '')
 
-        # Check if username or email already exists
+        # Check if username or email already exists in staff collection
         existing_staff = staff_collection.find_one({
             '$or': [
                 {'email': email},
@@ -64,6 +64,18 @@ def add_staff():
         
         if existing_staff:
             flash('Username or email already exists!', 'error')
+            return redirect(url_for('staff.staff_registration'))
+
+        # Check if username or email already exists in users collection
+        existing_user = users_collection.find_one({
+            '$or': [
+                {'email': email},
+                {'username': username}
+            ]
+        })
+        
+        if existing_user:
+            flash('Username or email already exists in user accounts!', 'error')
             return redirect(url_for('staff.staff_registration'))
 
         # Handle file upload
@@ -94,18 +106,36 @@ def add_staff():
             'country': country,
             'privilege_level': privilege_level,
             'department': department,
-            'school_id': school_id if school_id else None,
+            'school_id': ObjectId(school_id) if school_id else None,
             'profile_image': profile_image,
             'status': 'active',
             'created_at': datetime.utcnow()
         }
 
-        # Insert into database
-        staff_collection.insert_one(staff_data)
+        # Insert into staff collection and get the result
+        result = staff_collection.insert_one(staff_data)
+        
+        # Create user account for login
+        user_data = {
+            'staff_id': result.inserted_id,
+            'username': username,
+            'email': email,
+            'password': generate_password_hash(password),  # Hash password again for users collection
+            'user_type': 'staff',
+            'privilege_level': privilege_level,
+            'status': 'active',
+            'created_at': datetime.utcnow(),
+            'last_login': None
+        }
+
+        # Insert into users collection
+        users_collection.insert_one(user_data)
+        
         flash('Staff member registered successfully!', 'success')
         
     except Exception as e:
         flash(f'Error registering staff: {str(e)}', 'error')
+        print(f"Error details: {str(e)}")  # For debugging
     
     return redirect(url_for('staff.staff_list'))
 
@@ -125,6 +155,7 @@ def edit_staff(staff_id):
     except Exception as e:
         flash('Invalid staff ID!', 'error')
         return redirect(url_for('staff.staff_list'))
+
 
 @bp.route('/staff/update/<staff_id>', methods=['POST'])
 def update_staff(staff_id):
@@ -169,14 +200,15 @@ def update_staff(staff_id):
             'country': country,
             'privilege_level': privilege_level,
             'department': department,
-            'school_id': school_id if school_id else None,
+            'school_id': ObjectId(school_id) if school_id else None,
             'status': status,
             'updated_at': datetime.utcnow()
         }
 
         # Handle password update if provided
-        if request.form.get('password'):
-            update_data['password'] = generate_password_hash(request.form['password'])
+        new_password = request.form.get('password')
+        if new_password and new_password.strip():
+            update_data['password'] = generate_password_hash(new_password)
 
         # Handle profile image update
         if 'profile_image' in request.files:
@@ -194,6 +226,24 @@ def update_staff(staff_id):
         staff_collection.update_one(
             {'_id': ObjectId(staff_id)},
             {'$set': update_data}
+        )
+        
+        # Also update the users collection
+        user_update_data = {
+            'username': username,
+            'email': email,
+            'privilege_level': privilege_level,
+            'status': status,
+            'updated_at': datetime.utcnow()
+        }
+        
+        # Update password in users collection if changed
+        if new_password and new_password.strip():
+            user_update_data['password'] = generate_password_hash(new_password)
+        
+        users_collection.update_one(
+            {'staff_id': ObjectId(staff_id)},
+            {'$set': user_update_data}
         )
         
         flash('Staff member updated successfully!', 'success')
@@ -215,6 +265,8 @@ def delete_staff(staff_id):
         
         result = staff_collection.delete_one({'_id': ObjectId(staff_id)})
         if result.deleted_count:
+            # Also delete from users collection
+            users_collection.delete_one({'staff_id': ObjectId(staff_id)})
             flash('Staff member deleted successfully!', 'success')
         else:
             flash('Staff member not found!', 'error')
@@ -260,14 +312,27 @@ def get_departments(school_id):
     except Exception as e:
         return jsonify([])
         
+@bp.route('/staff/profile')
 @bp.route('/staff/profile/<staff_id>')
-def staff_profile(staff_id):
-    """Staff profile page"""
+def staff_profile(staff_id=None):
+    """Staff profile page - can be accessed by ID or by logged-in staff"""
     try:
+        # If no staff_id provided, use logged-in staff's ID
+        if staff_id is None:
+            if 'user_type' not in session or session['user_type'] != 'staff':
+                flash('Please log in as staff to view your profile.', 'error')
+                return redirect(url_for('auth.login'))
+            staff_id = session.get('profile_id')
+        
         staff = staff_collection.find_one({'_id': ObjectId(staff_id)})
         if not staff:
             flash('Staff member not found!', 'error')
             return redirect(url_for('staff.staff_list'))
+        
+        # Check if the logged-in user is viewing their own profile
+        is_own_profile = False
+        if 'user_type' in session and session['user_type'] == 'staff':
+            is_own_profile = session.get('profile_id') == staff_id
         
         # Get school name if exists
         school_name = None
@@ -278,11 +343,27 @@ def staff_profile(staff_id):
         
         return render_template('users/staff/staff_profile.html', 
                              staff=staff, 
-                             school_name=school_name)
+                             school_name=school_name,
+                             is_own_profile=is_own_profile)
     except Exception as e:
         flash('Invalid staff ID!', 'error')
         return redirect(url_for('staff.staff_list'))
 
-@bp.route('/user-management')
+@bp.route('/user_management')
 def user_management():
-    return render_template('users/user_management.html')
+    """User management dashboard"""
+    # Get statistics from database
+    total_students = students_collection.count_documents({})
+    total_staff = staff_collection.count_documents({})
+    total_lecturers = staff_collection.count_documents({'role': 'lecturer'})
+    total_admin = staff_collection.count_documents({'role': {'$in': ['admin', 'administrator']}})
+    
+    # Get recent activity (you'll need to implement this)
+    recent_activity = []  # This would come from your activity log
+    
+    return render_template('users/user_management.html',
+                         total_students=total_students,
+                         total_staff=total_staff,
+                         total_lecturers=total_lecturers,
+                         total_admin=total_admin,
+                         recent_activity=recent_activity)

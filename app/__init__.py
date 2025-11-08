@@ -6,7 +6,7 @@ app.config['SECRET_KEY'] = '3f34d03d85aacf85899832be427defb2'
 
 # Database configuration
 client = MongoClient('mongodb://localhost:27017/') 
-db = client['Uniberg_b']
+db = client['Uniberg']
 
 staff_collection = db['Staff Collection']
 courses_collection = db['Courses Collection']
@@ -22,7 +22,7 @@ accounts_collection = db['Accounts']
 news_collection = db['News']
 users_collection = db ['Users']
 
-from app.routes import home, staff, courses_program, student, grades, ca, accounts, news_feed
+from app.routes import home, staff, courses_program, student, grades, ca, accounts, news_feed, login
 
 app.register_blueprint(home.bp)
 app.register_blueprint(staff.bp)
@@ -32,6 +32,7 @@ app.register_blueprint(grades.bp)
 app.register_blueprint(ca.bp)
 app.register_blueprint(accounts.bp)
 app.register_blueprint(news_feed.bp)
+app.register_blueprint(login.bp)
 
 # Add this to your app initialization
 def create_grades_indexes():
@@ -45,3 +46,10 @@ def create_grades_indexes():
     mock_grades_collection.create_index([('entered_at', -1)])
     
 create_grades_indexes()
+
+# Create indexes for better performance
+users_collection.create_index([('username', 1)], unique=True, sparse=True)
+users_collection.create_index([('student_number', 1)], unique=True, sparse=True)
+users_collection.create_index([('email', 1)], unique=True)
+users_collection.create_index([('student_id', 1)], unique=True, sparse=True)
+users_collection.create_index([('staff_id', 1)], unique=True, sparse=True)

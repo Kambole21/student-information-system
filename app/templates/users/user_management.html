@@ -1,111 +1,297 @@
 {% extends 'layout.html' %}
-
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">User Management</h1>
-</div>
 
-<div class="row">
-    <!-- Student Card -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 border-primary">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-person-circle text-primary" style="font-size: 3rem;"></i>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='users.css') }}">
+<div class="container-fluid user-management-container">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="user-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-people-fill"></i> User Management</h1>
+                        <p class="text-light">Manage students, staff, and administrative accounts across the institution</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="bi bi-plus-circle"></i> Quick Actions
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('student.student_registration') }}">
+                                    <i class="bi bi-person-plus text-primary"></i> Add Student
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('staff.staff_registration') }}">
+                                    <i class="bi bi-person-gear text-success"></i> Add Staff
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('student.student_list') }}">
+                                    <i class="bi bi-people text-primary"></i> View All Students
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('staff.staff_list') }}">
+                                    <i class="bi bi-person-badge text-success"></i> View All Staff
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <h4 class="card-title text-primary">Student Management</h4>
-                <p class="card-text">Create and manage student accounts with academic information and next of kin details.</p>
-                <div class="mt-4">
-                    <a href="{{url_for('student.student_management')}}" class="btn btn-primary me-2">
-                        <i class="bi bi-person-plus me-1"></i> Create Student
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Management Cards -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="role-cards">
+                <!-- Student Card -->
+                <div class="card role-card student-card">
+                    <div class="role-card-header">
+                        <div class="role-icon">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <h3 class="role-title">Student Management</h3>
+                    </div>
+                    <div class="role-card-body">
+                        <p class="role-description">
+                            Create and manage student accounts with comprehensive academic information, 
+                            next of kin details, and course enrollment capabilities.
+                        </p>
+                        <div class="role-actions">
+                            <a href="{{ url_for('student.student_registration') }}" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-2"></i>Create Student
+                            </a>
+                            <a href="{{ url_for('student.student_list') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-list-ul me-2"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Card -->
+                <div class="card role-card staff-card">
+                    <div class="role-card-header">
+                        <div class="role-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+                        <h3 class="role-title">Staff Management</h3>
+                    </div>
+                    <div class="role-card-body">
+                        <p class="role-description">
+                            Manage staff accounts including lecturers, deans, and administrative personnel 
+                            with role-based access control and department assignments.
+                        </p>
+                        <div class="role-actions">
+                            <a href="{{ url_for('staff.staff_registration') }}" class="btn btn-success">
+                                <i class="bi bi-person-plus me-2"></i>Create Staff
+                            </a>
+                            <a href="{{ url_for('staff.staff_list') }}" class="btn btn-outline-success">
+                                <i class="bi bi-list-ul me-2"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="section-title">
+                <i class="bi bi-graph-up"></i> System Overview
+            </h3>
+            <div class="stats-grid">
+                <!-- Total Students -->
+                <div class="card stat-card students">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="students">{{ total_students }}</h3>
+                            <h6>Total Students</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Staff -->
+                <div class="card stat-card staff">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="staff">{{ total_staff }}</h3>
+                            <h6>Total Staff</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lecturers -->
+                <div class="card stat-card lecturers">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="lecturers">{{ total_lecturers }}</h3>
+                            <h6>Lecturers</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-mortarboard"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Staff -->
+                <div class="card stat-card admins">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="admins">{{ total_admin }}</h3>
+                            <h6>Admin Staff</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-gear-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="quick-actions">
+                <h3 class="section-title">
+                    <i class="bi bi-lightning-fill"></i> Quick Actions
+                </h3>
+                <div class="action-buttons">
+                    <a href="{{ url_for('student.student_registration') }}" class="action-btn">
+                        <i class="bi bi-person-plus text-primary"></i>
+                        <span>Register New Student</span>
                     </a>
-                    <a href="#" class="btn btn-outline-primary">View Students</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Staff Card -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 border-success">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="bi bi-person-gear text-success" style="font-size: 3rem;"></i>
-                </div>
-                <h4 class="card-title text-success">Staff Management</h4>
-                <p class="card-text">Create and manage staff accounts including lecturers, deans, and administrative staff.</p>
-                <div class="mt-4">
-                    <a href="{{ url_for('staff.staff_dashboard') }}" class="btn btn-success me-2">
-                        <i class="bi bi-person-plus me-1"></i> Create Staff
+                    <a href="{{ url_for('staff.staff_registration') }}" class="action-btn">
+                        <i class="bi bi-person-gear text-success"></i>
+                        <span>Add Staff Member</span>
                     </a>
-                    <a href="#" class="btn btn-outline-success">View Staff</a>
+                    <a href="{{ url_for('student.student_list') }}" class="action-btn">
+                        <i class="bi bi-people text-primary"></i>
+                        <span>Browse Students</span>
+                    </a>
+                    <a href="{{ url_for('staff.staff_list') }}" class="action-btn">
+                        <i class="bi bi-person-badge text-success"></i>
+                        <span>Browse Staff</span>
+                    </a>
+                    <a href="{{ url_for('student.student_management') }}" class="action-btn">
+                        <i class="bi bi-graph-up text-info"></i>
+                        <span>Student Analytics</span>
+                    </a>
+                    <a href="{{ url_for('staff.staff_dashboard') }}" class="action-btn">
+                        <i class="bi bi-bar-chart text-warning"></i>
+                        <span>Staff Analytics</span>
+                    </a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="recent-activity">
+                <h3 class="section-title">
+                    <i class="bi bi-clock-history"></i> Recent Activity
+                </h3>
+                {% if recent_activity and recent_activity|length > 0 %}
+                <ul class="activity-list">
+                    {% for activity in recent_activity %}
+                    <li class="activity-item">
+                        <div class="activity-icon {{ activity.type }}">
+                            <i class="bi bi-{{ activity.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p>{{ activity.message }}</p>
+                            <small class="activity-time">{{ activity.timestamp }}</small>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="no-activity">
+                    <i class="bi bi-inbox"></i>
+                    <h5>No Recent Activity</h5>
+                    <p>User management activities will appear here</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Stats -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title text-muted">Total Students</h6>
-                        <h3 class="text-primary">0</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-people text-primary" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title text-muted">Total Staff</h6>
-                        <h3 class="text-success">0</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-person-gear text-success" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title text-muted">Lecturers</h6>
-                        <h3 class="text-info">0</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-mortarboard text-info" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h6 class="card-title text-muted">Admin Staff</h6>
-                        <h3 class="text-warning">0</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-gear text-warning" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- JavaScript for interactive elements -->
+<script>
+// Add hover animations and interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click animations to cards
+    const cards = document.querySelectorAll('.role-card, .stat-card');
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    });
+
+    // Add loading animation to buttons
+    const buttons = document.querySelectorAll('.btn, .action-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (this.getAttribute('href') && !this.classList.contains('dropdown-toggle')) {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 2000);
+            }
+        });
+    });
+
+    // Auto-refresh statistics every 30 seconds
+    setInterval(() => {
+        // You can implement AJAX calls here to refresh statistics
+        console.log('Refreshing statistics...');
+    }, 30000);
+
+    // Add tooltips to action buttons
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn => {
+        btn.setAttribute('data-bs-toggle', 'tooltip');
+        btn.setAttribute('data-bs-placement', 'top');
+        btn.setAttribute('title', btn.querySelector('span').textContent);
+    });
+
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Function to update statistics (can be called via AJAX)
+function updateStatistics() {
+    fetch('/user_management/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector('.stat-card.students h3').textContent = data.total_students;
+                document.querySelector('.stat-card.staff h3').textContent = data.total_staff;
+                document.querySelector('.stat-card.lecturers h3').textContent = data.total_lecturers;
+                document.querySelector('.stat-card.admins h3').textContent = data.total_admin;
+            }
+        })
+        .catch(error => console.error('Error updating statistics:', error));
+}
+</script>
 {% endblock %}

@@ -65,9 +65,24 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
+                                    <label class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" name="phone_number" value="{{ student.phone_number }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <label class="form-label">Student Number *</label>
                                     <input type="text" class="form-control" name="student_number" value="{{ student.student_number }}" required>
                                     <div class="form-text">Unique student identification number</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">National ID *</label>
+                                    <input type="text" class="form-control" name="national_id" value="{{ student.national_id }}" required>
                                 </div>
                             </div>
                         </div>
@@ -86,31 +101,19 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">National ID *</label>
-                                    <input type="text" class="form-control" name="national_id" value="{{ student.national_id }}" required>
+                                    <label class="form-label">Level of Education *</label>
+                                    <select class="form-select" name="education_level" required>
+                                        <option value="">Select Level</option>
+                                        <option value="undergraduate" {% if student.education_level == 'undergraduate' %}selected{% endif %}>Undergraduate</option>
+                                        <option value="postgraduate" {% if student.education_level == 'postgraduate' %}selected{% endif %}>Postgraduate</option>
+                                        <option value="diploma" {% if student.education_level == 'diploma' %}selected{% endif %}>Diploma</option>
+                                        <option value="certificate" {% if student.education_level == 'certificate' %}selected{% endif %}>Certificate</option>
+                                    </select>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Residential Address *</label>
-                            <textarea class="form-control" name="residential_address" rows="2" required>{{ student.residential_address }}</textarea>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Town/City *</label>
-                                    <input type="text" class="form-control" name="town" value="{{ student.town }}" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Country *</label>
-                                    <input type="text" class="form-control" name="country" value="{{ student.country }}" required>
-                                </div>
-                            </div>
-                            <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Date of Birth</label>
@@ -133,6 +136,25 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Residential Address *</label>
+                            <textarea class="form-control" name="residential_address" rows="2" required>{{ student.residential_address }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Town/City *</label>
+                                    <input type="text" class="form-control" name="town" value="{{ student.town }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Country *</label>
+                                    <input type="text" class="form-control" name="country" value="{{ student.country }}" required>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -246,70 +268,71 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="card mt-4">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="bi bi-person-heart"></i> Next of Kin Information</h6>
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-person-heart"></i> Next of Kin Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" name="nok_name" 
+                                                   value="{{ student.next_of_kin.name if student.next_of_kin else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Relationship</label>
+                                            <select class="form-select" name="nok_relationship">
+                                                <option value="">Select Relationship</option>
+                                                <option value="Parent" {% if student.next_of_kin and student.next_of_kin.relationship == 'Parent' %}selected{% endif %}>Parent</option>
+                                                <option value="Spouse" {% if student.next_of_kin and student.next_of_kin.relationship == 'Spouse' %}selected{% endif %}>Spouse</option>
+                                                <option value="Sibling" {% if student.next_of_kin and student.next_of_kin.relationship == 'Sibling' %}selected{% endif %}>Sibling</option>
+                                                <option value="Guardian" {% if student.next_of_kin and student.next_of_kin.relationship == 'Guardian' %}selected{% endif %}>Guardian</option>
+                                                <option value="Other" {% if student.next_of_kin and student.next_of_kin.relationship == 'Other' %}selected{% endif %}>Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Address</label>
+                                    <textarea class="form-control" name="nok_address" rows="2">{{ student.next_of_kin.address if student.next_of_kin else '' }}</textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Town/City</label>
+                                            <input type="text" class="form-control" name="nok_town" 
+                                                   value="{{ student.next_of_kin.town if student.next_of_kin else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Country</label>
+                                            <input type="text" class="form-control" name="nok_country" 
+                                                   value="{{ student.next_of_kin.country if student.next_of_kin else 'Zambia' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" name="nok_phone" 
+                                                   value="{{ student.next_of_kin.phone if student.next_of_kin else '' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" name="nok_email" 
+                                           value="{{ student.next_of_kin.email if student.next_of_kin else '' }}">
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Full Name</label>
-                                        <input type="text" class="form-control" name="nok_name" 
-                                               value="{{ student.next_of_kin.name if student.next_of_kin else '' }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Relationship</label>
-                                        <select class="form-select" name="nok_relationship">
-                                            <option value="">Select Relationship</option>
-                                            <option value="Parent" {% if student.next_of_kin and student.next_of_kin.relationship == 'Parent' %}selected{% endif %}>Parent</option>
-                                            <option value="Spouse" {% if student.next_of_kin and student.next_of_kin.relationship == 'Spouse' %}selected{% endif %}>Spouse</option>
-                                            <option value="Sibling" {% if student.next_of_kin and student.next_of_kin.relationship == 'Sibling' %}selected{% endif %}>Sibling</option>
-                                            <option value="Guardian" {% if student.next_of_kin and student.next_of_kin.relationship == 'Guardian' %}selected{% endif %}>Guardian</option>
-                                            <option value="Other" {% if student.next_of_kin and student.next_of_kin.relationship == 'Other' %}selected{% endif %}>Other</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Address</label>
-                                <textarea class="form-control" name="nok_address" rows="2">{{ student.next_of_kin.address if student.next_of_kin else '' }}</textarea>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Town/City</label>
-                                        <input type="text" class="form-control" name="nok_town" 
-                                               value="{{ student.next_of_kin.town if student.next_of_kin else '' }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Country</label>
-                                        <input type="text" class="form-control" name="nok_country" 
-                                               value="{{ student.next_of_kin.country if student.next_of_kin else 'Zambia' }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Phone Number</label>
-                                        <input type="tel" class="form-control" name="nok_phone" 
-                                               value="{{ student.next_of_kin.phone if student.next_of_kin else '' }}">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Email Address</label>
-                                <input type="email" class="form-control" name="nok_email" 
-                                       value="{{ student.next_of_kin.email if student.next_of_kin else '' }}">
-                            </div>
-                        </div>
-                    </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-secondary me-md-2">
@@ -335,15 +358,11 @@ function generatePassword() {
     }
     document.getElementById('passwordInput').value = password;
 }
+
 document.addEventListener('DOMContentLoaded', function() {
     const schoolSelect = document.getElementById('schoolSelect');
     const programSelect = document.getElementById('programSelect');
     const editStudentForm = document.getElementById('editStudentForm');
-
-    const passwordInput = document.getElementById('passwordInput');
-    if (passwordInput && !passwordInput.value) {
-        generatePassword();
-    }
 
     // Load programs when school is selected
     schoolSelect.addEventListener('change', function() {
@@ -381,6 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const email = document.querySelector('input[name="email"]').value;
         const studentNumber = document.querySelector('input[name="student_number"]').value;
         const nationalId = document.querySelector('input[name="national_id"]').value;
+        const phoneNumber = document.querySelector('input[name="phone_number"]').value;
         
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -400,6 +420,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!nationalId.trim()) {
             e.preventDefault();
             alert('National ID is required.');
+            return;
+        }
+
+        if (!phoneNumber.trim()) {
+            e.preventDefault();
+            alert('Phone number is required.');
             return;
         }
     });

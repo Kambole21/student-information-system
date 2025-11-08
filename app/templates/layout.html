@@ -14,92 +14,163 @@
 
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img id="logo" src="{{ url_for('static', filename='icons/uniberg.jpg') }}" alt="UNIBERG Logo">
-                <span id="name1">UNI</span><span id="name2">BERG</span> Student Portal
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img id="logo" src="{{ url_for('static', filename='icons/uniberg.jpg') }}" alt="UNIBERG Logo">
+            <span id="name1">UNI</span><span id="name2">BERG</span> 
+            {% if session.user_type == 'student' %}Student Portal
+            {% elif session.user_type == 'staff' %}Staff Portal
+            {% else %}Portal{% endif %}
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if session.user_id %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        {% if session.profile_image %}
+                        <img src="{{ url_for('static', filename='uploads/' + session.user_type + 's/' + session.profile_image) if session.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}" 
+                             alt="Profile" class="rounded-circle me-1" style="width: 30px; height: 30px; object-fit: cover;">
+                        {% else %}
+                        <i class="bi bi-person-circle me-1"></i>
+                        {% endif %}
+                        {{ session.full_name|default(session.username, true) }}
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('auth.user_profile') }}">
+                            <i class="bi bi-person me-2"></i>My Profile
+                        </a></li>
+                        <li><a class="dropdown-item" href="#">
+                            <i class="bi bi-gear me-2"></i>Settings
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('auth.login') }}">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            <div class="col-lg-2 col-md-3 sidebar">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('news_feed.news_dashboard') }}">
-                            <i class="bi bi-house-door"></i>News Feed
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">
-                            <i class="bi bi-person"></i> Student Profile
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{url_for('grades.grades_dashboard')}}">
-                            <i class="bi bi-book"></i> Academics
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('courses_programs.academic_manager') }}">
-                            <i class="bi bi-mortarboard"></i> Academic Manager
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{url_for('accounts.accounts_management')}}">
-                            <i class="bi bi-wallet2"></i> Finances
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-building"></i> Housing
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-calendar-event"></i> Schedule
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-envelope"></i> Messages
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="bi bi-gear"></i> Exam Slip
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{url_for('staff.user_management')}}">
-                            <i class="bi bi-plus-circle"></i> Users
-                        </a>
-                    </li>
-                </ul>
-            </div>
+<!-- Sidebar -->
+<div class="col-lg-2 col-md-3 sidebar">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('news_feed.news_dashboard') }}">
+                <i class="fa-solid fa-newspaper"></i>News Feed
+            </a>
+        </li>
+        
+        {% if session.user_type == 'student' %}
+        <!-- Student-specific menu items -->
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('auth.user_profile') }}">
+                <i class="fa-solid fa-user"></i> My Profile
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('grades.grades_dashboard') }}">
+                <i class="fa-solid fa-book-open"></i> Academics
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('accounts.accounts_management') }}">
+                <i class="fa-solid fa-wallet"></i> Finances
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="fa-solid fa-house-user"></i> Accommodation
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="fa-solid fa-calendar-days"></i> Schedule
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="fa-solid fa-receipt"></i> Exam Slip
+            </a>
+        </li>
+        
+        {% elif session.user_type == 'staff' %}
+        <!-- Staff-specific menu items -->
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('auth.user_profile') }}">
+                <i class="fa-solid fa-user"></i> My Profile
+            </a>
+        </li>
+        
+        <!-- Staff Management (for admin/hod roles) -->
+        {% if session.privilege_level in ['admin', 'hod', 'dean'] %}
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('staff.user_management') }}">
+                <i class="fa-solid fa-users"></i> User Management
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('student.student_management') }}">
+                <i class="fa-solid fa-user-graduate"></i> Student Management
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Academic Management (for academic staff) -->
+        {% if session.privilege_level in ['admin', 'hod', 'dean', 'lecturer', 'academics'] %}
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('courses_programs.academic_manager') }}">
+                <i class="fa-solid fa-book-open-reader"></i> Academic Manager
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('grades.grades_dashboard') }}">
+                <i class="fa-solid fa-chart-line"></i> Grades Management
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('ca.manage_ca') }}">
+                <i class="fa-solid fa-clipboard-check"></i> CA Management
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Accounts Management (for accounts staff) -->
+        {% if session.privilege_level in ['admin', 'accounts'] %}
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('accounts.accounts_management') }}">
+                <i class="fa-solid fa-money-bill-wave"></i> Accounts
+            </a>
+        </li>
+        {% endif %}
+        
+        {% endif %}
+        
+        <!-- Common menu items for all logged-in users -->
+        {% if session.user_id %}
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="fa-solid fa-user-secret"></i> Audit Log
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
 
             <!-- Main Content -->
             <div class="col-lg-10 col-md-9 main-content">

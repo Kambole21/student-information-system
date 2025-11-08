@@ -3,13 +3,23 @@
 
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='news.css') }}">
 <div class="container-fluid news-container">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
     <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="news-header">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h1><i class="bi bi-newspaper"></i> Newsroom</h1>
+                        <h1><i class="bi bi-newspaper"></i> UNIBERG-NewsFeed</h1>
                         <p class="text-light">Stay updated with the latest announcements and news</p>
                     </div>
                     <div class="col-md-4 text-end">
@@ -19,20 +29,6 @@
                         <a href="{{ url_for('news_feed.news_drafts') }}" class="btn btn-outline-light ms-2">
                             <i class="bi bi-file-earmark-text"></i> Drafts
                         </a>
-                        <div class="btn-group ms-2">
-                            <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                                <i class="bi bi-filter"></i> Filter
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_dashboard') }}">All News</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('news_feed.featured_news') }}">Featured</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='academic') }}">Academic</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='events') }}">Events</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='announcements') }}">Announcements</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('news_feed.news_by_category', category='general') }}">General</a></li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
             </div>
