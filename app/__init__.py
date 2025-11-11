@@ -5,7 +5,7 @@ app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = '3f34d03d85aacf85899832be427defb2'
 
 # Database configuration
-client = MongoClient('mongodb+srv://kambole520_db_user:Chomba520@uniberg.kgjjhzh.mongodb.net/?appName=uniberg') 
+client = MongoClient('mongodb://localhost:27017') 
 db = client['Uniberg']
 
 staff_collection = db['Staff Collection']
