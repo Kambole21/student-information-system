@@ -5,7 +5,7 @@ app = Flask(__name__, template_folder='templates')
 app.config['SECRET_KEY'] = '3f34d03d85aacf85899832be427defb2'
 
 # Database configuration
-client = MongoClient('mongodb://localhost:27017') 
+client = MongoClient('mongodb+srv://kambole520_db_user:Chomba520@uniberg.kgjjhzh.mongodb.net/?appName=uniberg') 
 db = client['Uniberg']
 
 staff_collection = db['Staff Collection']
@@ -22,7 +22,7 @@ accounts_collection = db['Accounts']
 news_collection = db['News']
 users_collection = db ['Users']
 
-from app.routes import home, staff, courses_program, student, grades, ca, accounts, news_feed, login
+from app.routes import home, staff, courses_program, student, grades, ca, accounts, news_feed, login, contact
 
 app.register_blueprint(home.bp)
 app.register_blueprint(staff.bp)
@@ -33,6 +33,7 @@ app.register_blueprint(ca.bp)
 app.register_blueprint(accounts.bp)
 app.register_blueprint(news_feed.bp)
 app.register_blueprint(login.bp)
+app.register_blueprint(contact.bp)
 
 # Add this to your app initialization
 def create_grades_indexes():
