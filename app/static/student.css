@@ -551,3 +551,7 @@
     color: #212529;
     margin-bottom: 0;
 }
+#grade-icon{
+    width: 80px;
+    height: 40px;
+}

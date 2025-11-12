@@ -102,10 +102,29 @@
 }
 
 .role-badge.admin {
-    background-color: #dc3545 !important;
-    color: white;
+    background-color: #ea9494 !important;
+    color: rgb(4, 101, 227);
 }
-
+.role-badge.press {
+    background-color: #f0b4ec !important;
+    color: #171616;
+}
+.role-badge.tutor {
+    background-color: #f1c69e !important;
+    color: #e96100;
+}
+.role-badge.snr_tutor {
+    background-color: #f1c69e !important;
+    color: #000000;
+}
+.role-badge.admin_dvc {
+    background-color: #ea9494 !important;
+    color: #38e005;
+}
+.role-badge.admin_vc {
+    background-color: #ea9494 !important;
+    color: #ea0303;
+}
 /* Form Styles */
 .card {
     border: none;

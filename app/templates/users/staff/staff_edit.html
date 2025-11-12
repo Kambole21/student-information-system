@@ -102,12 +102,17 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        {% if session.privilege_level in ['ict', 'admin', 'admin_vc', 'admin_dvc', 'registrar'] %}
+
+                                                <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Role/Privilege Level *</label>
                                     <select class="form-select" name="privilege_level" id="privilegeLevel" required>
                                         <option value="">Select Role</option>
+                                        <option value="press" {% if staff.privilege_level == 'press' %}selected{% endif %}>Press</option>
+                                        <option value="tutor" {% if staff.privilege_level == 'tutor' %}selected{% endif %}>Tutor</option>
+                                        <option value="snr_tutor" {% if staff.privilege_level == 'snr_tutor' %}selected{% endif %}>Tutor</option>
                                         <option value="lecturer" {% if staff.privilege_level == 'lecturer' %}selected{% endif %}>Lecturer</option>
                                         <option value="hod" {% if staff.privilege_level == 'hod' %}selected{% endif %}>Head of Department (HOD)</option>
                                         <option value="deputy_dean" {% if staff.privilege_level == 'deputy_dean' %}selected{% endif %}>Deputy Dean</option>
@@ -119,6 +124,9 @@
                                         <option value="ict" {% if staff.privilege_level == 'ict' %}selected{% endif %}>ICT</option>
                                         <option value="academics" {% if staff.privilege_level == 'academics' %}selected{% endif %}>Academics</option>
                                         <option value="admin" {% if staff.privilege_level == 'admin' %}selected{% endif %}>Administrator</option>
+                                        <option value="ict_beta" {% if staff.privilege_level == 'ict_beta' %}selected{% endif %}>ICT beta</option>
+                                        <option value="admin_dvc" {% if staff.privilege_level == 'admin_dvc' %}selected{% endif %}>Deputy V.C</option> 
+                                        <option value="admin_vc" {% if staff.privilege_level == 'admin_vc' %}selected{% endif %}>V.C</option>
                                     </select>
                                 </div>
                             </div>
@@ -132,6 +140,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        {% endif %}
 
                         <!-- School Selection (for school-based roles) -->
                         <div class="mb-3" id="schoolField" style="display: none;">

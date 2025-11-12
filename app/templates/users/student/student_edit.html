@@ -26,22 +26,27 @@
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-lg-10">
+        <div class="col-lg-10-fluid">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-person-gear"></i> Edit {{ student.f_name }} {{ student.l_name }}</h5>
+                    <h5 class="mb-0"><i class="bi bi-person-gear" ></i> Edit {{ student.f_name }} {{ student.l_name }}</h5>
                     <div>
                         <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-info btn-sm me-2">
                             <i class="bi bi-eye"></i> View Profile
                         </a>
+                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict'] %}
                         <a href="{{ url_for('student.student_list') }}" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-arrow-left"></i> Back to List
                         </a>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('student.update_student', student_id=student._id) }}" enctype="multipart/form-data" id="editStudentForm">
-                        <div class="row">
+
+                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict'] %} 
+
+                                                <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">First Name *</label>
@@ -55,6 +60,9 @@
                                 </div>
                             </div>
                         </div>
+
+                        {% endif %}
+
 
                         <div class="row">
                             <div class="col-md-6">
@@ -71,6 +79,8 @@
                             </div>
                         </div>
 
+                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict'] %}
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -86,6 +96,10 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
+
+                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict'] %}
+
 
                         <div class="row">
                             <div class="col-md-6">
@@ -113,13 +127,16 @@
                             </div>
                         </div>
 
+                        {% endif %}
+
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Date of Birth</label>
                                     <input type="date" class="form-control" name="birthday" 
                                            value="{{ student.birthday.strftime('%Y-%m-%d') if student.birthday else '' }}" 
-                                           max="{{ datetime.now().strftime('%Y-%m-%d') }}">
+                                           max="{{ datetime.now().strftime('%Y-%m-%d') }}" {% if session.privilege_level=='student' %}readonly{% endif %}>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -136,6 +153,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict'] %}
 
                         <div class="mb-3">
                             <label class="form-label">Residential Address *</label>
@@ -230,6 +249,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
 
                         <div class="mb-3">
                             <label class="form-label">Profile Image</label>
@@ -245,6 +265,8 @@
                             <input type="file" class="form-control" name="profile_image" accept="image/*">
                             <div class="form-text">Allowed formats: PNG, JPG, JPEG, GIF. Max size: 5MB</div>
                         </div>
+
+                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict'] %}
 
                         <!-- Student Information Summary -->
                         <div class="card bg-light mt-4">
@@ -333,6 +355,9 @@
                                 </div>
                             </div>
                         </div>
+
+                        {% endif %}
+                
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-secondary me-md-2">

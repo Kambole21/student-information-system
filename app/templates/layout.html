@@ -19,12 +19,9 @@
 </head>
 <body>
 
-<!-- ========================================
-     NAVBAR
-     ======================================== -->
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="{{url_for('news_feed.news_dashboard')}}">
             <img id="logo" src="{{ url_for('static', filename='icons/uniberg.jpg') }}" alt="UNIBERG Logo">
             <span id="name1">UNI</span><span id="name2">BERG</span>
             {% if session.user_type == 'student' %}Student Portal
@@ -74,9 +71,6 @@
     </div>
 </nav>
 
-<!-- ========================================
-     MAIN CONTAINER
-     ======================================== -->
 <div class="container-fluid">
     <div class="row">
 
@@ -104,7 +98,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('accounts.accounts_management') }}">
+                        <a class="nav-link" href="{{ url_for('accounts.student_transactions', student_id=session.profile_id) }}">
                             <i class="fa-solid fa-wallet"></i> Finances
                         </a>
                     </li>
@@ -139,6 +133,7 @@
                             <i class="fa-solid fa-users"></i> User Management
                         </a>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('student.student_management') }}">
                             <i class="fa-solid fa-user-graduate"></i> Student Management

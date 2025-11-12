@@ -84,7 +84,7 @@
                                     </td>
                                     <td>
                                         <span class="badge role-badge {{ staff.privilege_level }}">
-                                            {{ staff.privilege_level|replace('_', ' ')|title }}
+                                            <div id="role-id">{{ staff.privilege_level|replace('_', ' ')|title }}</div>
                                         </span>
                                     </td>
                                     <td>
@@ -169,18 +169,24 @@
                     <div class="mb-3">
                         <label class="form-label">New Role</label>
                         <select class="form-select" name="privilege_level" id="modalPrivilegeLevel" required>
-                            <option value="">Select Role</option>
-                            <option value="lecturer">Lecturer</option>
-                            <option value="hod">Head of Department (HOD)</option>
-                            <option value="deputy_dean">Deputy Dean</option>
-                            <option value="dean">Dean</option>
-                            <option value="dean_of_students">Dean of Students</option>
-                            <option value="accounts">Accounts</option>
-                            <option value="hall_attendant">Hall Attendant</option>
-                            <option value="registrar">Registrar</option>
-                            <option value="ict">ICT</option>
-                            <option value="academics">Academics</option>
-                            <option value="admin">Administrator</option>
+                                <option value="">Select Role</option>
+                                <option value='press'>Press</option>
+                                <option value='tutor'>Tutor</option>
+                                <option value='snr_tutor'>Senior Tutor</option>
+                                <option value="lecturer">Lecturer</option>
+                                <option value="hod">Head of Department (HOD)</option>
+                                <option value="deputy_dean">Deputy Dean</option>
+                                <option value="dean">Dean</option>
+                                <option value="dean_of_students">Dean of Students</option>
+                                <option value="accounts">Accounts</option>
+                                <option value="hall_attendant">Hall Attendant</option>
+                                <option value="registrar">Registrar</option>
+                                <option value="ict_beta">ICT beta</option>
+                                <option value="ict">ICT</option>
+                                <option value="academics">Academics</option>
+                                <option value="admin">Administrator</option>
+                                <option value="admin_dvc">Deputy V.C</option>
+                                <option value="admin_vc">V.C</option>
                         </select>
                     </div>
                     <div class="mb-3">

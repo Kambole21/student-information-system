@@ -20,49 +20,83 @@
         <div class="col-12">
             <div class="page-header">
                 <h1><i class="bi bi-journal-check"></i> Grades Management</h1>
-                <p class="text-muted">Manage student grades and transcripts</p>
+                <p class="text-muted">
+                    {% if session.privilege_level == 'student' %}
+                        View your grades and transcripts
+                    {% else %}
+                        Manage student grades and transcripts
+                    {% endif %}
+                </p>
             </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card action-card final-grades">
-                <div class="card-body text-center">
-                    <i class="bi bi-trophy display-4 mb-3"></i>
-                    <h3>Final Grades</h3>
-                    <p class="text-muted">Manage final examination grades</p>
-                    <a href="{{ url_for('grades.final_grades') }}" class="btn btn-primary">
-                        <i class="bi bi-arrow-right"></i> Manage Final Grades
-                    </a>
+        {% if session.privilege_level == 'student' %}
+            <div class="col-md-6">
+                <div class="card action-card final-grades">
+                    <div class="card-body text-center">
+                        <i class="fa-solid fa-trophy display-4 mb-3"></i>
+                        <h3>Final Grades</h3>
+                        <p class="text-muted">View your final examination grades</p>
+                        <a href="{{ url_for('grades.student_results', student_id=session.profile_id) }}" class="btn btn-primary">
+                            <i class="bi bi-eye"></i> View Final Grades
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card action-card mock-grades">
-                <div class="card-body text-center">
-                    <i class="bi bi-pencil-square display-4 mb-3"></i>
-                    <h3>Mock Grades</h3>
-                    <p class="text-muted">Manage mock examination grades</p>
-                    <a href="{{ url_for('grades.mock_grades') }}" class="btn btn-warning">
-                        <i class="bi bi-arrow-right"></i> Manage Mock Grades
-                    </a>
+
+            <div class="col-md-6">
+                <div class="card action-card mock-grades">
+                    <div class="card-body text-center">
+                        <i class="fa-solid fa-bars-progress display-4 mb-3"></i>
+                        <h3>Continous Assessment</h3>
+                        <p class="text-muted">View your Continuous Assessments</p>
+                        <a href="{{ url_for('ca.view_student_ca', student_id=session.profile_id) }}" class="btn btn-info">
+                            <i class="bi bi-eye"></i> View CAs
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card action-card mock-grades">
-                <div class="card-body text-center">
-                    <i class="bi bi-pencil-square display-4 mb-3"></i>
-                    <h3>Continous Assessment</h3>
-                    <p class="text-muted">Manage Continuos Assessments</p>
-                    <a href="{{ url_for('ca.ca_dashboard') }}" class="btn btn-warning">
-                        <i class="bi bi-arrow-right"></i> Manage CAs
-                    </a>
+        {% else %}
+    
+            <div class="col-md-6">
+                <div class="card action-card final-grades">
+                    <div class="card-body text-center">
+                        <i class="bi bi-trophy display-4 mb-3"></i>
+                        <h3>Final Grades</h3>
+                        <p class="text-muted">Manage final examination grades</p>
+                        <a href="{{ url_for('grades.final_grades') }}" class="btn btn-primary">
+                            <i class="fa-solid fa-trophy"></i> Manage Final Grades
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
+            <div class="col-md-6">
+                <div class="card action-card mock-grades">
+                    <div class="card-body text-center">
+                        <i class="bi bi-pencil-square display-4 mb-3"></i>
+                        <h3>Mock Grades</h3>
+                        <p class="text-muted">Manage mock examination grades</p>
+                        <a href="{{ url_for('grades.mock_grades') }}" class="btn btn-warning">
+                            <i class="bi bi-arrow-right"></i> Manage Mock Grades
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card action-card mock-grades">
+                    <div class="card-body text-center">
+                        <i class="bi bi-pencil-square display-4 mb-3"></i>
+                        <h3>Continous Assessment</h3>
+                        <p class="text-muted">Manage Continuous Assessments</p>
+                        <a href="{{ url_for('ca.ca_dashboard') }}" class="btn btn-warning">
+                            <i class="bi bi-arrow-right"></i> Manage CAs
+                        </a>
+                    </div>
+                </div>
+            </div>
     </div>
 
     <!-- Grade Scale Information -->
@@ -148,5 +182,6 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
