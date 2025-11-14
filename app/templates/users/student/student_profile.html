@@ -49,13 +49,15 @@
                     </div>
 
                     <div class="d-grid gap-2">
+                        {% if session.privilege_level in ['student', 'dean', 'ict', 'admin', 'admin_dvc', 'admin_vc', 'registrar'] %}
                         <a href="{{ url_for('student.edit_student', student_id=student._id) }}" class="btn btn-outline-primary">
                             <i class="bi bi-pencil"></i> Edit Profile
                         </a>
+                        {% endif %}
                         <a href="{{ url_for('ca.view_student_ca', student_id=student._id) }}" class="btn btn-outline-info">
                             <i class="fa-solid fa-bars-progress"></i> View CA Records
                         </a>
-                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict'] %}
+                        {% if session.privilege_level in['dean', 'registrar', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'ict', 'debuty_dean', 'hod', 'lecturer', 'tutor', 'snr_tutor'] %}
                         <a href="{{ url_for('student.student_list') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Back to List
                         </a>

@@ -126,28 +126,33 @@
                         </a>
                     </li>
 
-                    <!-- Admin / HOD / Dean -->
-                    {% if session.privilege_level in ['admin', 'hod', 'dean'] %}
+                {% if session.privilege_level in ['admin', 'admin_dvc', 'admin_dvc', 'admin_vc', 'ict', 'registrar'] %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('staff.user_management') }}">
                             <i class="fa-solid fa-users"></i> User Management
                         </a>
                     </li>
+                    {% endif %}
+
+                    {% if session.privilege_level in ['lecturer', 'tutor', 'snr_tutor', 'hod', 'dean', 'deputy_dean', 'ict_beta', 'admin', 'ict'] %}
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('student.student_management') }}">
                             <i class="fa-solid fa-user-graduate"></i> Student Management
                         </a>
                     </li>
-                    {% endif %}
 
-                    <!-- Academic Staff -->
-                    {% if session.privilege_level in ['admin', 'hod', 'dean', 'lecturer', 'academics'] %}
+                {% endif %}
+
+                {% if session.privilege_level in ['academics', 'registrar', 'dean', 'deputy_dean', 'hod', 'snr_tutor', 'admin_dvc', 'admin_vc', 'accounts', 'ict'] %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('courses_programs.academic_manager') }}">
                             <i class="fa-solid fa-book-open-reader"></i> Academic Manager
                         </a>
                     </li>
+
+                    {% endif %}
+                {% if session.privilege_level in ['academics', 'registrar', 'dean', 'deputy_dean', 'hod', 'snr_tutor', 'tutor', 'admin_dvc', 'admin_vc','admin', 'lecturer'] %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('grades.grades_dashboard') }}">
                             <i class="fa-solid fa-chart-line"></i> Grades Management
@@ -160,24 +165,29 @@
                     </li>
                     {% endif %}
 
-                    <!-- Accounts Staff -->
-                    {% if session.privilege_level in ['admin', 'accounts'] %}
+
+                    {%if session.privilege_level in ['accounts', 'admin', 'admin_dvc', 'admin_vc', 'registrar', 'ict']%}
+ 
+                
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('accounts.accounts_management') }}">
                             <i class="fa-solid fa-money-bill-wave"></i> Accounts
                         </a>
                     </li>
                     {% endif %}
-                    {% endif %}
 
-                    <!-- Common for all logged-in users -->
-                    {% if session.user_id %}
+                    {% if session.privilege_level in ['admin', 'registrar', 'ict', 'admin_dvc', 'admin_vc' ]%}
+
                     <li class="nav-item">
                         <a class="nav-link" href="#">
                             <i class="fa-solid fa-user-secret"></i> Audit Log
                         </a>
                     </li>
                     {% endif %}
+                 
+                    {% endif %}
+
+     
                 </ul>
             </div>
         </div>
@@ -240,8 +250,7 @@
                         </a>
                     </li>
 
-                    <!-- Admin / HOD / Dean -->
-                    {% if session.privilege_level in ['admin', 'hod', 'dean'] %}
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('staff.user_management') }}">
                             <i class="fa-solid fa-users"></i> User Management
@@ -252,10 +261,9 @@
                             <i class="fa-solid fa-user-graduate"></i> Student Management
                         </a>
                     </li>
-                    {% endif %}
+                
 
-                    <!-- Academic Staff -->
-                    {% if session.privilege_level in ['admin', 'hod', 'dean', 'lecturer', 'academics'] %}
+                
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('courses_programs.academic_manager') }}">
                             <i class="fa-solid fa-book-open-reader"></i> Academic Manager
@@ -271,26 +279,26 @@
                             <i class="fa-solid fa-clipboard-check"></i> CA Management
                         </a>
                     </li>
-                    {% endif %}
 
-                    <!-- Accounts Staff -->
-                    {% if session.privilege_level in ['admin', 'accounts'] %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('accounts.accounts_management') }}">
                             <i class="fa-solid fa-money-bill-wave"></i> Accounts
                         </a>
                     </li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fa-solid fa-receipt"></i> Exam Slip
+                        </a>
+                    </li>
+            
                     {% endif %}
 
-                    <!-- Common for all logged-in users -->
-                    {% if session.user_id %}
                     <li class="nav-item">
                         <a class="nav-link" href="#">
                             <i class="fa-solid fa-user-secret"></i> Audit Log
                         </a>
                     </li>
-                    {% endif %}
+        
                 </ul>
             </div>
         </div>
