@@ -21,6 +21,12 @@
             <div class="page-header">
                 <h1><i class="bi bi-file-text"></i> Student Results</h1>
                 <p class="text-muted">Academic results for {{ student.f_name }} {{ student.l_name }}</p>
+                {% if has_staff_access %}
+                <div class="alert alert-info mt-2">
+                    <i class="bi bi-shield-check"></i> 
+                    <strong>Staff Access Mode:</strong> You are viewing results with staff privileges.
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -84,48 +90,123 @@
                 </div>
                 <div class="card-body">
                     {% if final_grades %}
-                        {% for grade_doc in final_grades %}
-                        <div class="mb-4">
+                    {% for grade_doc in final_grades %}
+                    {% set semester_key = grade_doc.academic_year ~ '_semester_' ~ grade_doc.semester %}
+                    {% set can_view_student = viewable_semesters.get(semester_key, False) %}
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6>{{ grade_doc.academic_year }} - Semester {{ grade_doc.semester }}</h6>
-                            <small class="text-muted">Entered on: {{ grade_doc.entered_at.strftime('%Y-%m-%d %H:%M') }}</small>
-                            <div class="table-responsive mt-2">
-                                <table class="table table-sm table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Course Code</th>
-                                            <th>Course Name</th>
-                                            <th>Marks</th>
-                                            <th>Grade</th>
-                                            <th>Remarks</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for grade in grade_doc.grades %}
-                                        {% set course = courses_dict.get(grade.course_id) %}
-                                        {% if course %}
-                                        <tr class="{{ 'table-success' if grade.remarks == 'Proceed' else 'table-danger' }}">
-                                            <td>{{ course.code }}</td>
-                                            <td>{{ course.name }}</td>
-                                            <td>{{ grade.marks if grade.marks else 'N/A' }}</td>
-                                            <td><strong>{{ grade.grade }}</strong></td>
-                                            <td>
-                                                <span class="badge bg-{{ 'success' if grade.remarks == 'Proceed' else 'danger' }}">
-                                                    {{ grade.remarks }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        {% else %}
-                                        <tr class="table-warning">
-                                            <td colspan="5" class="text-center">Course information not found</td>
-                                        </tr>
-                                        {% endif %}
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                            {% if not can_view_student and not has_staff_access %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-lock"></i> Grades Withheld - Insufficient Payment
+                            </span>
+                            {% elif has_staff_access %}
+                            <span class="badge bg-warning">
+                                <i class="bi bi-eye"></i> Staff View - Override Access
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-unlock"></i> Grades Available
+                            </span>
+                            {% endif %}
                         </div>
-                        {% if not loop.last %}<hr>{% endif %}
-                        {% endfor %}
+                        
+                        <small class="text-muted">Entered on: {{ grade_doc.entered_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        
+                        {% if not can_view_student and not has_staff_access %}
+                        <div class="alert alert-warning mt-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Results Withheld</strong><br>
+                            The results for this semester are temporarily unavailable due to outstanding balance. 
+                            Please settle your semester fees to access your grades. 
+                            (Minimum {{ SystemConfig.BALANCE_THRESHOLD_PERCENTAGE }}% of semester fees must be paid)
+                        </div>
+                        {% elif has_staff_access %}
+                        <div class="alert alert-info mt-2">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Staff Override Access</strong><br>
+                            You are viewing these results with staff privileges. Student payment status: 
+                            {% if can_view_student %}
+                                <span class="badge bg-success">Cleared</span>
+                            {% else %}
+                                <span class="badge bg-warning">Outstanding Balance</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="table-responsive mt-2">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>Marks</th>
+                                        <th>Grade</th>
+                                        <th>Remarks</th>
+                                        {% if has_staff_access %}
+                                        <th>Access Level</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for grade in grade_doc.grades %}
+                                    {% set course = courses_dict.get(grade.course_id) %}
+                                    {% if course %}
+                                    <tr class="{{ 'table-success' if grade.remarks == 'Proceed' else 'table-danger' }}">
+                                        <td>{{ course.code }}</td>
+                                        <td>{{ course.name }}</td>
+                                        <td>
+                                            {% if can_view_student or has_staff_access %}
+                                                {{ grade.marks if grade.marks else 'N/A' }}
+                                            {% else %}
+                                                <span class="text-muted">---</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>
+                                                {% if can_view_student or has_staff_access %}
+                                                    {{ grade.grade }}
+                                                {% else %}
+                                                    <span class="text-muted">HIDDEN</span>
+                                                {% endif %}
+                                            </strong>
+                                        </td>
+                                        <td>
+                                            {% if can_view_student or has_staff_access %}
+                                            <span class="badge bg-{{ 'success' if grade.remarks == 'Proceed' else 'danger' }}">
+                                                {{ grade.remarks }}
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-warning">
+                                                Withheld
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        {% if has_staff_access %}
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if can_view_student else 'warning' }}">
+                                                {% if can_view_student %}
+                                                    Student Access
+                                                {% else %}
+                                                    Staff Only
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% else %}
+                                    <tr class="table-warning">
+                                        <td colspan="{{ 6 if has_staff_access else 5 }}" class="text-center">Course information not found</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
                     {% else %}
                         <div class="text-center py-4">
                             <i class="bi bi-trophy display-4 text-muted"></i>
@@ -147,9 +228,37 @@
                 <div class="card-body">
                     {% if mock_grades %}
                         {% for grade_doc in mock_grades %}
+                        {% set semester_key = grade_doc.academic_year ~ '_semester_' ~ grade_doc.semester %}
+                        {% set can_view_student = viewable_semesters.get(semester_key, False) %}
+                        
                         <div class="mb-4">
-                            <h6>{{ grade_doc.academic_year }} - Semester {{ grade_doc.semester }}</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6>{{ grade_doc.academic_year }} - Semester {{ grade_doc.semester }}</h6>
+                                {% if not can_view_student and not has_staff_access %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-lock"></i> Grades Withheld - Insufficient Payment
+                                </span>
+                                {% elif has_staff_access %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-eye"></i> Staff View - Override Access
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-unlock"></i> Grades Available
+                                </span>
+                                {% endif %}
+                            </div>
                             <small class="text-muted">Entered on: {{ grade_doc.entered_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            
+                            {% if has_staff_access and not can_view_student %}
+                            <div class="alert alert-info mt-2">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Staff Override Access</strong><br>
+                                You are viewing these results with staff privileges. Student payment status: 
+                                <span class="badge bg-warning">Outstanding Balance</span>
+                            </div>
+                            {% endif %}
+                            
                             <div class="table-responsive mt-2">
                                 <table class="table table-sm table-bordered">
                                     <thead>
@@ -159,6 +268,9 @@
                                             <th>Marks</th>
                                             <th>Grade</th>
                                             <th>Remarks</th>
+                                            {% if has_staff_access %}
+                                            <th>Access Level</th>
+                                            {% endif %}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -168,17 +280,48 @@
                                         <tr class="{{ 'table-success' if grade.remarks == 'Proceed' else 'table-danger' }}">
                                             <td>{{ course.code }}</td>
                                             <td>{{ course.name }}</td>
-                                            <td>{{ grade.marks if grade.marks else 'N/A' }}</td>
-                                            <td><strong>{{ grade.grade }}</strong></td>
                                             <td>
+                                                {% if can_view_student or has_staff_access %}
+                                                    {{ grade.marks if grade.marks else 'N/A' }}
+                                                {% else %}
+                                                    <span class="text-muted">---</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <strong>
+                                                    {% if can_view_student or has_staff_access %}
+                                                        {{ grade.grade }}
+                                                    {% else %}
+                                                        <span class="text-muted">HIDDEN</span>
+                                                    {% endif %}
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                {% if can_view_student or has_staff_access %}
                                                 <span class="badge bg-{{ 'success' if grade.remarks == 'Proceed' else 'danger' }}">
                                                     {{ grade.remarks }}
                                                 </span>
+                                                {% else %}
+                                                <span class="badge bg-warning">
+                                                    Withheld
+                                                </span>
+                                                {% endif %}
                                             </td>
+                                            {% if has_staff_access %}
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if can_view_student else 'warning' }}">
+                                                    {% if can_view_student %}
+                                                        Student Access
+                                                    {% else %}
+                                                        Staff Only
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                            {% endif %}
                                         </tr>
                                         {% else %}
                                         <tr class="table-warning">
-                                            <td colspan="5" class="text-center">Course information not found</td>
+                                            <td colspan="{{ 6 if has_staff_access else 5 }}" class="text-center">Course information not found</td>
                                         </tr>
                                         {% endif %}
                                         {% endfor %}

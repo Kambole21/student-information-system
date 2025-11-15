@@ -98,16 +98,13 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6-auto">
-
-                            {% if session.privilege_level in ['admin', 'admin_dvc', 'admin_vc', 'registrar', 'academics', 'ict', 'dean'] %}
+                        <div class="col-md-6">
                             <a href="{{ url_for('student.student_registration') }}" class="btn btn-primary w-100 h-100 py-3">
                                 <i class="bi bi-person-plus fs-1"></i>
                                 <div class="mt-2">Register New Student</div>
                             </a>
-                            {%endif%}
                         </div>
-                        <div class="col-md-6-auto">
+                        <div class="col-md-6">
                             <a href="{{ url_for('student.student_list') }}" class="btn btn-success w-100 h-100 py-3">
                                 <i class="bi bi-list-ul fs-1"></i>
                                 <div class="mt-2">View All Students</div>

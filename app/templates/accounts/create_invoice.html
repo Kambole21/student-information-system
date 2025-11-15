@@ -36,7 +36,6 @@
 
     <!-- Invoice Form - Reorganized Layout -->
     <div class="row">
-        <!-- Student Selection Section - Now on top -->
         <div class="col-12 mb-4">
             <div class="card">
                 <div class="card-header">
@@ -53,6 +52,27 @@
                                 <option value="course">Course</option>
                                 <option value="level">Level</option>
                                 <option value="individual">Individual Student</option>
+                            </select>
+                        </div>
+                        <!-- Add these fields to your create_invoice.html form -->
+                        <div class="mb-3">
+                            <label class="form-label">Academic Year (for semester tracking)</label>
+                            <select class="form-select" id="academicYear">
+                                <option value="">Not Semester Specific</option>
+                                <option value="2025/2026">2025/2026</option>
+                                <option value="2024/2025">2024/2025</option>
+                                <option value="2023/2024">2023/2024</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Semester (for semester tracking)</label>
+                            <select class="form-select" id="semester">
+                                <option value="">Not Semester Specific</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
                             </select>
                         </div>
 
@@ -462,6 +482,8 @@ function createTransaction() {
     const amount = document.getElementById('amount').value;
     const description = document.getElementById('description').value;
     const filterType = document.getElementById('filterType').value;
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
     let filterValue = '';
 
     if (!transactionType) {
@@ -504,7 +526,9 @@ function createTransaction() {
             description: description,
             student_ids: Array.from(selectedStudents),
             filter_type: filterType,
-            filter_value: filterValue
+            filter_value: filterValue,
+            semester: semester,  // Add semester
+            academic_year: academicYear  // Add academic_year
         })
     })
     .then(response => response.json())

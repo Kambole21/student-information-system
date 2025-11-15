@@ -1,7 +1,11 @@
-from flask import Blueprint, render_template, request, flash, url_for, redirect, jsonify
-from app import students_collection, courses_collection, programs_collection, schools_collection, student_courses_collection, grades_collection, mock_grades_collection
+from flask import Blueprint, render_template, request, flash, url_for, redirect, jsonify, session
+from app import students_collection, courses_collection, programs_collection, schools_collection, student_courses_collection, grades_collection, mock_grades_collection, staff_collection
 from bson import ObjectId
 from datetime import datetime
+
+# Replace the import line with this:
+from app.utils import can_view_semester_grades, get_semester_balance, get_semester_fees, get_staff_privilege_level, has_staff_privilege
+from app.config import SystemConfig
 
 bp = Blueprint('grades', __name__)
 
@@ -246,6 +250,11 @@ def get_grades(student_id, exam_type):
         academic_year = request.args.get('academic_year', '2025/2026')
         semester = request.args.get('semester', '1')
         
+        # Check if current user is staff with privileges
+        staff_id = session.get('staff_id')  # Assuming staff ID is stored in session
+        staff_privilege = get_staff_privilege_level(staff_id) if staff_id else None
+        has_staff_privilege = staff_privilege in ['admin', 'registrar', 'finance', 'academic']
+        
         # Choose the appropriate collection based on exam type
         if exam_type == 'mock':
             collection = mock_grades_collection
@@ -261,6 +270,9 @@ def get_grades(student_id, exam_type):
         
         if grade_doc:
             grades_data = grade_doc.get('grades', [])
+            # Check if grades can be viewed
+            can_view = has_staff_privilege or can_view_semester_grades(student_id, semester, academic_year)
+            
             # Enhance grades data with course information
             enhanced_grades = []
             for grade_entry in grades_data:
@@ -270,9 +282,11 @@ def get_grades(student_id, exam_type):
                         'course_id': grade_entry['course_id'],
                         'course_code': course['code'],
                         'course_name': course['name'],
-                        'marks': grade_entry.get('marks'),
-                        'grade': grade_entry.get('grade'),
-                        'remarks': grade_entry.get('remarks', get_remarks(grade_entry.get('grade', '')))
+                        'marks': grade_entry.get('marks') if can_view else None,
+                        'grade': grade_entry.get('grade') if can_view else 'HIDDEN',
+                        'remarks': grade_entry.get('remarks', get_remarks(grade_entry.get('grade', ''))) if can_view else 'Results withheld due to outstanding balance',
+                        'can_view': can_view,
+                        'withheld_reason': None if can_view else 'Outstanding balance'
                     })
             return jsonify(enhanced_grades)
         else:
@@ -338,108 +352,7 @@ def save_grades(student_id, exam_type):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@bp.route('/grades/student_results/<student_id>')
-def student_results(student_id):
-    """Page to view all results for a specific student"""
-    try:
-        student = students_collection.find_one({'_id': ObjectId(student_id)})
-        if not student:
-            flash('Student not found!', 'error')
-            return redirect(url_for('grades.final_grades'))
-        
-        # Get school and program details
-        school = schools_collection.find_one({'_id': ObjectId(student['school_id'])}) if student.get('school_id') else None
-        program = programs_collection.find_one({'_id': ObjectId(student['program_id'])}) if student.get('program_id') else None
-        
-        # Get all grade documents for this student from both collections
-        final_grades = list(grades_collection.find({
-            'student_id': ObjectId(student_id)
-        }).sort([('academic_year', -1), ('semester', -1)]))
-        
-        mock_grades = list(mock_grades_collection.find({
-            'student_id': ObjectId(student_id)
-        }).sort([('academic_year', -1), ('semester', -1)]))
-        
-        # Get all courses for course name lookup
-        all_courses = list(courses_collection.find({}))
-        courses_dict = {str(course['_id']): course for course in all_courses}
-        
-        return render_template('grades/student_results.html',
-                             student=student,
-                             school=school,
-                             program=program,
-                             final_grades=final_grades,
-                             mock_grades=mock_grades,
-                             courses_dict=courses_dict)
-    except Exception as e:
-        flash(f'Error loading student results: {str(e)}', 'error')
-        return redirect(url_for('grades.final_grades'))
 
-@bp.route('/grades/get_student_all_grades/<student_id>')
-def get_student_all_grades(student_id):
-    """Get all grades for a student"""
-    try:
-        # Get all grade documents for this student from both collections
-        final_grade_docs = list(grades_collection.find({
-            'student_id': ObjectId(student_id)
-        }).sort([('academic_year', -1), ('semester', -1)]))
-        
-        mock_grade_docs = list(mock_grades_collection.find({
-            'student_id': ObjectId(student_id)
-        }).sort([('academic_year', -1), ('semester', -1)]))
-        
-        grades_data = []
-        
-        # Process final grades
-        for doc in final_grade_docs:
-            enhanced_grades = []
-            for grade_entry in doc.get('grades', []):
-                course = courses_collection.find_one({'_id': ObjectId(grade_entry['course_id'])})
-                if course:
-                    enhanced_grades.append({
-                        'course_code': course['code'],
-                        'course_name': course['name'],
-                        'marks': grade_entry.get('marks'),
-                        'grade': grade_entry.get('grade'),
-                        'remarks': grade_entry.get('remarks')
-                    })
-            
-            grades_data.append({
-                'exam_type': 'final',
-                'academic_year': doc['academic_year'],
-                'semester': doc['semester'],
-                'entered_at': doc.get('entered_at', datetime.utcnow()).strftime('%Y-%m-%d %H:%M'),
-                'grades': enhanced_grades
-            })
-        
-        # Process mock grades
-        for doc in mock_grade_docs:
-            enhanced_grades = []
-            for grade_entry in doc.get('grades', []):
-                course = courses_collection.find_one({'_id': ObjectId(grade_entry['course_id'])})
-                if course:
-                    enhanced_grades.append({
-                        'course_code': course['code'],
-                        'course_name': course['name'],
-                        'marks': grade_entry.get('marks'),
-                        'grade': grade_entry.get('grade'),
-                        'remarks': grade_entry.get('remarks')
-                    })
-            
-            grades_data.append({
-                'exam_type': 'mock',
-                'academic_year': doc['academic_year'],
-                'semester': doc['semester'],
-                'entered_at': doc.get('entered_at', datetime.utcnow()).strftime('%Y-%m-%d %H:%M'),
-                'grades': enhanced_grades
-            })
-        
-        # Sort all grades by academic year and semester
-        grades_data.sort(key=lambda x: (x['academic_year'], x['semester']), reverse=True)
-        
-        return jsonify(grades_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @bp.route('/grades/upload_grades/<exam_type>', methods=['POST'])
 def upload_grades(exam_type):
@@ -476,3 +389,155 @@ def get_course_codes():
         return jsonify(sorted(course_codes))
     except Exception as e:
         return jsonify([])
+
+
+#semester grading
+from app.config import SystemConfig
+
+@bp.route('/grades/student_results/<student_id>')
+def student_results(student_id):
+    """Page to view all results for a specific student with balance checks"""
+    try:
+        student = students_collection.find_one({'_id': ObjectId(student_id)})
+        if not student:
+            flash('Student not found!', 'error')
+            return redirect(url_for('grades.final_grades'))
+        
+        # Get school and program details
+        school = schools_collection.find_one({'_id': ObjectId(student['school_id'])}) if student.get('school_id') else None
+        program = programs_collection.find_one({'_id': ObjectId(student['program_id'])}) if student.get('program_id') else None
+        
+        # Get all grade documents for this student from both collections
+        final_grades = list(grades_collection.find({
+            'student_id': ObjectId(student_id)
+        }).sort([('academic_year', -1), ('semester', -1)]))
+        
+        mock_grades = list(mock_grades_collection.find({
+            'student_id': ObjectId(student_id)
+        }).sort([('academic_year', -1), ('semester', -1)]))
+        
+        # Check staff privileges
+        staff_has_privilege = has_staff_privilege()
+        print(f"Staff has privilege: {staff_has_privilege}")
+        
+        # Check which semesters can be viewed based on balance AND staff privileges
+        viewable_semesters = {}
+        for grade_doc in final_grades + mock_grades:
+            academic_year = grade_doc['academic_year']
+            semester = grade_doc['semester']
+            key = f"{academic_year}_semester_{semester}"
+            
+            if key not in viewable_semesters:
+                # Staff can always view, otherwise check balance
+                can_view = staff_has_privilege or can_view_semester_grades(student_id, semester, academic_year)
+                viewable_semesters[key] = can_view
+                print(f"Semester {key} - Staff access: {staff_has_privilege}, Can view: {can_view}")
+        
+        # Get all courses for course name lookup
+        all_courses = list(courses_collection.find({}))
+        courses_dict = {str(course['_id']): course for course in all_courses}
+        
+        return render_template('grades/student_results.html',
+                             student=student,
+                             school=school,
+                             program=program,
+                             final_grades=final_grades,
+                             mock_grades=mock_grades,
+                             courses_dict=courses_dict,
+                             viewable_semesters=viewable_semesters,
+                             SystemConfig=SystemConfig,
+                             has_staff_access=staff_has_privilege)  # Pass this to template
+    except Exception as e:
+        flash(f'Error loading student results: {str(e)}', 'error')
+        return redirect(url_for('grades.final_grades'))
+
+@bp.route('/grades/get_student_all_grades/<student_id>')
+def get_student_all_grades(student_id):
+    """Get all grades for a student with balance and privilege checks"""
+    try:
+        # Check if current user is staff with privileges
+        staff_id = session.get('staff_id')
+        staff_privilege = get_staff_privilege_level(staff_id) if staff_id else None
+        has_staff_privilege = staff_privilege in ['admin', 'registrar', 'finance', 'academic']
+        
+        # Get all grade documents for this student from both collections
+        final_grade_docs = list(grades_collection.find({
+            'student_id': ObjectId(student_id)
+        }).sort([('academic_year', -1), ('semester', -1)]))
+        
+        mock_grade_docs = list(mock_grades_collection.find({
+            'student_id': ObjectId(student_id)
+        }).sort([('academic_year', -1), ('semester', -1)]))
+        
+        grades_data = []
+        
+        # Process final grades
+        for doc in final_grade_docs:
+            academic_year = doc['academic_year']
+            semester = doc['semester']
+            
+            # Check if grades can be viewed
+            can_view = has_staff_privilege or can_view_semester_grades(student_id, semester, academic_year)
+            
+            enhanced_grades = []
+            for grade_entry in doc.get('grades', []):
+                course = courses_collection.find_one({'_id': ObjectId(grade_entry['course_id'])})
+                if course:
+                    enhanced_grades.append({
+                        'course_code': course['code'],
+                        'course_name': course['name'],
+                        'marks': grade_entry.get('marks') if can_view else None,
+                        'grade': grade_entry.get('grade') if can_view else 'HIDDEN',
+                        'remarks': grade_entry.get('remarks') if can_view else 'Results withheld due to outstanding balance',
+                        'can_view': can_view,
+                        'withheld_reason': None if can_view else 'Outstanding balance'
+                    })
+            
+            grades_data.append({
+                'exam_type': 'final',
+                'academic_year': academic_year,
+                'semester': semester,
+                'entered_at': doc.get('entered_at', datetime.utcnow()).strftime('%Y-%m-%d %H:%M'),
+                'grades': enhanced_grades,
+                'can_view': can_view,
+                'viewed_by_staff': has_staff_privilege
+            })
+        
+        # Process mock grades
+        for doc in mock_grade_docs:
+            academic_year = doc['academic_year']
+            semester = doc['semester']
+            
+            # Check if grades can be viewed
+            can_view = has_staff_privilege or can_view_semester_grades(student_id, semester, academic_year)
+            
+            enhanced_grades = []
+            for grade_entry in doc.get('grades', []):
+                course = courses_collection.find_one({'_id': ObjectId(grade_entry['course_id'])})
+                if course:
+                    enhanced_grades.append({
+                        'course_code': course['code'],
+                        'course_name': course['name'],
+                        'marks': grade_entry.get('marks') if can_view else None,
+                        'grade': grade_entry.get('grade') if can_view else 'HIDDEN',
+                        'remarks': grade_entry.get('remarks') if can_view else 'Results withheld due to outstanding balance',
+                        'can_view': can_view,
+                        'withheld_reason': None if can_view else 'Outstanding balance'
+                    })
+            
+            grades_data.append({
+                'exam_type': 'mock',
+                'academic_year': academic_year,
+                'semester': semester,
+                'entered_at': doc.get('entered_at', datetime.utcnow()).strftime('%Y-%m-%d %H:%M'),
+                'grades': enhanced_grades,
+                'can_view': can_view,
+                'viewed_by_staff': has_staff_privilege
+            })
+        
+        # Sort all grades by academic year and semester
+        grades_data.sort(key=lambda x: (x['academic_year'], x['semester']), reverse=True)
+        
+        return jsonify(grades_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

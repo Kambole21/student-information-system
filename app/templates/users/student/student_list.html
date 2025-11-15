@@ -33,11 +33,9 @@
                     <a href="{{ url_for('student.student_management') }}" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left"></i> Dashboard
                     </a>
-                    {% if session.privilege_level in ['admin', 'admin_dvc', 'admin_vc', 'registrar', 'academics', 'ict', 'dean'] %}
                     <a href="{{ url_for('student.student_registration') }}" class="btn btn-primary">
                         <i class="bi bi-person-plus"></i> Add New Student
                     </a>
-                    {% endif %}
                 </div>
                 <div class="d-flex gap-2">
                     <input type="text" class="form-control" placeholder="Search students..." id="searchInput">

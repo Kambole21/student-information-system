@@ -5,6 +5,10 @@ from datetime import datetime
 import random
 import string
 
+# Replace the import line with this:
+from app.utils import can_view_semester_grades, get_semester_balance, get_semester_fees
+from app.config import SystemConfig
+
 bp = Blueprint('accounts', __name__)
 
 def generate_transaction_code():
@@ -60,6 +64,14 @@ def recalculate_student_balance(student_id):
     except Exception as e:
         print(f"Error recalculating balance for student {student_id}: {str(e)}")
         return 0
+
+@bp.route('/accounts/semester_invoice')
+def semester_invoice_page():
+    """Semester invoice creation page"""
+    academic_years = ['2025/2026', '2024/2025', '2023/2024']
+    return render_template('accounts/create_semester_invoice.html', 
+                         academic_years=academic_years,
+                         SystemConfig=SystemConfig)
 
 @bp.route('/Accounts')
 def accounts_management():
@@ -280,8 +292,10 @@ def create_transaction():
         student_ids = data.get('student_ids', [])
         filter_type = data.get('filter_type', '')
         filter_value = data.get('filter_value', '')
+        semester = data.get('semester', '')  # Add semester parameter
+        academic_year = data.get('academic_year', '')  # Add academic_year parameter
         
-        print(f"Creating transaction: type={transaction_type}, amount={amount}, students={len(student_ids)}, filter_type={filter_type}")
+        print(f"Creating transaction: type={transaction_type}, amount={amount}, students={len(student_ids)}, filter_type={filter_type}, semester={semester}, academic_year={academic_year}")
         
         if not student_ids:
             return jsonify({'success': False, 'error': 'No students selected'})
@@ -335,6 +349,14 @@ def create_transaction():
                     'batch_transaction': True if len(student_ids) > 1 else False
                 }
                 
+                # Add semester and academic_year for semester-specific transactions
+                if semester and academic_year:
+                    transaction_data['semester'] = semester
+                    transaction_data['academic_year'] = academic_year
+                    if transaction_type == 'Billing':
+                        transaction_data['fee_type'] = 'tuition'  # Default fee type
+                        transaction_data['is_semester_fee'] = True
+                
                 # Insert transaction
                 result = accounts_collection.insert_one(transaction_data)
                 created_count += 1
@@ -359,7 +381,6 @@ def create_transaction():
     except Exception as e:
         print(f"Error in create_transaction: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
-
 @bp.route('/accounts/student_transactions/<student_id>')
 def student_transactions(student_id):
     """View transactions for a specific student"""
@@ -622,5 +643,200 @@ def get_student_balance_api(student_id):
     try:
         balance = get_student_balance(student_id)
         return jsonify({'success': True, 'balance': balance})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+
+#semester billing
+from app.config import SystemConfig
+
+def get_semester_fees(student_id, semester, academic_year):
+    """Calculate total semester fees for a student"""
+    try:
+        student = students_collection.find_one({'_id': ObjectId(student_id)})
+        if not student:
+            return 0
+        
+        # Get student's program level
+        program = programs_collection.find_one({'_id': ObjectId(student['program_id'])})
+        level = program.get('level', 'undergraduate').lower() if program else 'undergraduate'
+        
+        # Map level to fee category
+        level_mapping = {
+            'certificate': 'certificate',
+            'diploma': 'diploma', 
+            'undergraduate': 'undergraduate',
+            'bachelor': 'undergraduate',
+            'postgraduate': 'postgraduate',
+            'masters': 'postgraduate',
+            'phd': 'postgraduate'
+        }
+        
+        fee_category = level_mapping.get(level, 'undergraduate')
+        base_fee = SystemConfig.DEFAULT_SEMESTER_FEES.get(fee_category, 1000.00)
+        
+        # Get additional course fees for the semester
+        enrolled_courses = list(student_courses_collection.find({
+            'student_id': ObjectId(student_id),
+            'semester': semester,
+            'academic_year': academic_year
+        }))
+        
+        course_fees = 0
+        for ec in enrolled_courses:
+            course = courses_collection.find_one({'_id': ObjectId(ec['course_id'])})
+            if course and course.get('course_fee'):
+                course_fees += course.get('course_fee', 0)
+        
+        return base_fee + course_fees
+        
+    except Exception as e:
+        print(f"Error calculating semester fees: {str(e)}")
+        return SystemConfig.DEFAULT_SEMESTER_FEES['undergraduate']
+
+def get_semester_balance(student_id, semester, academic_year):
+    """Calculate balance for a specific semester"""
+    try:
+        # Get all transactions for the semester
+        semester_start = datetime.strptime(f"{academic_year.split('/')[0]}-01-01", "%Y-%m-%d")
+        semester_end = datetime.strptime(f"{academic_year.split('/')[1]}-12-31", "%Y-%m-%d")
+        
+        transactions = list(accounts_collection.find({
+            'student_id': ObjectId(student_id),
+            'semester': semester,
+            'academic_year': academic_year
+        }).sort('created_at', 1))
+        
+        balance = 0
+        for transaction in transactions:
+            if transaction['type'] == 'Billing':
+                balance += transaction.get('debit', 0)
+            else:  # Clearing
+                balance -= transaction.get('credit', 0)
+        
+        return balance
+        
+    except Exception as e:
+        print(f"Error calculating semester balance: {str(e)}")
+        return 0
+
+def can_view_semester_grades(student_id, semester, academic_year):
+    """Check if student can view grades for a semester based on balance threshold"""
+    try:
+        semester_balance = get_semester_balance(student_id, semester, academic_year)
+        semester_fees = get_semester_fees(student_id, semester, academic_year)
+        
+        if semester_fees <= 0:
+            return True  # No fees configured, allow access
+        
+        paid_percentage = ((semester_fees - semester_balance) / semester_fees) * 100
+        can_view = paid_percentage >= SystemConfig.BALANCE_THRESHOLD_PERCENTAGE
+        
+        print(f"Semester fees: {semester_fees}, Balance: {semester_balance}, Paid %: {paid_percentage}, Can view: {can_view}")
+        
+        return can_view
+        
+    except Exception as e:
+        print(f"Error checking grade view permission: {str(e)}")
+        return False
+
+@bp.route('/accounts/create_semester_invoice', methods=['POST'])
+def create_semester_invoice():
+    """Create semester invoice covering all semester fees"""
+    try:
+        data = request.get_json()
+        student_ids = data.get('student_ids', [])
+        semester = data.get('semester', '1')
+        academic_year = data.get('academic_year', '2025/2026')
+        fee_type = data.get('fee_type', 'tuition')
+        description = data.get('description', '')
+        
+        if not student_ids:
+            return jsonify({'success': False, 'error': 'No students selected'})
+        
+        # Generate a single transaction code for this batch
+        transaction_code = generate_transaction_code()
+        created_count = 0
+        
+        for student_id in student_ids:
+            try:
+                student = students_collection.find_one({'_id': ObjectId(student_id)})
+                if not student:
+                    continue
+                
+                # Calculate semester fee for this student
+                amount = get_semester_fees(student_id, semester, academic_year)
+                
+                if amount <= 0:
+                    continue
+                
+                # Get current balance before transaction
+                current_balance = get_student_balance(student_id)
+                
+                # Create semester transaction
+                transaction_data = {
+                    'transaction_code': transaction_code,
+                    'student_id': ObjectId(student_id),
+                    'type': 'Billing',
+                    'description': f"{SystemConfig.SEMESTER_TRANSACTION_TYPES.get(fee_type, 'Semester Fee')} - {description}",
+                    'fee_type': fee_type,
+                    'semester': semester,
+                    'academic_year': academic_year,
+                    'debit': amount,
+                    'credit': 0,
+                    'balance_after': current_balance + amount,
+                    'created_at': datetime.utcnow(),
+                    'created_by': 'system',
+                    'batch_transaction': True,
+                    'is_semester_fee': True
+                }
+                
+                # Insert transaction
+                result = accounts_collection.insert_one(transaction_data)
+                created_count += 1
+                
+            except Exception as e:
+                print(f"Error creating semester invoice for student {student_id}: {str(e)}")
+                continue
+        
+        if created_count > 0:
+            message = f'Successfully created semester invoices for {created_count} student(s) with transaction code: {transaction_code}'
+            return jsonify({
+                'success': True,
+                'message': message,
+                'transaction_code': transaction_code
+            })
+        else:
+            return jsonify({'success': False, 'error': 'No semester invoices were created'})
+    
+    except Exception as e:
+        print(f"Error in create_semester_invoice: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/accounts/get_semester_fee_summary/<student_id>')
+def get_semester_fee_summary(student_id):
+    """Get semester fee summary for a student"""
+    try:
+        academic_year = request.args.get('academic_year', '2025/2026')
+        semester = request.args.get('semester', '1')
+        
+        total_fees = get_semester_fees(student_id, semester, academic_year)
+        current_balance = get_semester_balance(student_id, semester, academic_year)
+        amount_paid = total_fees - current_balance
+        paid_percentage = (amount_paid / total_fees * 100) if total_fees > 0 else 100
+        
+        can_view_grades = can_view_semester_grades(student_id, semester, academic_year)
+        
+        return jsonify({
+            'success': True,
+            'total_fees': total_fees,
+            'amount_paid': amount_paid,
+            'current_balance': current_balance,
+            'paid_percentage': paid_percentage,
+            'threshold_percentage': SystemConfig.BALANCE_THRESHOLD_PERCENTAGE,
+            'can_view_grades': can_view_grades
+        })
+    
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})

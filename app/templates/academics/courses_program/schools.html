@@ -30,11 +30,9 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="action-buttons">
-                     {% if session.privilege_level in ['admin', 'admin_dvc', 'admin_vc', 'dean', 'debuty_dean', 'hod', 'ict', 'registrar'] %}
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSchoolModal">
                         <i class="bi bi-plus-circle"></i> Add New School
                     </button>
-                    {% endif %}
                     <a href="{{ url_for('courses_programs.programs_management') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-diagram-3"></i> Manage Programs
                     </a>

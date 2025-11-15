@@ -52,11 +52,9 @@
                         <a href="{{ url_for('staff.edit_staff', staff_id=staff._id) }}" class="btn btn-outline-primary">
                             <i class="bi bi-pencil"></i> Edit Profile
                         </a>
-                        {% if privilege_level in ['academics', 'dean', 'registrar, admin_dvc', 'admin_vc', 'admin', 'ict'] %}
                         <a href="{{ url_for('staff.staff_list') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Back to List
                         </a>
-                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -222,7 +220,7 @@
             </div>
 
             <!-- Action Buttons -->
-            {% if session.privilege_level in ['ict', 'admin', 'admin_vc', 'admin_dvc', 'registrar'] %}
+            {% if session.privilege_level in ['ict', 'admin', 'admin_vc', 'admin_dvc', 'academics', 'registrar'] %}
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-gear"></i> Quick Actions</h5>

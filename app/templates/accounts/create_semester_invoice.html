@@ -1,0 +1,342 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header accounts-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="bi bi-calendar-plus"></i> Create Semester Invoice</h1>
+                        <p class="text-light">Generate semester-based invoices for students</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('accounts.accounts_management') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to Accounts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Semester Invoice Form -->
+    <div class="row">
+        <!-- Student Selection Section -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Select Students</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Academic Year</label>
+                            <select class="form-select" id="academicYear">
+                                {% for year in academic_years %}
+                                <option value="{{ year }}">{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Semester</label>
+                            <select class="form-select" id="semester">
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Fee Type</label>
+                            <select class="form-select" id="feeType">
+                                <option value="tuition">Tuition Fees</option>
+                                <option value="registration">Registration Fees</option>
+                                <option value="examination">Examination Fees</option>
+                                <option value="library">Library Fees</option>
+                                <option value="technology">Technology Fees</option>
+                                <option value="other">Other Fees</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary w-100" onclick="loadStudentsForSemester()">
+                                <i class="bi bi-search"></i> Load Students
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-lg-8">
+            <!-- Students List -->
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Available Students</h5>
+                    <div>
+                        <span class="badge bg-primary" id="totalCount">0 students</span>
+                        <span class="badge bg-success ms-1" id="selectedCount">0 selected</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="studentsList" class="students-list-container" style="max-height: 500px; overflow-y: auto;">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-people display-4"></i>
+                            <p>Select academic year and semester to load students</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semester Invoice Details -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Semester Invoice Details</h5>
+                </div>
+                <div class="card-body">
+                    <form id="semesterInvoiceForm">
+                        <div class="mb-3">
+                            <label class="form-label">Fee Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Enter fee description (e.g., Semester 1 Tuition Fees 2025)..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Fee per Student</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="estimatedFee" value="0.00" readonly>
+                            </div>
+                            <small class="text-muted">This is an estimate based on program level</small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Balance Threshold</h6>
+                            <p class="mb-0">Students must pay at least <strong>{{ SystemConfig.BALANCE_THRESHOLD_PERCENTAGE }}%</strong> of semester fees to view their grades.</p>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" id="createSemesterInvoiceBtn" onclick="createSemesterInvoice()" disabled>
+                                <i class="bi bi-check-circle"></i> Create Semester Invoices
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearSelection()">
+                                <i class="bi bi-x-circle"></i> Clear Selection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedStudents = new Set();
+
+function loadStudentsForSemester() {
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
+    
+    if (!academicYear || !semester) {
+        alert('Please select both academic year and semester');
+        return;
+    }
+
+    const studentsList = document.getElementById('studentsList');
+    studentsList.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Loading students...</p></div>';
+
+    // In a real implementation, you would fetch students for this semester
+    // For now, we'll simulate loading all students
+    fetch('/accounts/get_students', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            filter_type: 'all',
+            filter_value: '',
+            search_term: ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayStudentsForSemester(data.students, academicYear, semester);
+            document.getElementById('totalCount').textContent = `${data.students.length} students`;
+            
+            // Update estimated fee
+            updateEstimatedFee(data.students);
+        } else {
+            studentsList.innerHTML = '<div class="text-center text-danger py-5">Error loading students</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        studentsList.innerHTML = '<div class="text-center text-danger py-5">Network error</div>';
+    });
+}
+
+function displayStudentsForSemester(students, academicYear, semester) {
+    const studentsList = document.getElementById('studentsList');
+    
+    let html = `
+        <div class="p-3 border-bottom bg-light">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                <label class="form-check-label fw-bold" for="selectAll">
+                    Select All Students
+                </label>
+            </div>
+        </div>
+        <div class="students-grid p-2">
+    `;
+    
+    students.forEach(student => {
+        const isSelected = selectedStudents.has(student.id);
+        html += `
+            <div class="student-card ${isSelected ? 'selected' : ''}" onclick="toggleStudent('${student.id}')">
+                <div class="student-checkbox">
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleStudent('${student.id}')">
+                </div>
+                <div class="student-info">
+                    <h6 class="mb-1">${student.name}</h6>
+                    <p class="mb-1 text-muted small">${student.student_number}</p>
+                    <div class="student-meta">
+                        <span class="badge bg-light text-dark small">${student.program}</span>
+                    </div>
+                    <div class="mt-1">
+                        <small class="badge ${student.current_balance > 0 ? 'bg-warning' : 'bg-success'}">
+                            Current Balance: $${student.current_balance.toFixed(2)}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    studentsList.innerHTML = html;
+    updateSelectedCount();
+}
+
+function updateEstimatedFee(students) {
+    // Calculate average fee based on selected students
+    if (students.length > 0) {
+        const totalCurrentFees = students.reduce((sum, student) => sum + student.current_balance, 0);
+        const averageFee = (totalCurrentFees / students.length) * 1.2; // 20% increase for new semester
+        document.getElementById('estimatedFee').value = averageFee.toFixed(2);
+    }
+}
+
+function toggleSelectAll(checkbox) {
+    const studentsList = document.getElementById('studentsList');
+    const studentCards = studentsList.querySelectorAll('.student-card');
+    
+    if (checkbox.checked) {
+        studentCards.forEach(card => {
+            const studentId = card.getAttribute('onclick').match(/'([^']+)'/)[1];
+            selectedStudents.add(studentId);
+        });
+    } else {
+        selectedStudents.clear();
+    }
+    
+    updateSelectedCount();
+}
+
+function toggleStudent(studentId) {
+    if (selectedStudents.has(studentId)) {
+        selectedStudents.delete(studentId);
+    } else {
+        selectedStudents.add(studentId);
+    }
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const count = selectedStudents.size;
+    document.getElementById('selectedCount').textContent = `${count} selected`;
+    document.getElementById('createSemesterInvoiceBtn').disabled = count === 0;
+}
+
+function clearSelection() {
+    selectedStudents.clear();
+    updateSelectedCount();
+    document.getElementById('studentsList').innerHTML = '<div class="text-center text-muted py-5"><p>Select academic year and semester to load students</p></div>';
+    document.getElementById('totalCount').textContent = '0 students';
+}
+
+function createSemesterInvoice() {
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
+    const feeType = document.getElementById('feeType').value;
+    const description = document.getElementById('description').value;
+
+    if (!description.trim()) {
+        alert('Please enter a fee description');
+        return;
+    }
+
+    if (selectedStudents.size === 0) {
+        alert('Please select at least one student');
+        return;
+    }
+
+    const btn = document.getElementById('createSemesterInvoiceBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Creating...';
+
+    fetch('/accounts/create_semester_invoice', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            student_ids: Array.from(selectedStudents),
+            semester: semester,
+            academic_year: academicYear,
+            fee_type: feeType,
+            description: description
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            clearSelection();
+            document.getElementById('semesterInvoiceForm').reset();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating semester invoice');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+</script>
+{% endblock %}
