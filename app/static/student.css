@@ -1,0 +1,604 @@
+/* Student Management Styles */
+.page-header-modern {
+    background: linear-gradient(135deg, #1dc375 0%, #539b78 100%);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Glass light overlay */
+.page-header-modern::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    right: -30%;
+    width: 60%;
+    height: 150%;
+    background: rgba(255, 255, 255, 0.12);
+    transform: rotate(25deg);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.page-header-modern h1 {
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: .5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.6rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-icon i {
+    font-size: 1.7rem;
+    color: #ffffff;
+}
+
+.header-badge .badge {
+    font-size: 1rem;
+    border-radius: 50px;
+}
+
+.page-header-modern p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+
+.student-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+}
+
+.student-profile-photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Role Badge Styles */
+.role-badge {
+    font-size: 0.75em;
+    padding: 0.4em 0.8em;
+    text-transform: capitalize;
+}
+
+.role-badge.student {
+    background-color: #28a745 !important;
+    color: white;
+}
+
+
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Table Styles */
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 1rem 0.75rem;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.btn-outline-primary {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.btn-outline-primary:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Profile Styles */
+.profile-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.meta-item:last-child {
+    border-bottom: none;
+}
+
+.meta-item i {
+    width: 20px;
+    color: #28a745;
+}
+
+.meta-item span {
+    flex: 1;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.meta-item strong {
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.info-group {
+    margin-bottom: 1.5rem;
+}
+
+.info-group:last-child {
+    margin-bottom: 0;
+}
+
+.info-group label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    margin: 0;
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.info-group a {
+    color: #28a745;
+    text-decoration: none;
+}
+
+.info-group a:hover {
+    color: #218838;
+    text-decoration: underline;
+}
+
+
+.course-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.course-code {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.course-credits, .course-semester {
+    color: #495057;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.course-description {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+
+.course-checkbox {
+    margin-right: 0.5rem;
+}
+
+.form-check-label {
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Student Info in Course Registration */
+.student-info p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.student-info strong {
+    color: #495057;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .student-profile-photo {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .student-photo {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .meta-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .course-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Animation for profile elements */
+.profile-image-container {
+    transition: transform 0.3s ease;
+}
+
+.profile-image-container:hover {
+    transform: scale(1.05);
+}
+
+/* Status indicator pulse for active students */
+.status-indicator .badge.bg-success {
+    position: relative;
+}
+
+.status-indicator .badge.bg-success::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: inherit;
+    border-radius: inherit;
+    opacity: 0.4;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.2;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+}
+
+/* Quick Actions */
+.btn-action {
+    padding: 1.5rem;
+    text-align: center;
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Search Box */
+#searchInput {
+    border-radius: 2px;
+    padding: 0.5rem 1rem;
+}
+
+/* Dropdown Styles */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Alert Styles */
+.alert {
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background-color: #d1f2eb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Course Registration Specific Styles */
+.course-prerequisites {
+    font-size: 0.75rem;
+    margin-bottom: 0;
+    padding: 0.25rem 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #ffc107;
+}
+
+.alert-link {
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Disabled state styles */
+.form-select:disabled, .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Warning states */
+.text-warning {
+    color: #fd7e14 !important;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+#edit-photo{
+    width: 90px;
+    height: 90;
+    border-radius: 50px;
+}
+
+/* Style for courses from other schools */
+.course-other-school {
+    border-left: 4px solid #ffc107;
+    background-color: #fffbf0;
+}
+
+.course-other-school .course-checkbox:checked ~ .course-info .course-title {
+    color: #856404;
+}
+
+.course-meta .badge {
+    font-size: 0.7em;
+    margin-right: 0.3rem;
+}
+/* Button states */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Course selection states */
+.course-selected {
+    border-color: #0d6efd !important;
+    background-color: #f8f9fa !important;
+}
+
+.course-checkbox:checked ~ .course-info .course-title {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+/* Academic Year and Semester Styles */
+.academic-year-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 0.8em;
+}
+
+.semester-badge {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    font-size: 0.8em;
+}
+
+/* Course Filter Styles */
+.course-item {
+    transition: all 0.3s ease;
+}
+
+.course-item:hover {
+    transform: translateY(-2px);
+}
+
+/* School Badge Styles */
+.school-badge {
+    font-size: 0.7em;
+}
+
+/* Table enhancements for courses */
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .course-item {
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Filter section styles */
+#schoolFilter, #semesterFilter {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+/* Course grouping headers */
+
+
+.info-group {
+    margin-bottom: 1rem;
+}
+
+.info-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.info-value {
+    color: #212529;
+    margin-bottom: 0;
+}
+#grade-icon{
+    width: 80px;
+    height: 40px;
+}
+/* Student List Filter Styles */
+.filter-section {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.filter-group {
+    margin-bottom: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #495057;
+}
+
+.student-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+#filteredCount {
+    font-size: 0.9em;
+}
+
+.collapse.show {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .student-photo {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Add to student.css */
+.intake-badge {
+    font-size: 0.7em;
+}
+
+.course-meta .badge {
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+}

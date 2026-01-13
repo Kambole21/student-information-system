@@ -1,0 +1,156 @@
+.section-header{
+    background-color:  #d5e6f2;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px 10px 10px 10px !important;
+    margin-bottom: 1rem;
+}
+.section-title{
+    background-color: #dee2e6;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 0.5rem 1.1rem;
+}
+.section-title .h3{
+
+    background-color: #dee2e6;
+    width: 200px;
+    height: 30px;
+    border-radius: 10px;
+    padding: 0.53rem 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+
+/* Role Cards */
+.role-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.role-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+}
+
+.role-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.role-card.student-card:hover {
+    border-top: 2px solid #007bff;
+}
+
+.role-card.staff-card:hover {
+    border-top: 2px solid #28a745;
+}
+
+.role-card.admin-card {
+    border-top: 4px solid #dc3545;
+}
+
+.role-card.lecturer-card {
+    border-top: 4px solid #ffc107;
+}
+
+.role-card-header {
+    padding: 2rem 2rem 1rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.student-card .role-icon {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+}
+
+.staff-card .role-icon {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    color: white;
+}
+
+.admin-card .role-icon {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+.lecturer-card .role-icon {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: white;
+}
+
+.role-card-body {
+    padding: 1.5rem 2rem 2rem 2rem;
+    text-align: center;
+}
+
+/* Statistics Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    /* box-shadow: 0 5px 15px rgba(0,0,0,0.08); */
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.stat-card.students:hover {
+    border-bottom: 2px solid #007bff;
+    box-shadow: 0 15px 30px rgb(196, 208, 229);
+}
+
+.stat-card.staff:hover {
+    border-bottom: 2px solid #28a745;
+    box-shadow: 0 15px 30px #79b085;
+}
+
+.stat-card.lecturers:hover {
+    border-bottom: 2px solid #ffc107;
+    box-shadow: 0 15px 30px #cdb87c;
+}
+
+.stat-card.admins:hover{
+    border-bottom: 2px solid #dc3545;
+    box-shadow: 0 15px 30px #e2929a;
+}
+
+
+/* quick action card  */
+
+.quick-action-header{
+    background-color:  #d5e6f2;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px 10px 10px  10px !important;
+    margin-bottom: 1rem;
+}
+.recent-header{
+    background-color:  #d5e6f2;
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px 10px 10px  10px !important;
+    margin-bottom: 1rem;
+}
+

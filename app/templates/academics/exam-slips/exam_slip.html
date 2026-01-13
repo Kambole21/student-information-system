@@ -1,0 +1,254 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='exam_slip.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-receipt"></i> Exam Slip</h1>
+                <p class="text-muted">{{ student.f_name }} {{ student.l_name }} - {{ academic_year }} Semester {{ semester }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Qualification Status -->
+    {% if not qualified %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h4><i class="bi bi-x-circle"></i> Not Qualified for Exams</h4>
+                <p class="mb-0">
+                    This student has not met the financial requirements to access exam slips. 
+                    Paid {{ "%.2f"|format(paid_percentage) }}% of required {{ threshold_percentage }}%.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Exam Slip Content -->
+    <div class="row justify-content-center">
+        <div class="col-md-8-fluid">
+            <div class="card exam-slip-card">
+                <div class="card-body">
+                    <!-- University Header -->
+                    <div class="text-center mb-4">
+                        <h4 class="exam-slip-title">EXAMINATION SLIP</h4>
+                    </div>
+
+                    <!-- Student Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="student-info">
+                                <p><strong>Student Name:</strong> {{ student.f_name }} {{ student.l_name }}</p>
+                                <p><strong>Student Number:</strong> {{ student.student_number }}</p>
+                                <p><strong>Program:</strong> {{ program.name if program else 'N/A' }}</p>
+                                <p><strong>School:</strong> {{ school.name if school else 'N/A' }}</p>
+                                <p><strong>Academic Year:</strong> {{ academic_year }}</p>
+                                <p><strong>Semester:</strong> {{ semester }}</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 text-center">
+                            <div class="student-photo-container">
+                                <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}" 
+                                     alt="{{ student.f_name }} {{ student.l_name }}" 
+                                     class="student-photo">
+                            </div>
+                            {% if qualified %}
+                            <div class="qr-code-container mt-3">
+                                <img src="{{ url_for('exam_slip.generate_qr_code', student_id=student._id, academic_year=academic_year.replace('/', '_'), semester=semester) }}" 
+                                     alt="QR Code" 
+                                     class="qr-code">
+                                <small class="text-muted">Scan to verify</small>
+                                <div class="qr-info mt-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i>
+                                        Contains student verification data
+                                    </small>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Courses Table -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered exam-courses-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Course Code</th>
+                                    <th>Course Name</th>
+                                    <th>Exam Date</th>
+                                    <th>Venue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in enrolled_courses %}
+                                <tr>
+                                    <td><strong>{{ course.course_code }}</strong></td>
+                                    <td>{{ course.course_name }}</td>
+                                    <td>{{ course.exam_date or 'To be announced' }}</td>
+                                    <td>{{ course.venue or 'To be announced' }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No courses enrolled for this semester</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Financial Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="financial-status">
+                                <h6>Financial Status 
+                                    {% if not has_actual_billing %}
+                                    <span class="badge bg-warning">Estimated</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Actual</span>
+                                    {% endif %}
+                                </h6>
+                                <p><strong>Total Fees:</strong> {{ "%.2f"|format(total_fees) }}</p>
+                                <p><strong>Amount Paid:</strong> {{ "%.2f"|format(amount_paid) }}</p>
+                                <p><strong>Balance:</strong> {{ "%.2f"|format(current_balance) }}</p>
+                                <p><strong>Paid Percentage:</strong> {{ "%.2f"|format(paid_percentage) }}%</p>
+                                
+                                {% if not has_actual_billing %}
+                                <div class="alert alert-warning mt-2 p-2">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i>
+                                        This shows estimated fees. No actual billing transactions found for this semester.
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="qualification-status">
+                                <h6>Qualification Status</h6>
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div class="progress-bar bg-{{ 'success' if qualified else 'danger' }}" 
+                                         style="width: {{ paid_percentage }}%">
+                                        {{ "%.1f"|format(paid_percentage) }}%
+                                    </div>
+                                </div>
+                                <p>
+                                    <strong>Required:</strong> {{ threshold_percentage }}%
+                                    <br>
+                                    <strong>Status:</strong> 
+                                    <span class="badge bg-{{ 'success' if qualified else 'danger' }}">
+                                        {{ 'QUALIFIED' if qualified else 'NOT QUALIFIED' }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="exam-slip-footer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Generated on:</strong> {{ generated_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <p><strong>Registrar's Signature:</strong> ___________________</p>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <p class="text-muted">
+                                This exam slip is computer generated and requires no signature.
+                                <br>
+                                Students must present this slip with student ID at examination venues.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                {% if qualified %}
+                <button class="btn btn-primary me-2" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print Exam Slip
+                </button>
+                {% endif %}
+                <a href="{{ url_for('exam_slip.exam_slip_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+                
+                {% if session.privilege_level in ['admin', 'registrar', 'finance', 'academics'] %}
+                <button class="btn btn-outline-info ms-2" onclick="overrideQualification()">
+                    <i class="bi bi-shield-check"></i> Override Qualification
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function overrideQualification() {
+    if (confirm('Are you sure you want to override the qualification status for this student?')) {
+        fetch('/slips/override_qualification/{{ student._id }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Qualification overridden successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error overriding qualification');
+        });
+    }
+}
+
+// Auto-print if qualified and parameter is set
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('print') === 'true' && {{ qualified|lower }}) {
+    window.print();
+}
+</script>
+
+<style>
+@media print {
+    .page-header, .alert, .btn, .exam-slip-footer .text-muted {
+        display: none !important;
+    }
+    
+    .exam-slip-card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    body {
+        background: white !important;
+    }
+}
+</style>
+{% endblock %}

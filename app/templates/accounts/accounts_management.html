@@ -1,0 +1,599 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts_manage/accounts_manage.css') }}">
+<<<<<<< HEAD
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts_manage/accounts_card.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts_manage/accounts_icons.css') }}">
+=======
+>>>>>>> f59243c (UI modifications for accounts page)
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+<<<<<<< HEAD
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                
+                <!-- Left -->
+                <div class="header-text">
+                    <h1>
+                        <span class="header-icon">
+                            <i class="bi bi-cash-coin-fill"></i>
+                        </span> 
+                        Accounts Management
+                    </h1>
+                    <p class="text-light mt-2">Manage student billing and Payments</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+=======
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-cash-coin-fill"></i>
+                    </span> 
+                   Accounts Management
+                </h1>
+                <p class="text-light mt-2">Manage student billing and Payments</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+>>>>>>> f59243c (UI modifications for accounts page)
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card revenue-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+<<<<<<< HEAD
+                        <img src="{{url_for('static', filename='icons/revenue.svg')}}" alt="">
+                        <h6 class="text-muted mt-2"><strong>Revenue</strong> </h6>
+                    </div>
+                    
+                </div>
+                <div class="card-footer">
+=======
+                        <i class="bi bi-people"></i>
+                    </div>
+>>>>>>> f59243c (UI modifications for accounts page)
+                    <div class="stats-content">
+                        <h3 class="stats-number">{{ total_students }}</h3>
+                        <p class="stats-label">Total Students</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card billing-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+<<<<<<< HEAD
+                         <img src="{{url_for('static', filename='icons/billing.svg')}}" alt="">
+                          <h6 class="text-muted mt-2"><strong>Billing</strong> </h6>
+                    </div>
+                </div>
+                <div class="card-footer">
+
+                    
+                    <div class="stats-content">
+                        <h6 class="stats-number">{{ "%.2f"|format(total_billing) }}</h6>
+                        <p class="stats-label">Total Billing</p>
+                    </div>
+                    
+=======
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number">{{ "%.2f"|format(total_billing) }}</h3>
+                        <p class="stats-label">Total Billing</p>
+                    </div>
+>>>>>>> f59243c (UI modifications for accounts page)
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card payment-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+<<<<<<< HEAD
+                         <img src="{{url_for('static', filename='icons/payment.svg')}}" alt="">
+                         <h6 class="text-muted mt-2"><strong>Payments</strong> </h6>
+                    </div>
+                </div>
+                <div class="card-footer">
+
+                    
+                    <div class="stats-content">
+                        <h6 class="stats-number"> {{ "%.2f"|format(total_clearing) }}</h6>
+                        <p class="stats-label">Total Payments</p>
+                    </div>
+
+=======
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number"> {{ "%.2f"|format(total_clearing) }}</h3>
+                        <p class="stats-label">Total Payments</p>
+                    </div>
+>>>>>>> f59243c (UI modifications for accounts page)
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+<<<<<<< HEAD
+            <div class="card stats-card payment-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+                         <img src="{{url_for('static', filename='icons/debt.svg')}}" alt="">
+                         <h6 class="text-muted mt-2"><strong>Outstanding Balance</strong> </h6>
+                    </div>
+                </div>
+                <div class="card-footer">
+
+                    
+                    <div class="stats-content">
+                        <h6 class="stats-number"> {{ "%.2f"|format(outstanding_balance) }}</h6>
+                        <p class="stats-label">balance</p>
+                    </div>
+
+=======
+            <div class="card stats-card balance-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h3 class="stats-number"> {{ "%.2f"|format(outstanding_balance) }}</h3>
+                        <p class="stats-label">Outstanding Balance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card search-section">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-search"></i> Find Student Transactions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Search by Student</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="studentSearch" placeholder="Enter student name or number...">
+                                <button class="btn btn-primary" type="button" onclick="searchStudents()">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Filter by School</label>
+                            <select class="form-select" id="schoolFilter">
+                                <option value="">All Schools</option>
+                                {% for school in schools %}
+                                <option value="{{ school._id }}">{{ school.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Filter by Program</label>
+                            <select class="form-select" id="programFilter">
+                                <option value="">All Programs</option>
+                                {% for program in programs %}
+                                <option value="{{ program._id }}">{{ program.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-outline-secondary w-100" onclick="clearSearch()">
+                                <i class="bi bi-arrow-clockwise"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="row mb-4" id="searchResultsSection" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Search Results</h5>
+                    <span class="badge bg-primary" id="resultsCount">0 students found</span>
+                </div>
+                <div class="card-body">
+                    <div id="searchResults" class="search-results-container">
+                        <!-- Search results will be populated here -->
+                    </div>
+>>>>>>> f59243c (UI modifications for accounts page)
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<<<<<<< HEAD
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card action-card create-invoice-card">
+                <div class="card-body text-center">
+                    <img src="{{url_for('static', filename='icons/invoice.svg')}}" alt="" class="display-4 mb-3">
+                    <h5>Create Invoice</h5>
+=======
+    <div class="col-md-4 mb-4">
+    <div class="card h-100">
+        <div class="card-body text-center">
+            <i class="bi bi-calendar-check display-4 text-primary mb-3"></i>
+            <h5 class="card-title">Semester Invoices</h5>
+            <p class="card-text">Create semester-based bills and payments for students</p>
+            <a href="{{ url_for('accounts.semester_invoice_page') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Semester Invoice
+            </a>
+        </div>
+    </div>
+</div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card action-card create-invoice-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-plus action-icon"></i>
+                    <h4>Create Invoice</h4>
+>>>>>>> f59243c (UI modifications for accounts page)
+                    <p class="text-muted">Generate bills for students</p>
+                    <a href="{{ url_for('accounts.create_invoice') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create Invoice
+                    </a>
+                </div>
+            </div>
+        </div>
+<<<<<<< HEAD
+        
+        <div class="col-md-4">
+            <div class="card action-card view-history-card">
+                <div class="card-body text-center">
+                    <img src="{{url_for('static', filename='icons/history.svg')}}" alt="" class="display-4 mb-3">
+                    <h5>Transaction History</h5>
+=======
+        <div class="col-md-6">
+            <div class="card action-card view-history-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history action-icon"></i>
+                    <h4>Transaction History</h4>
+>>>>>>> f59243c (UI modifications for accounts page)
+                    <p class="text-muted">View all financial transactions</p>
+                    <a href="{{ url_for('accounts.transaction_history') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul"></i> View History
+                    </a>
+                </div>
+            </div>
+        </div>
+<<<<<<< HEAD
+        
+        <div class="col-md-4">
+            <div class="card action-card semester-invoice-card">
+                <div class="card-body text-center">
+                    <img src="{{url_for('static', filename='icons/calendar.svg')}}" alt="" class="display-4 mb-3">
+                    <h5>Semester Invoices</h5>
+                    <p class="text-muted">Create semester-based bills</p>
+                    <a href="{{ url_for('accounts.semester_invoice_page') }}" class="btn btn-primary">
+                        <i class="bi bi-calendar-plus"></i> Semester Invoice
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card action-card modify-transactions-card">
+                <div class="card-body text-center">
+                    <img src="{{url_for('static', filename='icons/edit-transaction.svg')}}" alt="" class="display-4 mb-3">
+                    <h5>Modify Transactions</h5>
+                    <p class="text-muted">Edit, reverse, or withdraw existing transactions</p>
+                    <a href="{{ url_for('modify_accounts.modify_transactions_page') }}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Modify Transactions
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card action-card balance-threshold-card">
+                <div class="card-body text-center">
+                    <img src="{{url_for('static', filename='icons/percentage-accounts.svg')}}" alt="" class="display-4 mb-3">
+                    <h5>Balance Threshold</h5>
+                    <p class="text-muted">Configure grade viewing requirements</p>
+                    <a href="{{ url_for('accounts.balance_threshold') }}" class="btn btn-warning">
+                        <i class="bi bi-sliders"></i> Configure Threshold
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card action-card reports-card">
+                <div class="card-body text-center">
+                     <img src="{{url_for('static', filename='icons/search-accounts.svg')}}" alt="" class="display-4 mb-3">
+                    <h4>Search Students</h4>
+                    <p class="text-muted">Find students to view transactions or create invoices</p>
+                    <a href="{{ url_for('accounts.student_search_page') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-search"></i> Search Students
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+=======
+        <div class="col-md-4 mb-4">
+    <div class="card h-100">
+        <div class="card-body text-center">
+            <i class="bi bi-pencil-square display-4 text-warning mb-3"></i>
+            <h5 class="card-title">Modify Transactions</h5>
+            <p class="card-text">Edit, reverse, or withdraw existing transactions</p>
+            <a href="{{ url_for('modify_accounts.modify_transactions_page') }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Modify Transactions
+            </a>
+        </div>
+    </div>
+</div>
+    </div>
+    <!-- Add this card to the existing Quick Actions section -->
+<div class="col-md-4 mb-4">
+    <div class="card h-100">
+        <div class="card-body text-center">
+            <i class="bi bi-percent display-4 text-warning mb-3"></i>
+            <h5 class="card-title">Balance Threshold</h5>
+            <p class="card-text">Configure grade viewing requirements</p>
+            <a href="{{ url_for('accounts.balance_threshold') }}" class="btn btn-warning">
+                <i class="bi bi-sliders"></i> Configure Threshold
+            </a>
+        </div>
+    </div>
+</div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-activity"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-info-circle display-4"></i>
+                        <p>No recent transactions. Create your first invoice to get started.</p>
+                        <a href="{{ url_for('accounts.create_invoice') }}" class="btn btn-primary">
+                            Create First Invoice
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load schools and programs when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadSchools();
+    loadPrograms();
+});
+
+function loadSchools() {
+    // Schools are already loaded from template
+    console.log('Schools loaded');
+}
+
+function loadPrograms() {
+    // Programs are already loaded from template
+    console.log('Programs loaded');
+}
+
+function searchStudents() {
+    const searchTerm = document.getElementById('studentSearch').value;
+    const schoolId = document.getElementById('schoolFilter').value;
+    const programId = document.getElementById('programFilter').value;
+
+    // Show loading state
+    const searchResults = document.getElementById('searchResults');
+    searchResults.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Searching students...</p>
+        </div>
+    `;
+
+    // Show results section
+    document.getElementById('searchResultsSection').style.display = 'block';
+
+    fetch('/accounts/search_students_transactions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            search_term: searchTerm,
+            school_id: schoolId,
+            program_id: programId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displaySearchResults(data.students);
+        } else {
+            searchResults.innerHTML = `
+                <div class="text-center text-danger py-4">
+                    <i class="bi bi-exclamation-triangle display-4"></i>
+                    <h5 class="mt-3">Search Error</h5>
+                    <p>${data.error || 'Failed to search students'}</p>
+                </div>
+            `;
+            document.getElementById('resultsCount').textContent = '0 students found';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        searchResults.innerHTML = `
+            <div class="text-center text-danger py-4">
+                <i class="bi bi-exclamation-triangle display-4"></i>
+                <h5 class="mt-3">Network Error</h5>
+                <p>Failed to search students. Please check your connection.</p>
+            </div>
+        `;
+        document.getElementById('resultsCount').textContent = '0 students found';
+    });
+}
+
+function displaySearchResults(students) {
+    const searchResults = document.getElementById('searchResults');
+    const resultsCount = students.length;
+    
+    document.getElementById('resultsCount').textContent = `${resultsCount} students found`;
+
+    if (resultsCount === 0) {
+        searchResults.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-search display-4"></i>
+                <h5 class="mt-3">No Students Found</h5>
+                <p>No students match your search criteria. Try different filters.</p>
+                <button class="btn btn-outline-primary" onclick="clearSearch()">
+                    Clear Filters
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '<div class="students-transaction-grid">';
+    
+    students.forEach(student => {
+        const balanceClass = student.current_balance > 0 ? 'balance-negative' : 'balance-positive';
+        const balanceBadge = student.current_balance > 0 ? 'bg-warning' : 'bg-success';
+        
+        html += `
+            <div class="student-transaction-card">
+                <div class="student-main-info">
+                    <div class="student-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div class="student-details">
+                        <h6 class="student-name">${student.name}</h6>
+                        <p class="student-number">${student.student_number}</p>
+                        <div class="student-meta">
+                            <span class="badge bg-light text-dark">${student.program}</span>
+                            <span class="badge bg-light text-dark">${student.school}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="student-financial-info">
+                    <div class="balance-info ${balanceClass}">
+                        <small class="text-muted">Current Balance</small>
+                        <div class="balance-amount">
+                            <span class="badge ${balanceBadge}">
+                                 ${student.current_balance.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="transaction-stats">
+                        <div class="stat-item">
+                            <small class="text-muted">Total Billing</small>
+                            <div class="stat-value text-danger"> ${student.total_billing.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-item">
+                            <small class="text-muted">Total Payments</small>
+                            <div class="stat-value text-success"> ${student.total_payments.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="student-actions">
+                    <button class="btn btn-primary btn-sm" onclick="viewStudentTransactions('${student.id}')">
+                        <i class="bi bi-eye"></i> View Transactions
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="createStudentInvoice('${student.id}')">
+                        <i class="bi bi-plus-circle"></i> Add Transaction
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    searchResults.innerHTML = html;
+}
+
+function viewStudentTransactions(studentId) {
+    window.open(`/accounts/student_transactions/${studentId}`, '_blank');
+}
+
+function createStudentInvoice(studentId) {
+    // Redirect to create invoice page with student pre-selected
+    window.location.href = `/accounts/create_invoice?student_id=${studentId}`;
+}
+
+function clearSearch() {
+    document.getElementById('studentSearch').value = '';
+    document.getElementById('schoolFilter').value = '';
+    document.getElementById('programFilter').value = '';
+    document.getElementById('searchResultsSection').style.display = 'none';
+    document.getElementById('searchResults').innerHTML = '';
+}
+
+// Enable search on Enter key
+document.getElementById('studentSearch').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchStudents();
+    }
+});
+
+// Auto-search when filters change
+document.getElementById('schoolFilter').addEventListener('change', function() {
+    const searchTerm = document.getElementById('studentSearch').value;
+    if (searchTerm || this.value) {
+        searchStudents();
+    }
+});
+
+document.getElementById('programFilter').addEventListener('change', function() {
+    const searchTerm = document.getElementById('studentSearch').value;
+    if (searchTerm || this.value) {
+        searchStudents();
+    }
+});
+</script>
+>>>>>>> f59243c (UI modifications for accounts page)
+{% endblock %}

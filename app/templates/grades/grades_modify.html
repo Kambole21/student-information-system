@@ -1,0 +1,446 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grades_modify.css') }}">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='grades_file/overview.css')}}">
+
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-pencil-square-fill"></i>
+                    </span> 
+                  Grades Management & Filtering
+                </h1>
+                <p class="text-muted">
+                    Filter and export student grades by various criteria
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    <!-- Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Criteria</h5>
+                </div>
+                <div class="card-body">
+                    <form id="filterForm">
+                        <div class="row g-3">
+                            <!-- School Filter -->
+                            <div class="col-md-3">
+                                <label class="form-label">School</label>
+                                <select class="form-select" id="schoolFilter" name="school_id">
+                                    <option value="">All Schools</option>
+                                    {% for school in schools %}
+                                    <option value="{{ school._id }}">{{ school.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Program Filter -->
+                            <div class="col-md-3">
+                                <label class="form-label">Program</label>
+                                <select class="form-select" id="programFilter" name="program_id">
+                                    <option value="">All Programs</option>
+                                    {% for program in programs %}
+                                    <option value="{{ program._id }}">{{ program.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Academic Year -->
+                            <div class="col-md-2">
+                                <label class="form-label">Academic Year</label>
+                                <select class="form-select" id="academicYearFilter" name="academic_year">
+                                    <option value="">All Years</option>
+                                    {% for year in academic_years %}
+                                    <option value="{{ year }}">{{ year }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Semester -->
+                            <div class="col-md-2">
+                                <label class="form-label">Semester</label>
+                                <select class="form-select" id="semesterFilter" name="semester">
+                                    <option value="">All Semesters</option>
+                                    <option value="1">Semester 1</option>
+                                    <option value="2">Semester 2</option>
+                                </select>
+                            </div>
+
+                            <!-- Exam Type -->
+                            <div class="col-md-2">
+                                <label class="form-label">Exam Type</label>
+                                <select class="form-select" id="examTypeFilter" name="exam_type">
+                                    <option value="final">Final Exam</option>
+                                    <option value="mock">Mock Exam</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-2">
+                            <!-- Intake Filter -->
+                            <div class="col-md-3">
+                                <label class="form-label">Intake</label>
+                                <select class="form-select" id="intakeFilter" name="intake">
+                                    <option value="">All Intakes</option>
+                                    <option value="1">January Intake</option>
+                                    <option value="2">July Intake</option>
+                                </select>
+                            </div>
+
+                            <!-- Enrollment Year -->
+                            <div class="col-md-3">
+                                <label class="form-label">Enrollment Year</label>
+                                <select class="form-select" id="enrollmentYearFilter" name="enrollment_year">
+                                    <option value="">All Years</option>
+                                    {% for year in range(2019, 2031) %}
+                                    <option value="{{ year }}">{{ year }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Course Code -->
+                            <div class="col-md-4">
+                                <label class="form-label">Course Code</label>
+                                <select class="form-select" id="courseCodeFilter" name="course_code">
+                                    <option value="">All Courses</option>
+                                    {% for code in course_codes %}
+                                    <option value="{{ code }}">{{ code }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="applyFilters()">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Grade Results</h5>
+                    <div class="export-buttons">
+                        <button class="btn btn-success btn-sm" onclick="exportToCSV()" id="exportCsvBtn" disabled>
+                            <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="exportToPDF()" id="exportPdfBtn" disabled>
+                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="resultsInfo" class="mb-3">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Use the filters above to search for grade records.
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="gradesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student Number</th>
+                                    <th>Student Name</th>
+                                    <th>School</th>
+                                    <th>Program</th>
+                                    <th>Intake</th>
+                                    <th>Enrollment Year</th>
+                                    <th>Academic Year</th>
+                                    <th>Semester</th>
+                                    <th>Exam Type</th>
+                                    <th>Course Code</th>
+                                    <th>Course Name</th>
+                                    <th>Marks</th>
+                                    <th>Grade</th>
+                                    <th>Remarks</th>
+                                    <th>Published</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradesTableBody">
+                                <!-- Results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Searching for grade records...</p>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="text-center py-5" style="display: none;">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No Grade Records Found</h4>
+                        <p class="text-muted">Try adjusting your filter criteria to see more results.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+let currentGradesData = [];
+
+function applyFilters() {
+    const formData = new FormData(document.getElementById('filterForm'));
+    const filters = Object.fromEntries(formData.entries());
+    
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+    document.getElementById('gradesTableBody').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'none';
+    
+    // Disable export buttons during search
+    document.getElementById('exportCsvBtn').disabled = true;
+    document.getElementById('exportPdfBtn').disabled = true;
+    
+    fetch('/grades/filter_grades', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(filters)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loadingSpinner').style.display = 'none';
+        
+        if (data.error) {
+            showMessage('error', data.error);
+            return;
+        }
+        
+        currentGradesData = data.grades || [];
+        
+        // Update results info
+        document.getElementById('resultsInfo').innerHTML = `
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> ${data.message}
+            </div>
+        `;
+        
+        if (currentGradesData.length > 0) {
+            populateGradesTable(currentGradesData);
+            document.getElementById('gradesTableBody').style.display = '';
+            document.getElementById('emptyState').style.display = 'none';
+            
+            // Enable export buttons
+            document.getElementById('exportCsvBtn').disabled = false;
+            document.getElementById('exportPdfBtn').disabled = false;
+        } else {
+            document.getElementById('gradesTableBody').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+    })
+    .catch(error => {
+        document.getElementById('loadingSpinner').style.display = 'none';
+        showMessage('error', 'Error fetching grade data: ' + error);
+    });
+}
+
+function populateGradesTable(grades) {
+    const tbody = document.getElementById('gradesTableBody');
+    tbody.innerHTML = '';
+    
+    grades.forEach(grade => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${grade.student_number}</td>
+            <td>${grade.student_name}</td>
+            <td>${grade.school_name}</td>
+            <td>${grade.program_name}</td>
+            <td><span class="badge bg-info">${grade.intake === '1' ? 'January' : 'July'}</span></td>
+            <td>${grade.enrollment_year}</td>
+            <td>${grade.academic_year}</td>
+            <td><span class="badge bg-secondary">Semester ${grade.semester}</span></td>
+            <td><span class="badge bg-${grade.exam_type === 'final' ? 'primary' : 'warning'}">${grade.exam_type.toUpperCase()}</span></td>
+            <td><strong>${grade.course_code}</strong></td>
+            <td>${grade.course_name}</td>
+            <td>${grade.marks !== null ? grade.marks : 'N/A'}</td>
+            <td><span class="badge bg-${getGradeColor(grade.grade)}">${grade.grade}</span></td>
+            <td><span class="badge bg-${grade.remarks === 'Proceed' ? 'success' : 'danger'}">${grade.remarks}</span></td>
+            <td>${grade.published ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>'}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function getGradeColor(grade) {
+    const gradeColors = {
+        'A+': 'success', 'A': 'success', 'B+': 'primary', 'B': 'primary',
+        'C+': 'info', 'C': 'info', 'D+': 'warning', 'D': 'warning',
+        'F': 'danger', 'U': 'danger', 'P': 'success', 'S': 'success'
+    };
+    return gradeColors[grade] || 'secondary';
+}
+
+function exportToCSV() {
+    if (currentGradesData.length === 0) {
+        showMessage('warning', 'No data to export');
+        return;
+    }
+    
+    fetch('/grades/export_csv', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ grades: currentGradesData })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `grades_export_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showMessage('success', 'CSV export started successfully');
+    })
+    .catch(error => {
+        showMessage('error', 'Error exporting CSV: ' + error);
+    });
+}
+
+function exportToPDF() {
+    if (currentGradesData.length === 0) {
+        showMessage('warning', 'No data to export');
+        return;
+    }
+    
+    const formData = new FormData(document.getElementById('filterForm'));
+    const filters = Object.fromEntries(formData.entries());
+    
+    fetch('/grades/export_pdf', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            grades: currentGradesData,
+            filters: filters 
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Export failed');
+        }
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `grades_export_${new Date().toISOString().slice(0,10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showMessage('success', 'PDF export started successfully');
+    })
+    .catch(error => {
+        showMessage('error', 'Error exporting PDF: ' + error);
+    });
+}
+
+function showMessage(type, message) {
+    const alertClass = type === 'error' ? 'alert-danger' : type === 'warning' ? 'alert-warning' : 'alert-success';
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at the top of the container
+    const container = document.querySelector('.container-fluid');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Initialize dynamic filters
+document.addEventListener('DOMContentLoaded', function() {
+    // School filter change - update programs
+    document.getElementById('schoolFilter').addEventListener('change', function() {
+        const schoolId = this.value;
+        if (schoolId) {
+            fetch(`/grades/get_filter_options?school_id=${schoolId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const programSelect = document.getElementById('programFilter');
+                    programSelect.innerHTML = '<option value="">All Programs</option>';
+                    if (data.programs) {
+                        data.programs.forEach(program => {
+                            programSelect.innerHTML += `<option value="${program.id}">${program.name}</option>`;
+                        });
+                    }
+                });
+        }
+    });
+    
+    // Enter key support for filters
+    document.getElementById('filterForm').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyFilters();
+        }
+    });
+});
+</script>
+{% endblock %}

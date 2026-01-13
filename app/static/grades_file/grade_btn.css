@@ -1,0 +1,24 @@
+.card .btn {
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background-color: #d6dfe7;
+    border-color: #d6dfe7;
+    box-shadow: 0 13px 40px #d6dfe7;
+}
+
+
+.card .btn:hover{
+    color:#d6dfe7;
+    transition: all 0.3s ease;
+    background-color:  #4793d5;
+    border-color:  #4793d5;
+    box-shadow: 0 13px 60px  #4793d5;
+     transform: translateY(-2px);
+}
+
+.btn-clear:hover{
+
+    background-color: #585a5d;
+}

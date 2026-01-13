@@ -1,0 +1,151 @@
+/* Statistics Cards */
+.stats-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stats-card .card-body {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.stats-card .card-body { 
+    background:linear-gradient(135deg, #acb3b7 0%, #d9e8f7 100%); 
+    color: white; }
+.card .card-footer{
+    background-color: white;
+    color: black;
+
+}
+
+/* Action Cards */
+.action-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.create-invoice-card { border-left: 4px solid #20c997; }
+.view-history-card { border-left: 4px solid #6f42c1; }
+
+/* Student Cards */
+.students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.student-card {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.student-card:hover {
+    border-color: #20c997;
+    background-color: #f8f9fa;
+}
+
+.student-card.selected {
+    border-color: #20c997;
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(23, 162, 184, 0.1) 100%);
+}
+
+/* Summary Cards */
+.summary-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Student Info Card */
+.student-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+/* Improved Student Cards */
+.student-card {
+    position: relative;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.student-card:last-child {
+    margin-bottom: 0;
+}
+
+.student-card:hover {
+    border-color: #20c997;
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+}
+
+.student-card.selected {
+    border-color: #20c997;
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.1) 0%, rgba(23, 162, 184, 0.1) 100%);
+    box-shadow: 0 4px 15px rgba(32, 201, 151, 0.2);
+}
+
+.search-section .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #20c997;
+}
+
+.student-transaction-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1.5rem;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.student-transaction-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-color: #20c997;
+}
+
+h6 .stats-numeber{
+    font-size: 40px;
+}

@@ -1,0 +1,754 @@
+/* Continuous Assessment Styles */
+.ca-header {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.ca-header h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+<<<<<<< HEAD
+=======
+/* Action Cards */
+.ca-action-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.ca-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.ca-action-card.manage-ca {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+}
+
+.ca-action-card.bulk-upload {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    color: white;
+}
+
+.ca-action-card .card-body {
+    padding: 2rem;
+}
+
+.ca-action-card .display-4 {
+    opacity: 0.8;
+}
+
+.ca-action-card .btn {
+    margin-top: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.ca-action-card .btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: white;
+}
+>>>>>>> f59243c (UI modifications for accounts page)
+
+/* CA Form Styles */
+.ca-form-container {
+    background: white;
+    border-radius: 10px;
+<<<<<<< HEAD
+    margin-bottom: 2rem;
+}
+
+=======
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.student-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+>>>>>>> f59243c (UI modifications for accounts page)
+.ca-score-input {
+    max-width: 120px;
+}
+
+.ca-total-score-input {
+    max-width: 100px;
+}
+
+.percentage-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Progress Indicators */
+.ca-progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+.ca-progress .progress-bar {
+    border-radius: 4px;
+}
+
+/* Table Styles */
+.ca-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.ca-table td {
+    vertical-align: middle;
+}
+
+/* Status Badges */
+.badge-ca-excellent {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.badge-ca-good {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+}
+
+.badge-ca-average {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.badge-ca-poor {
+    background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+}
+
+/* Search and Filter Section */
+.search-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+<<<<<<< HEAD
+=======
+/* Student List Styles */
+.student-ca-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.student-ca-card:hover {
+    border-color: #6f42c1;
+    box-shadow: 0 2px 10px rgba(111, 66, 193, 0.1);
+}
+
+.student-ca-card.selected {
+    border-color: #6f42c1;
+    background-color: rgba(111, 66, 193, 0.05);
+}
+
+>>>>>>> f59243c (UI modifications for accounts page)
+/* Form Controls */
+.form-control:focus, .form-select:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+.btn-ca-primary {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+.btn-ca-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(111, 66, 193, 0.4);
+    color: white;
+}
+
+/* Assessment Type Badges */
+.badge-assessment {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+}
+
+.badge-assignment {
+    background-color: #17a2b8;
+}
+
+.badge-quiz {
+    background-color: #6f42c1;
+}
+
+.badge-project {
+    background-color: #e83e8c;
+}
+
+.badge-lab {
+    background-color: #fd7e14;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ca-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .ca-action-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .ca-score-input, .ca-total-score-input {
+        max-width: none;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Loading States */
+.ca-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Success States */
+.ca-score-saved {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+    border-color: #28a745 !important;
+}
+
+/* Warning States */
+.ca-score-warning {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+    border-color: #ffc107 !important;
+}
+
+/* Print Styles */
+@media print {
+    .btn, .card-header .btn, .search-section {
+        display: none !important;
+    }
+    
+    .ca-table {
+        border: 1px solid #000 !important;
+    }
+    
+    .ca-table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+    }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ca-fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Score validation styles */
+.invalid-score {
+    border-color: #dc3545 !important;
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+.score-feedback {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Bulk upload section */
+.bulk-upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.bulk-upload-area:hover {
+    border-color: #6f42c1;
+    background-color: rgba(111, 66, 193, 0.05);
+}
+
+.bulk-upload-area.dragover {
+    border-color: #6f42c1;
+    background-color: rgba(111, 66, 193, 0.1);
+}
+
+<<<<<<< HEAD
+=======
+/* View Student CA Specific Styles */
+.semester-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.semester-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-bottom: 2px solid #6f42c1;
+}
+>>>>>>> f59243c (UI modifications for accounts page)
+
+.student-avatar img {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+}
+
+/* Enhanced Table Styles */
+.ca-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.ca-table tbody tr:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress Bar Styles */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+/* Badge Enhancements */
+.badge-assessment {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+}
+
+.badge-assignment {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    color: white;
+}
+
+.badge-quiz {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+}
+
+.badge-project {
+    background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+    color: white;
+}
+
+.badge-lab {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    color: white;
+}
+
+/* Grade Badges */
+.badge-ca-excellent {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.badge-ca-good {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    color: white;
+}
+
+.badge-ca-average {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: white;
+}
+
+.badge-ca-poor {
+    background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);
+    color: white;
+}
+
+/* Print Styles Enhancement */
+@media print {
+    .semester-card {
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+    
+    .ca-table {
+        font-size: 10px;
+    }
+    
+    .badge {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        background: #f8f9fa !important;
+    }
+    
+    .student-info-card {
+        background: #f8f9fa !important;
+        color: #000 !important;
+    }
+    
+    .student-info-card .text-white {
+        color: #000 !important;
+    }
+}
+
+/* Loading Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.semester-card {
+    animation: fadeInUp 0.5s ease;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .student-info-card .row > div {
+        margin-bottom: 1rem;
+    }
+    
+    .ca-table {
+        font-size: 0.75rem;
+    }
+    
+    .badge {
+        font-size: 0.6rem;
+    }
+}
+
+/* Search Box Styles */
+.search-box {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+}
+
+/* Export Button */
+.btn-export {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-export:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+    color: white;
+}
+
+<<<<<<< HEAD
+=======
+/* Statistics Cards */
+.stats-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #6f42c1;
+}
+>>>>>>> f59243c (UI modifications for accounts page)
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+.breakdown-modal .modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.breakdown-modal .modal-header {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+}
+
+.breakdown-modal .modal-body {
+    padding: 2rem;
+}
+
+.breakdown-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.breakdown-table tfoot {
+    background-color: #e9ecef;
+    font-weight: bold;
+}
+
+/* Button Enhancements */
+.btn-breakdown {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-breakdown:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);
+    color: white;
+}
+
+/* Assessment Type Badges */
+.badge-assessment {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+}
+
+.badge-assignment {
+    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+    color: white;
+}
+
+.badge-quiz {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+}
+
+.badge-project {
+    background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+    color: white;
+}
+
+.badge-lab {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    color: white;
+}
+
+.badge-presentation {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: white;
+}
+
+.badge-participation {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+/* Input Group Enhancements */
+.input-group-breakdown .form-control {
+    border-radius: 6px;
+}
+
+.input-group-breakdown .btn {
+    border-radius: 6px;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+    .breakdown-modal .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .breakdown-modal .modal-body {
+        padding: 1rem;
+    }
+    
+    .breakdown-table {
+        font-size: 0.875rem;
+    }
+}
+
+/* Hover Effects for Breakdown Table */
+.breakdown-table tbody tr:hover {
+    background-color: rgba(111, 66, 193, 0.05);
+    transform: translateX(2px);
+    transition: all 0.2s ease;
+}
+
+/* View Button Styles */
+#viewStudentBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#viewStudentBtn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+/* Add these styles to your existing ca.css */
+
+/* Enhanced Search Section */
+.search-section .form-control, .search-section .form-select {
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.search-section .form-control:focus, .search-section .form-select:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.1);
+}
+
+/* Student List Container */
+.student-list-container {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+<<<<<<< HEAD
+=======
+.student-ca-card {
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 0;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.student-ca-card:last-child {
+    border-bottom: none;
+}
+
+.student-ca-card:hover {
+    background-color: #f8f9fa;
+    transform: translateX(3px);
+}
+
+.student-ca-card.selected {
+    background: linear-gradient(135deg, rgba(111, 66, 193, 0.1) 0%, rgba(232, 62, 140, 0.1) 100%);
+    border-left: 4px solid #6f42c1;
+}
+>>>>>>> f59243c (UI modifications for accounts page)
+
+/* Enhanced Table Styles */
+.ca-table th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    font-weight: 600;
+    border-bottom: 2px solid #6f42c1;
+    padding: 0.75rem;
+}
+
+.ca-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+/* Input Styles */
+.ca-score-input, .ca-total-score-input {
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    text-align: center;
+    font-weight: 500;
+}
+
+.ca-score-input:focus, .ca-total-score-input:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.1);
+}
+
+/* Assessment Breakdown Styles */
+.assessment-breakdown {
+    max-width: 200px;
+}
+
+.assessment-breakdown small {
+    line-height: 1.4;
+}
+
+/* Badge Enhancements */
+.badge-assessment {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .search-section .row > div {
+        margin-bottom: 0.5rem;
+    }
+    
+    .student-ca-card {
+        padding: 0.75rem;
+    }
+    
+    .ca-table {
+        font-size: 0.8rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Success States */
+.saved-success {
+    background-color: rgba(40, 167, 69, 0.05) !important;
+    border-left: 4px solid #28a745 !important;
+}
+
+/* Print Optimizations */
+@media print {
+    .btn, .search-section, .card-header .btn {
+        display: none !important;
+    }
+    
+    .student-ca-card {
+        border: 1px solid #000 !important;
+        margin-bottom: 0.5rem;
+    }
+}

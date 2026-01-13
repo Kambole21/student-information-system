@@ -1,0 +1,303 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='user_file/user_manage.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='user_file/user_btn.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='user_file/user_card.css') }}">
+<div class="container-fluid user-management-container">
+    <!-- Header Section -->
+
+    <div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </span> 
+                   User Management
+                </h1>
+                <p class="text-muted">
+                    Manage students, staff, and administrative accounts across the institution
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    <!-- Role Management Cards -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="role-cards">
+                <!-- Student Card -->
+                <div class="card role-card student-card">
+                    <div class="role-card-header">
+                        <div class="role-icon">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <h3 class="role-title">Student Management</h3>
+                    </div>
+                    <div class="role-card-body">
+                        <p class="role-description">
+                            Create and manage student accounts with comprehensive academic information, 
+                            next of kin details, and course enrollment capabilities.
+                        </p>
+                        <div class="role-actions">
+                            {% if session.privilege_level in['admin', 'registrar', 'admin_dvc', 'dean', 'deputy_dean', 'dean_of_students', 'hod', 'ict', 'accounts'] %}
+                            <a href="{{ url_for('student.student_registration') }}" class="btn btn-primary">
+                                <i class="bi bi-person-plus me-2 icon-create"></i>Create Student
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('student.student_list') }}" class="btn btn-view-student">
+                                <i class="bi bi-list-ul me-2 icon-student"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Card -->
+                <div class="card role-card staff-card">
+                    <div class="role-card-header">
+                        <div class="role-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h3 class="role-title">Staff Management</h3>
+                    </div>
+                    <div class="role-card-body">
+                        <p class="role-description">
+                            Manage staff accounts including lecturers, deans, and administrative personnel 
+                            with role-based access control and department assignments.
+                        </p>
+                        <div class="role-actions">
+                            {% if session.privilege_level in['admin', 'registrar', 'admin_dvc', 'ict', 'admin_vc'] %}
+                            <a href="{{ url_for('staff.staff_registration') }}" class="btn btn-success">
+                                <i class="bi bi-person-plus me-2 icon-add"></i>Create Staff
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('staff.staff_list') }}" class="btn btn-view-staff">
+                                <i class="bi bi-list-ul me-2 icon-staff"></i>View All
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="section-header">
+                 <h3 class="section-title">
+                <i class="bi bi-graph-up"></i> System Overview
+            </h3>
+
+            </div>
+            <div class="stats-grid">
+                <!-- Total Students -->
+                <div class="card stat-card students">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="students">{{ total_students }}</h3>
+                            <h6>Total Students</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Staff -->
+                <div class="card stat-card staff">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="staff">{{ total_staff }}</h3>
+                            <h6>Total Staff</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lecturers -->
+                <div class="card stat-card lecturers">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="lecturers">{{ total_lecturers }}</h3>
+                            <h6>Lecturers</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-mortarboard"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Staff -->
+                <div class="card stat-card admins">
+                    <div class="stat-content">
+                        <div class="stat-info">
+                            <h3 class="admins">{{ total_admin }}</h3>
+                            <h6>Admin Staff</h6>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-gear-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    {% if session.privilege_level in['admin', 'registrar', 'admin_dvc', 'dean', 'deputy_dean', 'dean_of_students', 'hod', 'ict', 'accounts'] %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="quick-actions">
+                <div class="quick-action-header">
+
+                    <h3 class="section-title">
+                        <i class="bi bi-lightning-fill"></i> Quick Actions
+                    </h3>
+
+                </div>
+                <div class="action-buttons">
+                    <a href="{{ url_for('student.student_registration') }}" class="action-btn">
+                        <i class="bi bi-person-plus text-primary"></i>
+                        <span>Register New Student</span>
+                    </a>
+                    <a href="{{ url_for('staff.staff_registration') }}" class="action-btn">
+                        <i class="bi bi-person-gear text-success"></i>
+                        <span>Add Staff Member</span>
+                    </a>
+                    <a href="{{ url_for('student.student_list') }}" class="action-btn">
+                        <i class="bi bi-people text-primary"></i>
+                        <span>Browse Students</span>
+                    </a>
+                    <a href="{{ url_for('staff.staff_list') }}" class="action-btn">
+                        <i class="bi bi-person-badge text-success"></i>
+                        <span>Browse Staff</span>
+                    </a>
+                    <a href="{{ url_for('student.student_management') }}" class="action-btn">
+                        <i class="bi bi-graph-up text-info"></i>
+                        <span>Student Analytics</span>
+                    </a>
+                    <a href="{{ url_for('staff.staff_dashboard') }}" class="action-btn">
+                        <i class="bi bi-bar-chart text-warning"></i>
+                        <span>Staff Analytics</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="recent-activity">
+                <div class="recent-header">
+
+                    <h3 class="section-title">
+                        <i class="bi bi-clock-history"></i> Recent Activity
+                    </h3>
+
+                </div>
+                {% if recent_activity and recent_activity|length > 0 %}
+                <ul class="activity-list">
+                    {% for activity in recent_activity %}
+                    <li class="activity-item">
+                        <div class="activity-icon {{ activity.type }}">
+                            <i class="bi bi-{{ activity.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <p>{{ activity.message }}</p>
+                            <small class="activity-time">{{ activity.timestamp }}</small>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="no-activity">
+                    <i class="bi bi-inbox"></i>
+                    <h5>No Recent Activity</h5>
+                    <p>User management activities will appear here</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for interactive elements -->
+<script>
+// Add hover animations and interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click animations to cards
+    const cards = document.querySelectorAll('.role-card, .stat-card');
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    });
+
+    // Add loading animation to buttons
+    const buttons = document.querySelectorAll('.btn, .action-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (this.getAttribute('href') && !this.classList.contains('dropdown-toggle')) {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 2000);
+            }
+        });
+    });
+
+    // Auto-refresh statistics every 30 seconds
+    setInterval(() => {
+        // You can implement AJAX calls here to refresh statistics
+        console.log('Refreshing statistics...');
+    }, 30000);
+
+    // Add tooltips to action buttons
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn => {
+        btn.setAttribute('data-bs-toggle', 'tooltip');
+        btn.setAttribute('data-bs-placement', 'top');
+        btn.setAttribute('title', btn.querySelector('span').textContent);
+    });
+
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Function to update statistics (can be called via AJAX)
+function updateStatistics() {
+    fetch('/user_management/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector('.stat-card.students h3').textContent = data.total_students;
+                document.querySelector('.stat-card.staff h3').textContent = data.total_staff;
+                document.querySelector('.stat-card.lecturers h3').textContent = data.total_lecturers;
+                document.querySelector('.stat-card.admins h3').textContent = data.total_admin;
+            }
+        })
+        .catch(error => console.error('Error updating statistics:', error));
+}
+</script>
+{% endblock %}

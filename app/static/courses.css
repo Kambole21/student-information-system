@@ -1,0 +1,148 @@
+/* Courses Management Styles */
+.page-header {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    min-width: 300px;
+}
+
+.course-info h6 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.description-truncate {
+    cursor: help;
+}
+
+.prerequisites {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 200px;
+}
+
+.prerequisites .badge {
+    font-size: 0.65em;
+    padding: 0.4em 0.6em;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group .btn {
+    border-radius: 6px;
+    margin: 2px;
+}
+
+/* Badge Styles */
+.badge {
+    font-size: 0.75em;
+    padding: 0.5em 0.75em;
+}
+
+.badge.bg-primary {
+    background-color: #007bff !important;
+}
+
+.badge.bg-secondary {
+    background-color: #6c757d !important;
+}
+
+/* Modal Styles */
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-text {
+    font-size: 0.875em;
+    color: #6c757d;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .action-buttons .btn {
+        margin-bottom: 10px;
+    }
+    
+    .search-box {
+        min-width: 100%;
+        margin-top: 10px;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin: 2px 0;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .prerequisites {
+        max-width: 150px;
+    }
+}
+
+/* Hover Effects */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 242, 254, 0.05);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* Course Info Cards */
+.course-info {
+    max-width: 250px;
+}
+
+/* Empty State Styling */
+.text-center.py-5 {
+    color: #6c757d;
+}
+
+.text-center.py-5 .display-1 {
+    opacity: 0.5;
+}

@@ -1,0 +1,108 @@
+/* Action Cards */
+.ca-action-card {
+    border: none;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.ca-action-card:hover {
+    transform: translateY(0.1rem);
+}
+
+.ca-action-card.manage-ca {
+    background: #dfe8f2;
+    color: black;
+}
+
+.ca-action-card.bulk-upload {
+    background: #dfe8f2;
+    color: black;
+}
+
+.ca-action-card .card-body {
+    padding: 2rem;
+}
+
+.ca-action-card .display-4 {
+    opacity: 0.8;
+}
+
+.ca-action-card .btn {
+    margin-top: 1rem;
+    border: 2px solid rgba(65, 164, 225, 0.8);
+    color: white;
+    background: rgba(65, 164, 225, 0.8);
+}
+
+.ca-action-card .btn:hover {
+    background: rgba(87, 173, 227, 0.8);
+    border-color: rgba(87, 173, 227, 0.8);
+}
+
+.student-info-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+/* Student List Styles */
+.student-ca-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.student-ca-card:hover {
+    border-color: #6f42c1;
+    box-shadow: 0 2px 10px rgba(111, 66, 193, 0.1);
+}
+
+.student-ca-card.selected {
+    border-color: #6f42c1;
+    background-color: rgba(111, 66, 193, 0.05);
+}
+
+/* View Student CA Specific Styles */
+.semester-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.semester-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border-bottom: 2px solid #6f42c1;
+}
+
+/* Statistics Cards */
+.stats-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    border-left: 4px solid #6f42c1;
+}
+
+.student-ca-card {
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 0;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.student-ca-card:last-child {
+    border-bottom: none;
+}
+
+.student-ca-card:hover {
+    background-color: #f8f9fa;
+    transform: translateX(3px);
+}
+
+.student-ca-card.selected {
+    background: linear-gradient(135deg, rgba(111, 66, 193, 0.1) 0%, rgba(232, 62, 140, 0.1) 100%);
+    border-left: 4px solid #6f42c1;
+}

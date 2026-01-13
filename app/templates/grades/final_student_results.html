@@ -1,0 +1,282 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='grades.css') }}">
+<<<<<<< HEAD
+=======
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='grades_file/grades_card.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='grades_file/grade_btn.css') }}">
+>>>>>>> f59243c (UI modifications for accounts page)
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header">
+                <h1><i class="bi bi-trophy"></i> Final Examination Results</h1>
+                <p class="text-muted">Final academic results for {{ student.f_name }} {{ student.l_name }}</p>
+                {% if has_staff_access %}
+                <div class="alert alert-info mt-2">
+                    <i class="bi bi-shield-check"></i> 
+                    <strong>Staff Access Mode:</strong> You are viewing results with staff privileges.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person"></i> Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Student Number:</strong><br>
+                            <strong>Name:</strong><br>
+                            <strong>Program:</strong><br>
+                            <strong>School:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ student.student_number }}<br>
+                            {{ student.f_name }} {{ student.l_name }}<br>
+                            {{ program.name if program else 'N/A' }}<br>
+                            {{ school.name if school else 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+<!-- Replace the summary section in final_student_results.html -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Final Exams Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h3>{{ final_grades|length }}</h3>
+                            <small class="text-muted">Semesters</small>
+                        </div>
+                        <div class="col-4">
+                            <h3>{{ total_courses }}</h3>
+                            <small class="text-muted">Total Courses</small>
+                        </div>
+                        <div class="col-4">
+                            <h3>{{ viewable_semesters.values()|selectattr('can_view')|list|length }}</h3>
+                            <small class="text-muted">Available Semesters</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Exam Results -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-trophy"></i> Final Examination Results</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('grades.mock_student_results', student_id=student._id) }}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-pencil-square"></i> View Mock Exams
+                        </a>
+                        {% if privilege_level in ['admin', 'academics', 'registrar', 'lecturer', 'hod', 'deputy_dean', 'ict', 'snr_tutor', 'tutor', 'admin_vc', 'admin_dvc'] %}
+                        <a href="{{ url_for('grades.student_results', student_id=student._id) }}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-file-text"></i> View All Results
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if final_grades %}
+                    {% for grade_doc in final_grades %}
+                    {% set semester_key = grade_doc.academic_year ~ '_semester_' ~ grade_doc.semester %}
+                    {% set semester_info = viewable_semesters.get(semester_key, {'can_view': False, 'is_published': False, 'has_payment': False}) %}
+                    {% set can_view_student = semester_info.can_view %}
+                    {% set is_published = semester_info.is_published %}
+                    {% set has_payment = semester_info.has_payment %}
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6>{{ grade_doc.academic_year }} - Semester {{ grade_doc.semester }}</h6>
+                            <div>
+                                <!-- Publication Status -->
+                                {% if grade_doc.published %}
+                                    <span class="badge bg-success me-2">
+                                        <i class="bi bi-send-check"></i> Published
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary me-2">
+                                        <i class="bi bi-send-x"></i> Not Published
+                                    </span>
+                                {% endif %}
+                                
+                                <!-- Access Status -->
+                                {% if not can_view_student and not has_staff_access %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-lock"></i> 
+                                    {% if not is_published %}Not Published{% else %}Payment Required{% endif %}
+                                </span>
+                                {% elif has_staff_access %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-eye"></i> Staff View
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-unlock"></i> Available
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <small class="text-muted">Entered on: {{ grade_doc.entered_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        
+                        {% if not can_view_student and not has_staff_access %}
+                        <div class="alert alert-warning mt-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Results Withheld</strong><br>
+                            {% if not is_published %}
+                            The results for this semester have not been published yet. Please check back later.
+                            {% elif not has_payment %}
+                            The results for this semester are temporarily unavailable due to outstanding balance. 
+                            Please settle your semester fees to access your grades. 
+                            (Minimum {{ SystemConfig.BALANCE_THRESHOLD_PERCENTAGE }}% of semester fees must be paid)
+                            {% endif %}
+                        </div>
+                        {% elif has_staff_access %}
+                        <div class="alert alert-info mt-2">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Staff Override Access</strong><br>
+                            You are viewing these results with staff privileges. 
+                            Publication Status: 
+                            {% if is_published %}
+                                <span class="badge bg-success">Published</span>
+                            {% else %}
+                                <span class="badge bg-warning">Not Published</span>
+                            {% endif %}
+                            • Student Payment Status: 
+                            {% if has_payment %}
+                                <span class="badge bg-success">Cleared</span>
+                            {% else %}
+                                <span class="badge bg-warning">Outstanding Balance</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="table-responsive mt-2">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>Marks</th>
+                                        <th>Grade</th>
+                                        <th>Remarks</th>
+                                        {% if has_staff_access %}
+                                        <th>Access Level</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for grade in grade_doc.grades %}
+                                    {% set course = courses_dict.get(grade.course_id) %}
+                                    {% if course %}
+                                    <tr class="{{ 'table-success' if grade.remarks == 'Proceed' else 'table-danger' }}">
+                                        <td>{{ course.code }}</td>
+                                        <td>{{ course.name }}</td>
+                                        <td>
+                                            {% if can_view_student or has_staff_access %}
+                                                {{ grade.marks if grade.marks else 'N/A' }}
+                                            {% else %}
+                                                <span class="text-muted">---</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>
+                                                {% if can_view_student or has_staff_access %}
+                                                    {{ grade.grade }}
+                                                {% else %}
+                                                    <span class="text-muted">HIDDEN</span>
+                                                {% endif %}
+                                            </strong>
+                                        </td>
+                                        <td>
+                                            {% if can_view_student or has_staff_access %}
+                                            <span class="badge bg-{{ 'success' if grade.remarks == 'Proceed' else 'danger' }}">
+                                                {{ grade.remarks }}
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-warning">
+                                                Withheld
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        {% if has_staff_access %}
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if can_view_student else 'warning' }}">
+                                                {% if can_view_student %}
+                                                    Student Access
+                                                {% else %}
+                                                    Staff Only
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% else %}
+                                    <tr class="table-warning">
+                                        <td colspan="{{ 6 if has_staff_access else 5 }}" class="text-center">Course information not found</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-trophy display-4 text-muted"></i>
+                            <p class="text-muted mt-3">No final examination results available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                {% if privilege_level in ['admin', 'academics', 'registrar', 'lecturer', 'hod', 'deputy_dean', 'ict', 'snr_tutor', 'tutor', 'admin_vc', 'admin_dvc'] %}
+                <a href="{{ url_for('grades.final_grades') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Back to Final Grades Management
+                </a>
+                {% endif %}
+                <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-info">
+                    <i class="bi bi-person"></i> View Student Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

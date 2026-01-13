@@ -1,0 +1,948 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='modify_accounts.css') }}">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename= 'accounts_manage/semester_invoice.css')}}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-cash-coin-fill"></i>
+                    </span> 
+                    Modify Transactions
+                </h1>
+                 <p class="text-muted">Edit, reverse, or withdraw transactions</p>
+            </div>
+
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('accounts.accounts_management') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to Accounts
+                        </a>
+                    </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Search Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-search"></i> Search Transactions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Search By</label>
+                            <select class="form-select" id="searchType">
+                                <option value="all">All Transactions</option>
+                                <option value="transaction_code">Transaction Code</option>
+                                <option value="student">Student Name/Number</option>
+                                <option value="description">Description</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Search Value</label>
+                            <input type="text" class="form-control" id="searchValue" placeholder="Enter search term...">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Transaction Type</label>
+                            <select class="form-select" id="transactionType">
+                                <option value="">All Types</option>
+                                <option value="Billing">Billing</option>
+                                <option value="Clearing">Clearing</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Date From</label>
+                            <input type="date" class="form-control" id="dateFrom">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Date To</label>
+                            <input type="date" class="form-control" id="dateTo">
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" onclick="searchTransactions()">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Search Results</h5>
+                    <span class="badge bg-primary" id="resultsCount">0 transactions</span>
+                </div>
+                <div class="card-body">
+                    <div id="searchResults" class="search-results-container">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-search display-4"></i>
+                            <h5 class="mt-3">No Search Performed</h5>
+                            <p>Use the search filters above to find transactions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adjustment Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> Create Adjustment</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Student</label>
+                            <input type="text" class="form-control" id="adjustmentStudentSearch" placeholder="Search student...">
+                            <div id="studentSearchResults" class="search-dropdown" style="display: none;"></div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Adjustment Type</label>
+                            <select class="form-select" id="adjustmentType">
+                                <option value="">Select Type</option>
+                                <option value="credit_memo">Credit Memo (Refund/Deduction)</option>
+                                <option value="debit_memo">Debit Memo (Additional Charge)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="adjustmentAmount" placeholder="0.00" min="0.01" step="0.01">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-control" id="adjustmentDescription" placeholder="Adjustment description...">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Reason for Adjustment</label>
+                            <textarea class="form-control" id="adjustmentReason" rows="2" placeholder="Explain why this adjustment is needed..."></textarea>
+                        </div>
+
+                        <div class="col-md-12">
+                            <button class="btn btn-warning" onclick="createAdjustment()">
+                                <i class="bi bi-plus-circle"></i> Create Adjustment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transaction Details Modal -->
+<div class="modal fade" id="transactionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transaction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="transactionDetailsContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTransactionForm">
+                    <input type="hidden" id="editTransactionId">
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="editAmount" min="0.01" step="0.01" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveEditTransaction()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reverse Transaction Modal -->
+<div class="modal fade" id="reverseTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reverse Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reverseTransactionForm">
+                    <input type="hidden" id="reverseTransactionId">
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Reversal</label>
+                        <textarea class="form-control" id="reverseReason" rows="3" placeholder="Explain why you're reversing this transaction..." required></textarea>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This will create an opposite transaction to cancel out the original. The original transaction will be marked as reversed.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReverseTransaction()">Reverse Transaction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Withdraw Transaction Modal -->
+<div class="modal fade" id="withdrawTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Withdraw Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="withdrawTransactionForm">
+                    <input type="hidden" id="withdrawTransactionId">
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Withdrawal</label>
+                        <textarea class="form-control" id="withdrawReason" rows="3" placeholder="Explain why you're withdrawing this transaction..." required></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> Transactions can only be withdrawn within 24 hours of creation. Older transactions should be reversed instead.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="confirmWithdrawTransaction()">Withdraw Transaction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audit Log Modal -->
+<div class="modal fade" id="auditLogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transaction Audit Log</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="auditLogContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTransactionId = null;
+let selectedStudentId = null;
+
+function searchTransactions() {
+    const searchType = document.getElementById('searchType').value;
+    const searchValue = document.getElementById('searchValue').value;
+    const transactionType = document.getElementById('transactionType').value;
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Searching transactions...</p>
+        </div>
+    `;
+
+    fetch('/accounts/search_transactions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            search_type: searchType,
+            search_value: searchValue,
+            transaction_type: transactionType,
+            date_from: dateFrom,
+            date_to: dateTo
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displaySearchResults(data.transactions);
+            document.getElementById('resultsCount').textContent = `${data.transactions.length} transactions`;
+        } else {
+            resultsDiv.innerHTML = `
+                <div class="text-center text-danger py-5">
+                    <i class="bi bi-exclamation-triangle display-4"></i>
+                    <h5 class="mt-3">Search Error</h5>
+                    <p>${data.error || 'Failed to search transactions'}</p>
+                </div>
+            `;
+            document.getElementById('resultsCount').textContent = '0 transactions';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resultsDiv.innerHTML = `
+            <div class="text-center text-danger py-5">
+                <i class="bi bi-exclamation-triangle display-4"></i>
+                <h5 class="mt-3">Network Error</h5>
+                <p>Failed to search transactions. Please check your connection.</p>
+            </div>
+        `;
+        document.getElementById('resultsCount').textContent = '0 transactions';
+    });
+}
+
+function displaySearchResults(transactions) {
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (transactions.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-search display-4"></i>
+                <h5 class="mt-3">No Transactions Found</h5>
+                <p>No transactions match your search criteria.</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Code</th>
+                        <th>Student</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    transactions.forEach(transaction => {
+        const amount = transaction.debit || transaction.credit;
+        const isReversed = transaction.is_reversed;
+        const isEditable = transaction.can_modify;
+        
+        html += `
+            <tr class="${isReversed ? 'table-secondary' : ''}">
+                <td>${new Date(transaction.created_at).toLocaleDateString()}</td>
+                <td>
+                    <strong>${transaction.transaction_code}</strong>
+                    ${transaction.batch_transaction ? '<br><small class="badge bg-info">Batch</small>' : ''}
+                </td>
+                <td>${transaction.student_name}<br><small>${transaction.student_number}</small></td>
+                <td>
+                    <span class="badge ${transaction.type === 'Billing' ? 'bg-danger' : 'bg-success'}">
+                        ${transaction.type}
+                    </span>
+                </td>
+                <td>${transaction.description.substring(0, 50)}${transaction.description.length > 50 ? '...' : ''}</td>
+                <td class="text-end ${transaction.type === 'Billing' ? 'text-danger' : 'text-success'}">
+                    <strong> ${amount.toFixed(2)}</strong>
+                </td>
+                <td>
+                    ${isReversed ? 
+                        '<span class="badge bg-secondary">Reversed</span>' : 
+                        '<span class="badge bg-success">Active</span>'
+                    }
+                </td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="viewTransactionDetails('${transaction._id}')" title="View Details">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        ${isEditable ? `
+                            <button class="btn btn-outline-warning" onclick="editTransaction('${transaction._id}')" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="reverseTransaction('${transaction._id}')" title="Reverse">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button class="btn btn-outline-info" onclick="withdrawTransaction('${transaction._id}')" title="Withdraw">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    resultsDiv.innerHTML = html;
+}
+
+function viewTransactionDetails(transactionId) {
+    fetch(`/accounts/get_transaction_details/${transactionId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayTransactionDetails(data.transaction);
+                const modal = new bootstrap.Modal(document.getElementById('transactionDetailsModal'));
+                modal.show();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading transaction details');
+        });
+}
+
+function displayTransactionDetails(transaction) {
+    const contentDiv = document.getElementById('transactionDetailsContent');
+    
+    const isReversed = transaction.is_reversed;
+    const isEditable = transaction.can_modify;
+    
+    let html = `
+        <div class="transaction-details">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5>Transaction Information</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Transaction Code:</th>
+                            <td><strong>${transaction.transaction_code}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Type:</th>
+                            <td>
+                                <span class="badge ${transaction.type === 'Billing' ? 'bg-danger' : 'bg-success'}">
+                                    ${transaction.type}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Amount:</th>
+                            <td class="${transaction.type === 'Billing' ? 'text-danger' : 'text-success'}">
+                                <strong> ${(transaction.debit || transaction.credit).toFixed(2)}</strong>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Description:</th>
+                            <td>${transaction.description}</td>
+                        </tr>
+                        <tr>
+                            <th>Date Created:</th>
+                            <td>${new Date(transaction.created_at).toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                            <th>Filter Reference:</th>
+                            <td>${transaction.filter_reference || 'N/A'}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Student Information</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Student Name:</th>
+                            <td>${transaction.student_name}</td>
+                        </tr>
+                        <tr>
+                            <th>Student Number:</th>
+                            <td>${transaction.student_number}</td>
+                        </tr>
+                        <tr>
+                            <th>Program:</th>
+                            <td>${transaction.program_name}</td>
+                        </tr>
+                        <tr>
+                            <th>School:</th>
+                            <td>${transaction.school_name}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-12">
+                    <h5>Transaction Status</h5>
+                    <div class="status-badges">
+                        ${isReversed ? 
+                            `<span class="badge bg-secondary me-2">Reversed (Code: ${transaction.reversal_code})</span>` : 
+                            `<span class="badge bg-success me-2">Active</span>`
+                        }
+                        ${transaction.batch_transaction ? '<span class="badge bg-info me-2">Batch Transaction</span>' : ''}
+                        ${transaction.is_edited ? '<span class="badge bg-warning me-2">Edited</span>' : ''}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-outline-primary" onclick="viewAuditLog('${transaction._id}')">
+                            <i class="bi bi-clock-history"></i> View Audit Log
+                        </button>
+                        <div>
+                            ${isEditable ? `
+                                <button class="btn btn-warning me-2" onclick="editTransaction('${transaction._id}')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-danger me-2" onclick="reverseTransaction('${transaction._id}')">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Reverse
+                                </button>
+                                <button class="btn btn-info" onclick="withdrawTransaction('${transaction._id}')">
+                                    <i class="bi bi-trash"></i> Withdraw
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    contentDiv.innerHTML = html;
+}
+
+function editTransaction(transactionId) {
+    currentTransactionId = transactionId;
+    
+    fetch(`/accounts/get_transaction_details/${transactionId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const transaction = data.transaction;
+                document.getElementById('editTransactionId').value = transactionId;
+                document.getElementById('editDescription').value = transaction.description;
+                document.getElementById('editAmount').value = transaction.debit || transaction.credit;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
+                modal.show();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading transaction');
+        });
+}
+
+function saveEditTransaction() {
+    const description = document.getElementById('editDescription').value;
+    const amount = parseFloat(document.getElementById('editAmount').value);
+
+    if (!description.trim()) {
+        alert('Please enter a description');
+        return;
+    }
+
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+
+    fetch(`/accounts/edit_transaction/${currentTransactionId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: description,
+            amount: amount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Transaction updated successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editTransactionModal'));
+            modal.hide();
+            searchTransactions(); // Refresh search results
+            currentTransactionId = null;
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating transaction');
+    });
+}
+
+function reverseTransaction(transactionId) {
+    currentTransactionId = transactionId;
+    document.getElementById('reverseTransactionId').value = transactionId;
+    document.getElementById('reverseReason').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('reverseTransactionModal'));
+    modal.show();
+}
+
+function confirmReverseTransaction() {
+    const reason = document.getElementById('reverseReason').value;
+
+    if (!reason.trim()) {
+        alert('Please enter a reason for reversal');
+        return;
+    }
+
+    fetch(`/accounts/reverse_transaction/${currentTransactionId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('reverseTransactionModal'));
+            modal.hide();
+            searchTransactions(); // Refresh search results
+            currentTransactionId = null;
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error reversing transaction');
+    });
+}
+
+function withdrawTransaction(transactionId) {
+    currentTransactionId = transactionId;
+    document.getElementById('withdrawTransactionId').value = transactionId;
+    document.getElementById('withdrawReason').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('withdrawTransactionModal'));
+    modal.show();
+}
+
+function confirmWithdrawTransaction() {
+    const reason = document.getElementById('withdrawReason').value;
+
+    if (!reason.trim()) {
+        alert('Please enter a reason for withdrawal');
+        return;
+    }
+
+    fetch(`/accounts/withdraw_transaction/${currentTransactionId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('withdrawTransactionModal'));
+            modal.hide();
+            searchTransactions(); // Refresh search results
+            currentTransactionId = null;
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error withdrawing transaction');
+    });
+}
+
+function createAdjustment() {
+    if (!selectedStudentId) {
+        alert('Please select a student first');
+        return;
+    }
+
+    const adjustmentType = document.getElementById('adjustmentType').value;
+    const amount = parseFloat(document.getElementById('adjustmentAmount').value);
+    const description = document.getElementById('adjustmentDescription').value;
+    const reason = document.getElementById('adjustmentReason').value;
+
+    if (!adjustmentType) {
+        alert('Please select adjustment type');
+        return;
+    }
+
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+
+    if (!description.trim()) {
+        alert('Please enter a description');
+        return;
+    }
+
+    if (!reason.trim()) {
+        alert('Please enter a reason for adjustment');
+        return;
+    }
+
+    fetch('/accounts/create_adjustment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            student_id: selectedStudentId,
+            adjustment_type: adjustmentType,
+            amount: amount,
+            description: description,
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // Clear form
+            document.getElementById('adjustmentStudentSearch').value = '';
+            document.getElementById('adjustmentType').value = '';
+            document.getElementById('adjustmentAmount').value = '';
+            document.getElementById('adjustmentDescription').value = '';
+            document.getElementById('adjustmentReason').value = '';
+            selectedStudentId = null;
+            
+            // Refresh search results
+            searchTransactions();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error creating adjustment');
+    });
+}
+
+function viewAuditLog(transactionId) {
+    fetch(`/accounts/transaction_audit_log/${transactionId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayAuditLog(data.audit_log);
+                const modal = new bootstrap.Modal(document.getElementById('auditLogModal'));
+                modal.show();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading audit log');
+        });
+}
+
+function displayAuditLog(auditLog) {
+    const contentDiv = document.getElementById('auditLogContent');
+    
+    if (auditLog.length === 0) {
+        contentDiv.innerHTML = '<p class="text-muted">No audit log entries found.</p>';
+        return;
+    }
+
+    let html = `
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                        <th>Transaction Code</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>User</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    auditLog.forEach(entry => {
+        const actionBadgeClass = {
+            'CREATED': 'bg-success',
+            'EDITED': 'bg-warning',
+            'REVERSED': 'bg-danger',
+            'REVERSAL_CREATED': 'bg-danger',
+            'WITHDRAWN': 'bg-secondary',
+            'ADJUSTMENT_CREATED': 'bg-info',
+            'RELATED_TRANSACTION': 'bg-primary'
+        }[entry.action] || 'bg-secondary';
+        
+        html += `
+            <tr>
+                <td>${entry.timestamp}</td>
+                <td><span class="badge ${actionBadgeClass}">${entry.action}</span></td>
+                <td>${entry.transaction_code}</td>
+                <td>${entry.description}</td>
+                <td>${entry.amount}</td>
+                <td>${entry.user}</td>
+                <td>${entry.notes}</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    contentDiv.innerHTML = html;
+}
+
+// Student search for adjustments
+document.getElementById('adjustmentStudentSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value;
+    if (searchTerm.length < 2) {
+        document.getElementById('studentSearchResults').style.display = 'none';
+        return;
+    }
+
+    fetch('/accounts/search_students_transactions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            search_term: searchTerm,
+            school_id: '',
+            program_id: ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displayStudentSearchResults(data.students);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+
+function displayStudentSearchResults(students) {
+    const resultsDiv = document.getElementById('studentSearchResults');
+    
+    if (students.length === 0) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+
+    let html = '<div class="list-group">';
+    students.forEach(student => {
+        html += `
+            <a href="javascript:void(0)" class="list-group-item list-group-item-action" onclick="selectStudent('${student.id}', '${student.name} - ${student.student_number}')">
+                ${student.name} (${student.student_number})
+                <br><small>${student.program}</small>
+            </a>
+        `;
+    });
+    html += '</div>';
+    
+    resultsDiv.innerHTML = html;
+    resultsDiv.style.display = 'block';
+}
+
+function selectStudent(studentId, displayText) {
+    selectedStudentId = studentId;
+    document.getElementById('adjustmentStudentSearch').value = displayText;
+    document.getElementById('studentSearchResults').style.display = 'none';
+}
+
+// Close student search results when clicking elsewhere
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#adjustmentStudentSearch') && !e.target.closest('#studentSearchResults')) {
+        document.getElementById('studentSearchResults').style.display = 'none';
+    }
+});
+
+// Initialize date fields with default values
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(today.getDate() - 7);
+    
+    document.getElementById('dateFrom').valueAsDate = oneWeekAgo;
+    document.getElementById('dateTo').valueAsDate = today;
+});
+</script>
+{% endblock %}

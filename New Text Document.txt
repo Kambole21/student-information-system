@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+database url =  mongodb+srv://kambole520_db_user:Chomba520@uniberg.kgjjhzh.mongodb.net/?appName=uniberg
+=======
+database url =  mongodb+srv://kambole520_db_user:Chomba520@uniberg.kgjjhzh.mongodb.net/?appName=uniberg
+
+student color = #36ab70
+>>>>>>> f59243c (UI modifications for accounts page)

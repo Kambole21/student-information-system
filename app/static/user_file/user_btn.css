@@ -1,0 +1,165 @@
+
+/*****************************
+
+staff cards
+
+**********************************/
+.role-actions .btn-view-staff {
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background-color: #d6dfe7;
+    border-color: #d6dfe7;
+    box-shadow: 0 13px 40px #d6dfe7;
+}
+.role-actions .icon-staff{
+    background-color: rgb(86, 134, 86);
+    padding: 0.5rem 1.0rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 50px rgb(86, 134, 86);
+}
+
+.role-actions .btn-view-staff:hover{
+    color:#d6dfe7;
+    transition: all 0.3s ease;
+    background-color: rgb(86, 134, 86);
+    border-color: rgb(86, 134, 86);
+    box-shadow: 0 13px 40px rgb(86, 134, 86);
+     transform: translateY(-2px);
+}
+.role-actions .btn-view-staff:hover .icon-staff {
+    color: #333;
+    background-color: #d6dfe7;
+    box-shadow: 0 10px 50px #d6dfe7;
+}
+
+.role-actions .btn-success{
+    background-color: rgb(86, 134, 86);
+    border-color: rgb(86, 134, 86);
+    border-radius: 25px;
+    box-shadow: 0 10px 40px rgb(86, 134, 86);
+
+}
+
+.role-actions .icon-add{
+    background-color: #d6dfe7;
+    color: #333;
+    padding: 0.5rem 1.1rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px #91a6b7;
+}
+.role-actions .btn-success:hover{
+    color:#333;
+    transition: all 0.3s ease;
+    background-color: #d6dfe7;
+    border-color: #d6dfe7;
+    box-shadow: 0 13px 40px #d6dfe7;
+     transform: translateY(-2px);
+}
+
+.role-actions .btn-success:hover .icon-add {
+    color: #333;
+    background-color: rgb(86, 134, 86);
+    box-shadow: 0 10px 50px rgb(86, 134, 86);
+}
+/************************
+student card
+********************************/
+.role-actions .btn-view-student {
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background-color: #d6dfe7;
+    border-color: #d6dfe7;
+    box-shadow: 0 13px 40px #d6dfe7;
+}
+.role-actions .icon-student{
+    background-color: #4793d5;
+    padding: 0.5rem 1.0rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 50px #4793d5;
+}
+
+.role-actions .btn-view-student:hover{
+    color:#d6dfe7;
+    transition: all 0.3s ease;
+    background-color: #4793d5;
+    border-color: #4793d5;
+    box-shadow: 0 13px 40px #4793d5;
+     transform: translateY(-2px);
+}
+.role-actions .btn-view-student:hover .icon-student {
+    color: #333;
+    background-color: #d6dfe7;
+    box-shadow: 0 10px 50px #d6dfe7;
+}
+.role-actions .btn-primary{
+    background-color: #4793d5;
+    border-color: #4793d5;
+    border-radius: 25px;
+    box-shadow: 0 10px 40px #9cadbb;
+
+}
+
+.role-actions .icon-create{
+    background-color: #d6dfe7;
+    color: #333;
+    padding: 0.5rem 1.1rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px #91a6b7;
+}
+.role-actions .btn-primary:hover{
+    color:#333;
+    transition: all 0.3s ease;
+    background-color: #d6dfe7;
+    border-color: #d6dfe7;
+    box-shadow: 0 13px 40px #d6dfe7;
+     transform: translateY(-2px);
+}
+
+.role-actions .btn-primary:hover .icon-create {
+    color: #333;
+    background-color: #4793d5;
+    box-shadow: 0 10px 50px #4793d5;
+}
+/************************************************************************************/
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.action-btn {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.action-btn:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+    color: #007bff;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.action-btn i {
+    font-size: 2rem;
+}
+
+.action-btn span {
+    font-weight: 600;
+    font-size: 0.9rem;
+}

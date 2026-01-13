@@ -1,0 +1,1050 @@
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, session
+from app import accounts_collection, students_collection, schools_collection, programs_collection, courses_collection, student_courses_collection
+from bson import ObjectId
+from datetime import datetime
+import random
+import string
+
+# Replace the import line with this:
+from app.utils import can_view_semester_grades, get_semester_balance, get_semester_fees
+from app.config import SystemConfig
+
+bp = Blueprint('accounts', __name__)
+
+def generate_transaction_code():
+    """Generate transaction code: 3 random uppercase letters + 4 numbers"""
+    letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+    numbers = ''.join(random.choices(string.digits, k=4))
+    return f"{letters}{numbers}"
+
+def get_student_balance(student_id):
+    """Calculate current balance for a student"""
+    try:
+        # Get all transactions for the student, sorted by date
+        transactions = list(accounts_collection.find({
+            'student_id': ObjectId(student_id)
+        }).sort('created_at', 1))
+        
+        balance = 0
+        for transaction in transactions:
+            if transaction['type'] == 'Billing':
+                balance += transaction.get('debit', 0)
+            else:  # Clearing
+                balance -= transaction.get('credit', 0)
+        
+        print(f"Balance for student {student_id}: {balance}")
+        return balance
+        
+    except Exception as e:
+        print(f"Error calculating balance for student {student_id}: {str(e)}")
+        return 0
+
+def recalculate_student_balance(student_id):
+    """Recalculate and update all balances for a student after transaction update"""
+    try:
+        # Get all transactions for the student, sorted by date
+        transactions = list(accounts_collection.find({
+            'student_id': ObjectId(student_id)
+        }).sort('created_at', 1))
+        
+        balance = 0
+        for transaction in transactions:
+            if transaction['type'] == 'Billing':
+                balance += transaction.get('debit', 0)
+            else:  # Clearing
+                balance -= transaction.get('credit', 0)
+            
+            # Update the balance_after field for each transaction
+            accounts_collection.update_one(
+                {'_id': transaction['_id']},
+                {'$set': {'balance_after': balance}}
+            )
+        
+        return balance
+    except Exception as e:
+        print(f"Error recalculating balance for student {student_id}: {str(e)}")
+        return 0
+
+@bp.route('/accounts/semester_invoice')
+def semester_invoice_page():
+    """Semester invoice creation page"""
+    academic_years = ['2026/2027','2025/2026']
+    programs = list(programs_collection.find({'status': 'active'}))
+    schools = list(schools_collection.find({'status': 'active'}))
+    
+    return render_template('accounts/create_semester_invoice.html', 
+                         academic_years=academic_years,
+                         programs=programs,
+                         schools=schools,
+                         SystemConfig=SystemConfig)
+
+@bp.route('/Accounts')
+def accounts_management():
+    """Accounts management dashboard"""
+    try:
+        total_students = students_collection.count_documents({})
+        total_transactions = accounts_collection.count_documents({})
+        
+        # Calculate total revenue (sum of all billing transactions)
+        pipeline = [
+            {'$match': {'type': 'Billing'}},
+            {'$group': {'_id': None, 'total_billing': {'$sum': '$debit'}}}
+        ]
+        billing_result = list(accounts_collection.aggregate(pipeline))
+        total_billing = billing_result[0]['total_billing'] if billing_result else 0
+        
+        # Calculate total payments (sum of all clearing transactions)
+        pipeline = [
+            {'$match': {'type': 'Clearing'}},
+            {'$group': {'_id': None, 'total_clearing': {'$sum': '$credit'}}}
+        ]
+        clearing_result = list(accounts_collection.aggregate(pipeline))
+        total_clearing = clearing_result[0]['total_clearing'] if clearing_result else 0
+        
+        outstanding_balance = total_billing - total_clearing
+        
+        # Get schools and programs for filters
+        schools = list(schools_collection.find({'status': 'active'}))
+        programs = list(programs_collection.find({'status': 'active'}))
+        
+        return render_template('accounts/accounts_management.html',
+                             total_students=total_students,
+                             total_transactions=total_transactions,
+                             total_billing=total_billing,
+                             total_clearing=total_clearing,
+                             outstanding_balance=outstanding_balance,
+                             schools=schools,
+                             programs=programs)
+    except Exception as e:
+        flash(f'Error loading accounts dashboard: {str(e)}', 'error')
+        return render_template('accounts/accounts_management.html',
+                             total_students=0,
+                             total_transactions=0,
+                             total_billing=0,
+                             total_clearing=0,
+                             outstanding_balance=0,
+                             schools=[],
+                             programs=[])
+
+@bp.route('/accounts/create_invoice')
+def create_invoice():
+    """Create invoice page"""
+    schools = list(schools_collection.find({'status': 'active'}))
+    programs = list(programs_collection.find({'status': 'active'}))
+    courses = list(courses_collection.find({'status': 'active'}))
+    
+    return render_template('accounts/create_invoice.html',
+                         schools=schools,
+                         programs=programs,
+                         courses=courses)
+
+@bp.route('/accounts/get_students', methods=['POST'])
+def get_students():
+    """Get students based on filters"""
+    try:
+        data = request.get_json()
+        filter_type = data.get('filter_type')
+        filter_value = data.get('filter_value')
+        search_term = data.get('search_term', '')
+        
+        query = {'status': 'active'}
+        
+        if filter_type == 'all':
+            # Get all active students
+            if search_term:
+                query['$or'] = [
+                    {'student_number': {'$regex': search_term, '$options': 'i'}},
+                    {'f_name': {'$regex': search_term, '$options': 'i'}},
+                    {'l_name': {'$regex': search_term, '$options': 'i'}}
+                ]
+            students = list(students_collection.find(query))
+        elif filter_type == 'program' and filter_value:
+            query['program_id'] = ObjectId(filter_value)
+            if search_term:
+                query['$or'] = [
+                    {'student_number': {'$regex': search_term, '$options': 'i'}},
+                    {'f_name': {'$regex': search_term, '$options': 'i'}},
+                    {'l_name': {'$regex': search_term, '$options': 'i'}}
+                ]
+            students = list(students_collection.find(query))
+        elif filter_type == 'school' and filter_value:
+            query['school_id'] = ObjectId(filter_value)
+            if search_term:
+                query['$or'] = [
+                    {'student_number': {'$regex': search_term, '$options': 'i'}},
+                    {'f_name': {'$regex': search_term, '$options': 'i'}},
+                    {'l_name': {'$regex': search_term, '$options': 'i'}}
+                ]
+            students = list(students_collection.find(query))
+        elif filter_type == 'course' and filter_value:
+            # Get students enrolled in this course using aggregation
+            pipeline = [
+                {
+                    '$match': {
+                        'course_id': ObjectId(filter_value),
+                        'status': 'enrolled'
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'students',
+                        'localField': 'student_id',
+                        'foreignField': '_id',
+                        'as': 'student_info'
+                    }
+                },
+                {
+                    '$unwind': '$student_info'
+                },
+                {
+                    '$match': {
+                        'student_info.status': 'active'
+                    }
+                }
+            ]
+            
+            # Add search filter if provided
+            if search_term:
+                pipeline.append({
+                    '$match': {
+                        '$or': [
+                            {'student_info.student_number': {'$regex': search_term, '$options': 'i'}},
+                            {'student_info.f_name': {'$regex': search_term, '$options': 'i'}},
+                            {'student_info.l_name': {'$regex': search_term, '$options': 'i'}}
+                        ]
+                    }
+                })
+            
+            pipeline.append({
+                '$replaceRoot': {'newRoot': '$student_info'}
+            })
+            
+            students = list(student_courses_collection.aggregate(pipeline))
+        elif filter_type == 'level' and filter_value:
+            # Map level to program types
+            level_mapping = {
+                'certificate': 'Certificate',
+                'diploma': 'Diploma', 
+                'undergraduate': 'Undergraduate',
+                'postgraduate': 'Postgraduate'
+            }
+            level_name = level_mapping.get(filter_value, filter_value)
+            
+            # Get programs with this level
+            programs = list(programs_collection.find({
+                'level': level_name,
+                'status': 'active'
+            }))
+            
+            program_ids = [program['_id'] for program in programs]
+            if program_ids:
+                query['program_id'] = {'$in': program_ids}
+                if search_term:
+                    query['$or'] = [
+                        {'student_number': {'$regex': search_term, '$options': 'i'}},
+                        {'f_name': {'$regex': search_term, '$options': 'i'}},
+                        {'l_name': {'$regex': search_term, '$options': 'i'}}
+                    ]
+                students = list(students_collection.find(query))
+            else:
+                students = []
+        elif filter_type == 'individual':
+            # Search for individual students
+            if search_term:
+                query['$or'] = [
+                    {'student_number': {'$regex': search_term, '$options': 'i'}},
+                    {'f_name': {'$regex': search_term, '$options': 'i'}},
+                    {'l_name': {'$regex': search_term, '$options': 'i'}}
+                ]
+                students = list(students_collection.find(query).limit(50))  # Limit results for performance
+            else:
+                students = []
+        else:
+            students = []
+        
+        students_data = []
+        for student in students:
+            if not student:  # Skip if student is None
+                continue
+                
+            # Get program and school info
+            program = programs_collection.find_one({'_id': ObjectId(student['program_id'])}) if student.get('program_id') else None
+            school = schools_collection.find_one({'_id': ObjectId(student['school_id'])}) if student.get('school_id') else None
+            
+            students_data.append({
+                'id': str(student['_id']),
+                'student_number': student.get('student_number', 'N/A'),
+                'name': f"{student.get('f_name', '')} {student.get('l_name', '')}",
+                'program': program['name'] if program else 'N/A',
+                'school': school['name'] if school else 'N/A',
+                'current_balance': get_student_balance(student['_id'])
+            })
+        
+        return jsonify({'success': True, 'students': students_data})
+    
+    except Exception as e:
+        print(f"Error in get_students: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/accounts/create_transaction', methods=['POST'])
+def create_transaction():
+    """Create a transaction (invoice or payment)"""
+    try:
+        data = request.get_json()
+        transaction_type = data.get('type')  # 'Billing' or 'Clearing'
+        amount = float(data.get('amount', 0))
+        description = data.get('description', '')
+        student_ids = data.get('student_ids', [])
+        filter_type = data.get('filter_type', '')
+        filter_value = data.get('filter_value', '')
+        semester = data.get('semester', '')  # Add semester parameter
+        academic_year = data.get('academic_year', '')  # Add academic_year parameter
+        
+        print(f"Creating transaction: type={transaction_type}, amount={amount}, students={len(student_ids)}, filter_type={filter_type}, semester={semester}, academic_year={academic_year}")
+        
+        if not student_ids:
+            return jsonify({'success': False, 'error': 'No students selected'})
+        
+        if amount <= 0:
+            return jsonify({'success': False, 'error': 'Amount must be greater than 0'})
+        
+        # Generate a single transaction code for this batch
+        transaction_code = generate_transaction_code()
+        created_count = 0
+        
+        # Get filter description for reference
+        filter_description = f"Filter: {filter_type}"
+        if filter_value:
+            if filter_type == 'program':
+                program = programs_collection.find_one({'_id': ObjectId(filter_value)})
+                filter_description += f" - {program['name'] if program else filter_value}"
+            elif filter_type == 'school':
+                school = schools_collection.find_one({'_id': ObjectId(filter_value)})
+                filter_description += f" - {school['name'] if school else filter_value}"
+            elif filter_type == 'course':
+                course = courses_collection.find_one({'_id': ObjectId(filter_value)})
+                filter_description += f" - {course['name'] if course else filter_value}"
+            elif filter_type == 'level':
+                filter_description += f" - {filter_value}"
+            elif filter_type == 'individual':
+                filter_description += " - Selected Students"
+        
+        for student_id in student_ids:
+            try:
+                student = students_collection.find_one({'_id': ObjectId(student_id)})
+                if not student:
+                    print(f"Student {student_id} not found")
+                    continue
+                
+                # Get current balance before transaction
+                current_balance = get_student_balance(student_id)
+                
+                # Create transaction data with filter reference
+                transaction_data = {
+                    'transaction_code': transaction_code,
+                    'student_id': ObjectId(student_id),
+                    'type': transaction_type,
+                    'description': description,
+                    'filter_reference': filter_description,
+                    'debit': amount if transaction_type == 'Billing' else 0,
+                    'credit': amount if transaction_type == 'Clearing' else 0,
+                    'balance_after': current_balance + (amount if transaction_type == 'Billing' else -amount),
+                    'created_at': datetime.utcnow(),
+                    'created_by': 'system',  # You can replace this with actual user from session
+                    'batch_transaction': True if len(student_ids) > 1 else False
+                }
+                
+                # Add semester and academic_year for semester-specific transactions
+                if semester and academic_year:
+                    transaction_data['semester'] = semester
+                    transaction_data['academic_year'] = academic_year
+                    if transaction_type == 'Billing':
+                        transaction_data['fee_type'] = 'tuition'  # Default fee type
+                        transaction_data['is_semester_fee'] = True
+                
+                # Insert transaction
+                result = accounts_collection.insert_one(transaction_data)
+                created_count += 1
+                
+                print(f"Created transaction {transaction_code} for student {student_id}")
+                
+            except Exception as e:
+                print(f"Error creating transaction for student {student_id}: {str(e)}")
+                continue
+        
+        if created_count > 0:
+            transaction_type_name = "invoice" if transaction_type == 'Billing' else "payment"
+            message = f'Successfully created {transaction_type_name} for {created_count} student(s) with transaction code: {transaction_code}'
+            return jsonify({
+                'success': True,
+                'message': message,
+                'transaction_code': transaction_code
+            })
+        else:
+            return jsonify({'success': False, 'error': 'No transactions were created'})
+    
+    except Exception as e:
+        print(f"Error in create_transaction: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+@bp.route('/accounts/student_transactions/<student_id>')
+def student_transactions(student_id):
+    """View transactions for a specific student"""
+    try:
+        student = students_collection.find_one({'_id': ObjectId(student_id)})
+        if not student:
+            flash('Student not found!', 'error')
+            return redirect(url_for('accounts.accounts_management'))
+        
+        # Get program and school info
+        program = programs_collection.find_one({'_id': ObjectId(student['program_id'])}) if student.get('program_id') else None
+        school = schools_collection.find_one({'_id': ObjectId(student['school_id'])}) if student.get('school_id') else None
+        
+        # Get all transactions for this student - SORTED BY DATE DESCENDING (newest first)
+        transactions = list(accounts_collection.find({
+            'student_id': ObjectId(student_id)
+        }).sort('created_at', -1))
+        
+        # Calculate current balance
+        current_balance = get_student_balance(student_id)
+        
+        return render_template('accounts/student_transactions.html',
+                             student=student,
+                             program=program,
+                             school=school,
+                             transactions=transactions,
+                             current_balance=current_balance)
+    
+    except Exception as e:
+        flash(f'Error loading student transactions: {str(e)}', 'error')
+        return redirect(url_for('accounts.accounts_management'))
+
+@bp.route('/accounts/transaction_history')
+def transaction_history():
+    """View all transactions history"""
+    try:
+        # Get all transactions with student information using aggregation - SORTED BY DATE DESCENDING
+        pipeline = [
+            {
+                '$lookup': {
+                    'from': 'students',
+                    'localField': 'student_id',
+                    'foreignField': '_id',
+                    'as': 'student_info'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$student_info',
+                    'preserveNullAndEmptyArrays': True
+                }
+            },
+            {
+                '$lookup': {
+                    'from': 'programs',
+                    'localField': 'student_info.program_id',
+                    'foreignField': '_id',
+                    'as': 'program_info'
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$program_info',
+                    'preserveNullAndEmptyArrays': True
+                }
+            },
+            {
+                '$sort': {'created_at': -1}  # Ensure newest transactions come first
+            },
+            {
+                '$project': {
+                    'transaction_code': 1,
+                    'type': 1,
+                    'description': 1,
+                    'filter_reference': 1,
+                    'batch_transaction': 1,
+                    'debit': 1,
+                    'credit': 1,
+                    'balance_after': 1,
+                    'created_at': 1,
+                    'student_name': {
+                        '$cond': {
+                            'if': {'$ne': ['$student_info', None]},
+                            'then': {'$concat': ['$student_info.f_name', ' ', '$student_info.l_name']},
+                            'else': 'Unknown Student'
+                        }
+                    },
+                    'student_number': {
+                        '$cond': {
+                            'if': {'$ne': ['$student_info', None]},
+                            'then': '$student_info.student_number',
+                            'else': 'N/A'
+                        }
+                    },
+                    'program_name': {
+                        '$cond': {
+                            'if': {'$ne': ['$program_info', None]},
+                            'then': '$program_info.name',
+                            'else': 'N/A'
+                        }
+                    }
+                }
+            }
+        ]
+        
+        transactions = list(accounts_collection.aggregate(pipeline))
+        
+        # Calculate summary statistics
+        total_billing = sum(t.get('debit', 0) for t in transactions)
+        total_clearing = sum(t.get('credit', 0) for t in transactions)
+        outstanding_balance = total_billing - total_clearing
+        
+        return render_template('accounts/transaction_history.html',
+                             transactions=transactions,
+                             total_billing=total_billing,
+                             total_clearing=total_clearing,
+                             outstanding_balance=outstanding_balance)
+    
+    except Exception as e:
+        print(f"Error in transaction_history: {str(e)}")
+        flash(f'Error loading transaction history: {str(e)}', 'error')
+        return redirect(url_for('accounts.accounts_management'))
+
+@bp.route('/accounts/get_transaction/<transaction_id>')
+def get_transaction(transaction_id):
+    """Get transaction details for editing"""
+    try:
+        transaction = accounts_collection.find_one({'_id': ObjectId(transaction_id)})
+        if not transaction:
+            return jsonify({'success': False, 'error': 'Transaction not found'})
+        
+        # Convert ObjectId to string for JSON serialization
+        transaction['_id'] = str(transaction['_id'])
+        transaction['student_id'] = str(transaction['student_id'])
+        
+        return jsonify({'success': True, 'transaction': transaction})
+    
+    except Exception as e:
+        print(f"Error getting transaction: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/accounts/update_transaction/<transaction_id>', methods=['POST'])
+def update_transaction(transaction_id):
+    """Update transaction details"""
+    try:
+        data = request.get_json()
+        description = data.get('description', '')
+        amount = float(data.get('amount', 0))
+        
+        if not description.strip():
+            return jsonify({'success': False, 'error': 'Description is required'})
+        
+        if amount <= 0:
+            return jsonify({'success': False, 'error': 'Amount must be greater than 0'})
+        
+        # Get the original transaction
+        transaction = accounts_collection.find_one({'_id': ObjectId(transaction_id)})
+        if not transaction:
+            return jsonify({'success': False, 'error': 'Transaction not found'})
+        
+        # Update the transaction
+        update_data = {
+            'description': description,
+        }
+        
+        # Update amount based on transaction type
+        if transaction['type'] == 'Billing':
+            update_data['debit'] = amount
+            update_data['credit'] = 0
+        else:  # Clearing
+            update_data['credit'] = amount
+            update_data['debit'] = 0
+        
+        accounts_collection.update_one(
+            {'_id': ObjectId(transaction_id)},
+            {'$set': update_data}
+        )
+        
+        # Recalculate balances for the student
+        student_id = transaction['student_id']
+        recalculate_student_balance(student_id)
+        
+        return jsonify({'success': True, 'message': 'Transaction updated successfully'})
+    
+    except Exception as e:
+        print(f"Error updating transaction: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/accounts/search_students_transactions', methods=['POST'])
+def search_students_transactions():
+    """Search students for transaction viewing"""
+    try:
+        data = request.get_json()
+        search_term = data.get('search_term', '')
+        school_id = data.get('school_id', '')
+        program_id = data.get('program_id', '')
+        
+        query = {'status': 'active'}
+        
+        # Build search query
+        if search_term:
+            query['$or'] = [
+                {'student_number': {'$regex': search_term, '$options': 'i'}},
+                {'f_name': {'$regex': search_term, '$options': 'i'}},
+                {'l_name': {'$regex': search_term, '$options': 'i'}}
+            ]
+        
+        if school_id:
+            query['school_id'] = ObjectId(school_id)
+        
+        if program_id:
+            query['program_id'] = ObjectId(program_id)
+        
+        # Sort students by name for consistent display
+        students = list(students_collection.find(query).sort('f_name', 1).limit(50))
+        
+        students_data = []
+        for student in students:
+            # Get program and school info
+            program = programs_collection.find_one({'_id': ObjectId(student['program_id'])}) if student.get('program_id') else None
+            school = schools_collection.find_one({'_id': ObjectId(student['school_id'])}) if student.get('school_id') else None
+            
+            # Calculate financial statistics
+            student_id = student['_id']
+            current_balance = get_student_balance(student_id)
+            
+            # Get total billing and payments - sorted by date for accurate calculation
+            billing_transactions = list(accounts_collection.find({
+                'student_id': student_id,
+                'type': 'Billing'
+            }).sort('created_at', 1))
+            payment_transactions = list(accounts_collection.find({
+                'student_id': student_id,
+                'type': 'Clearing'
+            }).sort('created_at', 1))
+            
+            total_billing = sum(t.get('debit', 0) for t in billing_transactions)
+            total_payments = sum(t.get('credit', 0) for t in payment_transactions)
+            
+            students_data.append({
+                'id': str(student['_id']),
+                'student_number': student.get('student_number', 'N/A'),
+                'name': f"{student.get('f_name', '')} {student.get('l_name', '')}",
+                'program': program['name'] if program else 'N/A',
+                'school': school['name'] if school else 'N/A',
+                'current_balance': current_balance,
+                'total_billing': total_billing,
+                'total_payments': total_payments
+            })
+        
+        return jsonify({'success': True, 'students': students_data})
+    
+    except Exception as e:
+        print(f"Error in search_students_transactions: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/accounts/get_student_balance/<student_id>')
+def get_student_balance_api(student_id):
+    """API to get student balance"""
+    try:
+        balance = get_student_balance(student_id)
+        return jsonify({'success': True, 'balance': balance})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+
+#semester billing
+from app.config import SystemConfig
+
+def get_semester_fees(student_id, semester, academic_year):
+    """Calculate total semester fees for a student"""
+    try:
+        student = students_collection.find_one({'_id': ObjectId(student_id)})
+        if not student:
+            return 0
+        
+        # Get student's program level
+        program = programs_collection.find_one({'_id': ObjectId(student['program_id'])})
+        level = program.get('level', 'undergraduate').lower() if program else 'undergraduate'
+        
+        # Map level to fee category
+        level_mapping = {
+            'certificate': 'certificate',
+            'diploma': 'diploma', 
+            'undergraduate': 'undergraduate',
+            'bachelor': 'undergraduate',
+            'postgraduate': 'postgraduate',
+            'masters': 'postgraduate',
+            'phd': 'postgraduate'
+        }
+        
+        fee_category = level_mapping.get(level, 'undergraduate')
+        base_fee = SystemConfig.DEFAULT_SEMESTER_FEES.get(fee_category, 1000.00)
+        
+        # Get additional course fees for the semester
+        enrolled_courses = list(student_courses_collection.find({
+            'student_id': ObjectId(student_id),
+            'semester': semester,
+            'academic_year': academic_year
+        }))
+        
+        course_fees = 0
+        for ec in enrolled_courses:
+            course = courses_collection.find_one({'_id': ObjectId(ec['course_id'])})
+            if course and course.get('course_fee'):
+                course_fees += course.get('course_fee', 0)
+        
+        return base_fee + course_fees
+        
+    except Exception as e:
+        print(f"Error calculating semester fees: {str(e)}")
+        return SystemConfig.DEFAULT_SEMESTER_FEES['undergraduate']
+
+def get_semester_balance(student_id, semester, academic_year):
+    """Calculate balance for a specific semester"""
+    try:
+        # Get all transactions for the semester
+        semester_start = datetime.strptime(f"{academic_year.split('/')[0]}-01-01", "%Y-%m-%d")
+        semester_end = datetime.strptime(f"{academic_year.split('/')[1]}-12-31", "%Y-%m-%d")
+        
+        transactions = list(accounts_collection.find({
+            'student_id': ObjectId(student_id),
+            'semester': semester,
+            'academic_year': academic_year
+        }).sort('created_at', 1))
+        
+        balance = 0
+        for transaction in transactions:
+            if transaction['type'] == 'Billing':
+                balance += transaction.get('debit', 0)
+            else:  # Clearing
+                balance -= transaction.get('credit', 0)
+        
+        return balance
+        
+    except Exception as e:
+        print(f"Error calculating semester balance: {str(e)}")
+        return 0
+
+def can_view_semester_grades(student_id, semester, academic_year):
+    """Check if student can view grades for a semester based on balance threshold"""
+    try:
+        semester_balance = get_semester_balance(student_id, semester, academic_year)
+        semester_fees = get_semester_fees(student_id, semester, academic_year)
+        
+        if semester_fees <= 0:
+            return True  # No fees configured, allow access
+        
+        paid_percentage = ((semester_fees - semester_balance) / semester_fees) * 100
+        can_view = paid_percentage >= SystemConfig.BALANCE_THRESHOLD_PERCENTAGE
+        
+        print(f"Semester fees: {semester_fees}, Balance: {semester_balance}, Paid %: {paid_percentage}, Can view: {can_view}")
+        
+        return can_view
+        
+    except Exception as e:
+        print(f"Error checking grade view permission: {str(e)}")
+        return False
+
+@bp.route('/accounts/create_semester_invoice', methods=['POST'])
+def create_semester_invoice():
+    """Create semester invoice with custom amount"""
+    try:
+        data = request.get_json()
+        print(f"Received data: {data}")  # DEBUG LOG
+        
+        student_ids = data.get('student_ids', [])
+        semester = data.get('semester', '1')
+        academic_year = data.get('academic_year', '2025/2026')
+        fee_type = data.get('fee_type', 'tuition')
+        description = data.get('description', '')
+        fee_amount = data.get('fee_amount', 0)
+        filter_type = data.get('filter_type', 'all')
+        filter_value = data.get('filter_value', '')
+        intake = data.get('intake', '')
+        
+        print(f"Student IDs: {student_ids}, Fee amount: {fee_amount}")  # DEBUG LOG
+        
+        if not student_ids:
+            return jsonify({'success': False, 'error': 'No students selected'})
+        
+        try:
+            fee_amount = float(fee_amount)
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'error': 'Invalid fee amount format'})
+        
+        if fee_amount <= 0:
+            return jsonify({'success': False, 'error': 'Fee amount must be greater than 0'})
+        
+        # Generate a single transaction code for this batch
+        transaction_code = generate_transaction_code()
+        created_count = 0
+        
+        for student_id in student_ids:
+            try:
+                student = students_collection.find_one({'_id': ObjectId(student_id)})
+                if not student:
+                    print(f"Student {student_id} not found")
+                    continue
+                
+                # Use the custom fee amount
+                amount = fee_amount
+                
+                # Get current balance before transaction
+                current_balance = get_student_balance(student_id)
+                
+                # Create semester transaction
+                transaction_data = {
+                    'transaction_code': transaction_code,
+                    'student_id': ObjectId(student_id),
+                    'type': 'Billing',
+                    'description': f"{SystemConfig.SEMESTER_TRANSACTION_TYPES.get(fee_type, 'Semester Fee')} - {description}",
+                    'fee_type': fee_type,
+                    'semester': semester,
+                    'academic_year': academic_year,
+                    'debit': amount,
+                    'credit': 0,
+                    'balance_after': current_balance + amount,
+                    'created_at': datetime.utcnow(),
+                    'created_by': 'system',
+                    'batch_transaction': True,
+                    'is_semester_fee': True,
+                    'intake': intake,
+                    'filter_type': filter_type,
+                    'filter_value': filter_value
+                }
+                
+                print(f"Creating transaction for student {student_id}: {transaction_data}")  # DEBUG LOG
+                
+                # Insert transaction
+                result = accounts_collection.insert_one(transaction_data)
+                created_count += 1
+                
+                print(f"Transaction created successfully for student {student_id}")
+                
+            except Exception as e:
+                print(f"Error creating semester invoice for student {student_id}: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                continue
+        
+        if created_count > 0:
+            total_amount = fee_amount * created_count
+            message = f'Successfully created semester invoices for {created_count} student(s). Total amount: ${total_amount:.2f}. Transaction code: {transaction_code}'
+            print(f"Success: {message}")  # DEBUG LOG
+            return jsonify({
+                'success': True,
+                'message': message,
+                'transaction_code': transaction_code,
+                'total_amount': total_amount
+            })
+        else:
+            error_msg = 'No semester invoices were created. Check if students exist and have valid IDs.'
+            print(f"Error: {error_msg}")  # DEBUG LOG
+            return jsonify({'success': False, 'error': error_msg})
+    
+    except Exception as e:
+        error_msg = f'Error in create_semester_invoice: {str(e)}'
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': error_msg})
+
+@bp.route('/accounts/get_semester_fee_summary/<student_id>')
+def get_semester_fee_summary(student_id):
+    """Get semester fee summary for a student"""
+    try:
+        academic_year = request.args.get('academic_year', '2025/2026')
+        semester = request.args.get('semester', '1')
+        
+        total_fees = get_semester_fees(student_id, semester, academic_year)
+        current_balance = get_semester_balance(student_id, semester, academic_year)
+        amount_paid = total_fees - current_balance
+        paid_percentage = (amount_paid / total_fees * 100) if total_fees > 0 else 100
+        
+        can_view_grades = can_view_semester_grades(student_id, semester, academic_year)
+        
+        return jsonify({
+            'success': True,
+            'total_fees': total_fees,
+            'amount_paid': amount_paid,
+            'current_balance': current_balance,
+            'paid_percentage': paid_percentage,
+            'threshold_percentage': SystemConfig.BALANCE_THRESHOLD_PERCENTAGE,
+            'can_view_grades': can_view_grades
+        })
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/accounts/balance_threshold')
+def balance_threshold():
+    """Balance threshold configuration page"""
+    try:
+        # Get current threshold from config
+        current_threshold = SystemConfig.BALANCE_THRESHOLD_PERCENTAGE
+        
+        # Get total students count
+        total_students = students_collection.count_documents({'status': 'active'})
+        
+        # Get default fees
+        default_fees = SystemConfig.DEFAULT_SEMESTER_FEES
+        
+        # Get staff privileges
+        staff_privileges = SystemConfig.GRADE_VIEW_PRIVILEGES
+        
+        return render_template('accounts/balance_threshold.html',
+                             current_threshold=current_threshold,
+                             total_students=total_students,
+                             default_fees=default_fees,
+                             staff_privileges=staff_privileges,
+                             last_updated=datetime.now().strftime('%Y-%m-%d %H:%M'))
+    
+    except Exception as e:
+        flash(f'Error loading threshold configuration: {str(e)}', 'error')
+        return redirect(url_for('accounts.accounts_management'))
+
+@bp.route('/accounts/update_balance_threshold', methods=['POST'])
+def update_balance_threshold():
+    """Update the balance threshold percentage"""
+    try:
+        data = request.get_json()
+        new_threshold = int(data.get('new_threshold'))
+        reason = data.get('reason', '').strip()
+        
+        if new_threshold < 0 or new_threshold > 100:
+            return jsonify({'success': False, 'error': 'Threshold must be between 0 and 100'})
+        
+        if not reason:
+            return jsonify({'success': False, 'error': 'Reason for change is required'})
+        
+        # Update the system configuration
+        # In a production environment, you might want to store this in a database
+        # For now, we'll update the class variable (this will reset on server restart)
+        SystemConfig.BALANCE_THRESHOLD_PERCENTAGE = new_threshold
+        
+        # Log the change (you might want to store this in a database)
+        print(f"Balance threshold updated to {new_threshold}% by {session.get('staff_id', 'unknown')}. Reason: {reason}")
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Balance threshold updated to {new_threshold}% successfully'
+        })
+    
+    except Exception as e:
+        print(f"Error updating balance threshold: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/accounts/get_students_for_semester', methods=['POST'])
+def get_students_for_semester():
+    """Get students based on semester-specific filters"""
+    try:
+        data = request.get_json()
+        print(f"Filter request data: {data}")  # DEBUG LOG
+        
+        filter_type = data.get('filter_type', 'all')
+        filter_value = data.get('filter_value', '')
+        semester = data.get('semester', '')
+        academic_year = data.get('academic_year', '')
+        intake = data.get('intake', '')
+        
+        query = {'status': 'active'}
+        
+        # Apply filters
+        if filter_type == 'program' and filter_value:
+            try:
+                query['program_id'] = ObjectId(filter_value)
+            except:
+                return jsonify({'success': False, 'error': 'Invalid program ID format'})
+        elif filter_type == 'school' and filter_value:
+            try:
+                query['school_id'] = ObjectId(filter_value)
+            except:
+                return jsonify({'success': False, 'error': 'Invalid school ID format'})
+        elif filter_type == 'intake' and filter_value:
+            query['intake'] = filter_value
+        
+        print(f"Query: {query}")  # DEBUG LOG
+        
+        students = list(students_collection.find(query))
+        print(f"Found {len(students)} students")  # DEBUG LOG
+        
+        # Filter by semester enrollment if specified
+        if semester and academic_year:
+            enrolled_students = []
+            for student in students:
+                # Check if student is enrolled in this semester
+                enrollment = student_courses_collection.find_one({
+                    'student_id': student['_id'],
+                    'semester': semester,
+                    'academic_year': academic_year
+                })
+                if enrollment:
+                    enrolled_students.append(student)
+            students = enrolled_students
+            print(f"After semester filter: {len(students)} students")  # DEBUG LOG
+        
+        students_data = []
+        for student in students:
+            if not student:
+                continue
+                
+            # Get program and school info
+            program = None
+            school = None
+            
+            if student.get('program_id'):
+                try:
+                    program = programs_collection.find_one({'_id': ObjectId(student['program_id'])})
+                except:
+                    program = None
+            
+            if student.get('school_id'):
+                try:
+                    school = schools_collection.find_one({'_id': ObjectId(student['school_id'])})
+                except:
+                    school = None
+            
+            # Calculate current balance
+            try:
+                current_balance = get_student_balance(str(student['_id']))
+            except:
+                current_balance = 0
+            
+            students_data.append({
+                'id': str(student['_id']),
+                'student_number': student.get('student_number', 'N/A'),
+                'name': f"{student.get('f_name', '')} {student.get('l_name', '')}",
+                'program': program['name'] if program else 'N/A',
+                'school': school['name'] if school else 'N/A',
+                'intake': student.get('intake', '1'),
+                'current_balance': current_balance
+            })
+        
+        return jsonify({'success': True, 'students': students_data})
+    
+    except Exception as e:
+        error_msg = f'Error in get_students_for_semester: {str(e)}'
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+<<<<<<< HEAD
+        return jsonify({'success': False, 'error': error_msg})
+
+@bp.route('/accounts/student_search')
+def student_search_page():
+    """Student search page for transactions"""
+    try:
+        # Get schools and programs for filters
+        schools = list(schools_collection.find({'status': 'active'}))
+        programs = list(programs_collection.find({'status': 'active'}))
+        
+        return render_template('accounts/student_search.html',
+                             schools=schools,
+                             programs=programs)
+    except Exception as e:
+        flash(f'Error loading student search page: {str(e)}', 'error')
+        return redirect(url_for('accounts.accounts_management'))
+=======
+        return jsonify({'success': False, 'error': error_msg})
+>>>>>>> f59243c (UI modifications for accounts page)

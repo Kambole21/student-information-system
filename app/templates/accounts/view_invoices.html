@@ -1,0 +1,90 @@
+{% extends 'layout.html' %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='accounts.css')}}">
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">View Invoices</h1>
+        <a href="{{ url_for('accounts.create_invoice') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Create New Invoice
+        </a>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Created Invoices</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Invoice Reference</th>
+                                    <th>Description</th>
+                                    <th>Filter Type</th>
+                                    <th>Student Count</th>
+                                    <th>Total Amount</th>
+                                    <th>Created Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr>
+                                    <td>{{ invoice._id.invoice_reference }}</td>
+                                    <td>{{ invoice._id.description }}</td>
+                                    <td>
+                                        {% if invoice._id.filter_type == 'all' %}
+                                            <span class="badge badge-primary">All Students</span>
+                                        {% elif invoice._id.filter_type == 'school' %}
+                                            <span class="badge badge-info">By School</span>
+                                        {% elif invoice._id.filter_type == 'program' %}
+                                            <span class="badge badge-success">By Program</span>
+                                        {% elif invoice._id.filter_type == 'course' %}
+                                            <span class="badge badge-warning">By Course</span>
+                                        {% elif invoice._id.filter_type == 'individual' %}
+                                            <span class="badge badge-secondary">Individual</span>
+                                        {% elif invoice._id.filter_type == 'level' %}
+                                            <span class="badge badge-dark">By Level</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ invoice.student_count }}</td>
+                                    <td class="font-weight-bold text-primary">${{ "%.2f"|format(invoice.total_amount) }}</td>
+                                    <td>{{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-warning" title="Export">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No invoices found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#dataTable').DataTable({
+        "order": [[5, "desc"]]
+    });
+});
+</script>
+{% endblock %}

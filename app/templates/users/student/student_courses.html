@@ -1,0 +1,164 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-pencil-square-fill"></i>
+                    </span> 
+                    All Enrolled Courses
+                </h1>
+                <p class="text-muted">Complete course history for {{ student.f_name }} {{ student.l_name }}</p>
+            </div>
+            <div class="header-badge mt-3 mt-md-0">
+                                        <a href="{{ url_for('student.student_profile', student_id=student._id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Back to Profile
+                        </a>
+                
+            </div>
+
+        </div>
+    </div>
+    </div>
+
+    <div class="row">
+
+    
+        <div class="col-md-10-fluid">
+            {% if courses_by_semester %}
+                {% for semester_key, semester_courses in courses_by_semester.items() %}
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calendar-range"></i> {{ semester_key }}
+                        </h5>
+                        <span class="badge bg-primary">{{ semester_courses|length }} courses</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Course Code</th>
+                                        <th>Course Name</th>
+                                        <th>School</th>
+                                        <th>Program</th>
+                                        <th>Status</th>
+                                        <th>Enrolled Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course_info in semester_courses %}
+                                    <tr class="{{ 'table-warning' if course_info.program and course_info.program._id|string != student.program_id|string else '' }}">
+                                        <td>{{ course_info.course.code }}</td>
+                                        <td>
+                                            <strong>{{ course_info.course.name }}</strong>
+                                            {% if course_info.program and course_info.program._id|string != student.program_id|string %}
+                                            <br>
+                                            <small class="text-warning">
+                                                <i class="bi bi-info-circle"></i> Cross-school course
+                                            </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if course_info.school %}
+                                                {{ course_info.school.name }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if course_info.program %}
+                                                {{ course_info.program.name }}
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if course_info.status == 'enrolled' else 'warning' }}">
+                                                {{ course_info.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ course_info.enrolled_at.strftime('%Y-%m-%d') if course_info.enrolled_at else 'N/A' }}
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-journal-x display-1 text-muted"></i>
+                    <h4 class="text-muted mt-3">No Courses Enrolled</h4>
+                    <p class="text-muted">This student hasn't registered for any courses yet.</p>
+                     {% if session.privilege_level in['hod', 'ict', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'dean', 'deputy_dean', 'lecturer', 'snr_tutor', 'registrar'] %}
+                    <a href="{{ url_for('student.course_registration', student_id=student._id) }}" class="btn btn-primary">
+                        <i class="bi bi-journal-plus"></i> Register Courses
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-graph-up"></i> Course Statistics</h6>
+                </div>
+                <div class="card-body">
+                <div class="text-center">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="text-primary">{{ total_courses }}</h3>
+                            <p class="text-muted mb-0">Total Courses</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h3 class="text-primary">{{ courses_by_semester | length }}</h3>
+                            <p class="text-muted mb-0">Semesters</p>
+                        </div>
+                    </div>
+                </div>
+
+                    <hr>
+                    <div class="row text-center">
+
+                       {% if session.privilege_level in['hod', 'ict', 'admin', 'admin_dvc', 'admin_vc', 'academics', 'dean', 'deputy_dean', 'lecturer', 'snr_tutor', 'registrar'] %}
+                        <a href="{{ url_for('student.course_registration', student_id=student._id) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-journal-plus"></i> Register More Courses
+                        </a>
+                        {% endif %}
+                
+                    </div>
+
+                </div>
+            </div>
+    </div>
+</div>
+{% endblock %}

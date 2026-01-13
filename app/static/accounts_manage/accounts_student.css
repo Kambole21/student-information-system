@@ -1,0 +1,82 @@
+.page-header-modern {
+    position: relative;
+    background: linear-gradient(135deg, #1dc375 0%, #539b78 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    overflow: hidden;
+    color: white;
+}
+
+/* Decorative background angle */
+.page-header-modern::after {
+    content: "";
+    position: absolute;
+    top: -30%;
+    right: -30%;
+    width: 60%;
+    height: 150%;
+    background: rgba(255, 255, 255, 0.12);
+    transform: rotate(25deg);
+    border-radius: 20px;
+}
+
+/* Header Title */
+.page-header-modern h1 {
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: .5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Icon Background */
+.header-icon {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.6rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-icon i {
+    font-size: 1.7rem;
+    color: #ffffff;
+}
+
+/* Badge (optional if used later) */
+.header-badge .badge {
+    font-size: 1rem;
+    border-radius: 50px;
+}
+
+/* Subtitle text */
+.page-header-modern p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.card .transaction{
+    background-color: #c8d7d0;
+    color: #0f6a41;
+}
+
+.table .batch{
+
+    background-color: rgb(179, 199, 199);
+    color: rgb(30, 99, 136);
+}
+.table .bill{
+
+    background-color: rgb(211, 185, 185);
+    color: red;
+}
+
+.text-code{
+    color: rgb(30, 99, 136);
+}
+.text-balance{
+    color: rgb(30, 99, 136);
+}

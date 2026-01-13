@@ -1,0 +1,92 @@
+     
+        .main-content {
+            padding: 1.5rem;
+            background-color: #f5f7fa;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+        
+        .info-section {
+            margin-bottom: 2rem;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #5f6368;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            margin-bottom: 0.75rem;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary-color), #6ba4f0);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        
+        .balance-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .due-amount {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e8eaed;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 11.3%;
+        }
+        
+        .skill-tag {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 16px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .table th {
+            background-color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                height: auto;
+                position: static;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+       

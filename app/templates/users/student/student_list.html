@@ -1,0 +1,492 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </span> 
+                    Student Management
+                </h1>
+                <p class="text-light mt-2">Manage and monitor all students in the system</p>
+            </div>
+
+            <!-- Right Badge -->
+            <div class="header-badge mt-3 mt-md-0">
+                <span class="badge bg-white text-primary px-3 py-2 shadow-sm">
+                    Total Students: <strong>{{ students|length }}</strong>
+                </span>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- Action Buttons - Fully Responsive -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-stretch align-items-md-center">
+
+            <!-- Left side: Dashboard + Add buttons -->
+<!--             <div class="d-flex flex-column flex-sm-row gap-2 order-2 order-md-1">
+                <a href="{{ url_for('student.student_management') }}" class="btn btn-outline-primary w-100 w-sm-auto">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+
+                {% if session.privilege_level in ['admin', 'registrar', 'admin_dvc', 'dean', 'deputy_dean', 'dean_of_students', 'hod', 'ict', 'accounts'] %}
+                <a href="{{ url_for('student.student_registration') }}" class="btn btn-primary w-100 w-sm-auto">
+                    <i class="bi bi-person-plus"></i> Add New Student
+                </a>
+                {% endif %}
+            </div> -->
+
+            <!-- Right side: Search + Filters -->
+            <div class="d-flex gap-2 order-1 order-md-2 w-100 w-md-auto">
+                <div class="input-group flex-grow-1">
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Search students..."
+                           id="searchInput"
+                           aria-label="Search students">
+                    <button class="btn btn-outline-secondary" type="button" onclick="filterStudents()">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+
+                <button class="btn btn-outline-info d-flex align-items-center justify-content-center"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#filterCollapse"
+                        aria-expanded="false"
+                        aria-controls="filterCollapse">
+                    <i class="bi bi-funnel"></i>
+                    <span class="d-none d-lg-inline ms-1">Filters</span>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    <!-- Advanced Filters -->
+    <div class="row mb-4 collapse" id="filterCollapse">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-funnel"></i> Advanced Filters</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Intake</label>
+                            <select class="form-select" id="intakeFilter">
+                                <option value="">All Intakes</option>
+                                <option value="1">January Intake</option>
+                                <option value="2">July Intake</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Year of Enrollment</label>
+                            <select class="form-select" id="yearFilter">
+                                <option value="">All Years</option>
+                                {% for year in range(2019, 2031) %}
+                                <option value="{{ year }}">{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Program</label>
+                            <select class="form-select" id="programFilter">
+                                <option value="">All Programs</option>
+                                {% for program_id, program_name in programs_dict.items() %}
+                                <option value="{{ program_id }}">{{ program_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">School</label>
+                            <select class="form-select" id="schoolFilter">
+                                <option value="">All Schools</option>
+                                {% for school_id, school_name in schools_dict.items() %}
+                                <option value="{{ school_id }}">{{ school_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                                <option value="graduated">Graduated</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Gender</label>
+                            <select class="form-select" id="genderFilter">
+                                <option value="">All Genders</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Quick Actions</label>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                    <i class="bi bi-arrow-clockwise"></i> Clear Filters
+                                </button>
+                                <button class="btn btn-primary w-100" onclick="applyFilters()">
+                                    <i class="bi bi-filter"></i> Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student List -->
+<<<<<<< HEAD
+<!-- Student List - No Card Wrapper -->
+=======
+>>>>>>> f59243c (UI modifications for accounts page)
+<div class="row mt-4">
+    <div class="col-12">
+        <!-- Header + Counter (moved outside card) -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Students</h5>
+            <div>
+                <span class="badge bg-primary" id="totalCount">{{ students|length }}</span>
+                <span class="badge bg-success" id="filteredCount" style="display: none;"></span>
+                students
+            </div>
+        </div>
+
+        <!-- Table directly without card -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="studentTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Profile</th>
+                        <th>Student Information</th>
+                        <th>Contact Details</th>
+                        <th>Academic Information</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr data-name="{{ student.f_name }} {{ student.l_name }}"
+                        data-number="{{ student.student_number }}"
+                        data-program="{{ programs_dict[student.program_id|string] }}"
+                        data-school="{{ schools_dict[student.school_id|string] }}"
+                        data-intake="{{ student.intake }}"
+                        data-year="{{ student.year_of_enrollment }}"
+                        data-status="{{ student.status }}"
+                        data-gender="{{ student.gender }}">
+                        <td>
+<<<<<<< HEAD
+                            <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='images/profile.svg') }}"
+=======
+                            <img src="{{ url_for('static', filename='uploads/students/' + student.profile_image) if student.profile_image != 'profile.svg' else url_for('static', filename='icons/student-profile.svg') }}"
+>>>>>>> f59243c (UI modifications for accounts page)
+                                 alt="{{ student.f_name }} {{ student.l_name }}"
+                                 class="student-photo">
+                        </td>
+                        <td>
+                            <strong>{{ student.f_name }} {{ student.l_name }}</strong><br>
+                            <small class="text-muted">#{{ student.student_number }}</small><br>
+                            <small class="text-muted">ID: {{ student.national_id }}</small><br>
+                            <span class="badge bg-info intake-badge">
+                                {% if student.intake == '1' %}January{% else %}July{% endif %} Intake
+                            </span>
+                        </td>
+                        <td>
+                            <div><i class="bi bi-envelope"></i> {{ student.email }}</div>
+                            <div><i class="bi bi-telephone"></i> {{ student.phone_number }}</div>
+                            <div><i class="bi bi-geo-alt"></i> {{ student.town }}, {{ student.country }}</div>
+                        </td>
+                        <td>
+                            <div><strong>Program:</strong> {{ programs_dict[student.program_id|string] }}</div>
+                            <div><strong>School:</strong> {{ schools_dict[student.school_id|string] }}</div>
+                            <div><strong>Enrolled:</strong> {{ student.year_of_enrollment }}</div>
+                            <div><strong>Level:</strong> {{ student.education_level|title }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if student.status == 'active' else 'secondary' if student.status == 'inactive' else 'warning' if student.status == 'suspended' else 'info' if student.status == 'graduated' else 'secondary' }}">
+                                {{ student.status|title }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ student.gender|title }}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ url_for('student.student_profile', student_id=student._id) }}"><i class="bi bi-eye"></i> View Profile</a></li>
+                                    {% if session.privilege_level in ['admin', 'registrar', 'admin_dvc', 'dean', 'deputy_dean', 'dean_of_students', 'hod', 'ict', 'accounts'] %}
+                                    <li><a class="dropdown-item" href="{{ url_for('student.edit_student', student_id=student._id) }}"><i class="bi bi-pencil"></i> Edit Profile</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('student.course_registration', student_id=student._id) }}"><i class="bi bi-journal-plus"></i> Register Courses</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><button class="dropdown-item text-danger" onclick="confirmDelete('{{ student._id }}', '{{ student.f_name }} {{ student.l_name }}')"><i class="bi bi-trash"></i> Delete</button></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State (still shown when no students) -->
+        {% if not students %}
+        <div class="text-center py-5">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <h4 class="text-muted mt-3">No Students Found</h4>
+            <p class="text-muted">Get started by registering your first student.</p>
+            <a href="{{ url_for('student.student_registration') }}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> Register Student
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteStudentName"></strong>?</p>
+                <p class="text-danger">This action cannot be undone and will delete all associated course registrations.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" class="btn btn-danger" id="confirmDeleteBtn">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Filter configuration
+let activeFilters = {
+    search: '',
+    intake: '',
+    year: '',
+    program: '',
+    school: '',
+    status: '',
+    gender: ''
+};
+
+function filterStudents() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    activeFilters.search = searchTerm;
+    applyFilters();
+}
+
+function applyFilters() {
+    // Get filter values
+    activeFilters.intake = document.getElementById('intakeFilter').value;
+    activeFilters.year = document.getElementById('yearFilter').value;
+    activeFilters.program = document.getElementById('programFilter').value;
+    activeFilters.school = document.getElementById('schoolFilter').value;
+    activeFilters.status = document.getElementById('statusFilter').value;
+    activeFilters.gender = document.getElementById('genderFilter').value;
+
+    const rows = document.querySelectorAll('#studentTable tbody tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const name = row.getAttribute('data-name').toLowerCase();
+        const number = row.getAttribute('data-number').toLowerCase();
+        const program = row.getAttribute('data-program').toLowerCase();
+        const school = row.getAttribute('data-school').toLowerCase();
+        const intake = row.getAttribute('data-intake');
+        const year = row.getAttribute('data-year');
+        const status = row.getAttribute('data-status');
+        const gender = row.getAttribute('data-gender');
+
+        // Check search filter
+        const searchMatch = !activeFilters.search || 
+                           name.includes(activeFilters.search) || 
+                           number.includes(activeFilters.search) || 
+                           program.includes(activeFilters.search) ||
+                           school.includes(activeFilters.search);
+
+        // Check other filters
+        const intakeMatch = !activeFilters.intake || intake === activeFilters.intake;
+        const yearMatch = !activeFilters.year || year === activeFilters.year;
+        const programMatch = !activeFilters.program || row.getAttribute('data-program-id') === activeFilters.program;
+        const schoolMatch = !activeFilters.school || row.getAttribute('data-school-id') === activeFilters.school;
+        const statusMatch = !activeFilters.status || status === activeFilters.status;
+        const genderMatch = !activeFilters.gender || gender === activeFilters.gender;
+
+        if (searchMatch && intakeMatch && yearMatch && programMatch && schoolMatch && statusMatch && genderMatch) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Update counters
+    const totalCount = document.getElementById('totalCount');
+    const filteredCount = document.getElementById('filteredCount');
+    
+    if (Object.values(activeFilters).some(filter => filter !== '')) {
+        totalCount.style.display = 'none';
+        filteredCount.style.display = 'inline';
+        filteredCount.textContent = visibleCount;
+    } else {
+        totalCount.style.display = 'inline';
+        filteredCount.style.display = 'none';
+    }
+}
+
+function clearFilters() {
+    // Clear all filter inputs
+    document.getElementById('searchInput').value = '';
+    document.getElementById('intakeFilter').value = '';
+    document.getElementById('yearFilter').value = '';
+    document.getElementById('programFilter').value = '';
+    document.getElementById('schoolFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('genderFilter').value = '';
+
+    // Reset active filters
+    activeFilters = {
+        search: '',
+        intake: '',
+        year: '',
+        program: '',
+        school: '',
+        status: '',
+        gender: ''
+    };
+
+    // Apply empty filters (show all)
+    applyFilters();
+}
+
+function confirmDelete(studentId, studentName) {
+    document.getElementById('deleteStudentName').textContent = studentName;
+    document.getElementById('confirmDeleteBtn').href = "{{ url_for('student.delete_student', student_id='') }}" + studentId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Initialize event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Search input
+    document.getElementById('searchInput').addEventListener('input', filterStudents);
+    
+    // Filter dropdowns
+    document.getElementById('intakeFilter').addEventListener('change', applyFilters);
+    document.getElementById('yearFilter').addEventListener('change', applyFilters);
+    document.getElementById('programFilter').addEventListener('change', applyFilters);
+    document.getElementById('schoolFilter').addEventListener('change', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('genderFilter').addEventListener('change', applyFilters);
+
+    // Add data attributes for program and school IDs
+    const rows = document.querySelectorAll('#studentTable tbody tr');
+    {% for student in students %}
+    const studentRow = document.querySelector(`tr[data-number="{{ student.student_number }}"]`);
+    if (studentRow) {
+        studentRow.setAttribute('data-program-id', '{{ student.program_id }}');
+        studentRow.setAttribute('data-school-id', '{{ student.school_id }}');
+    }
+    {% endfor %}
+});
+
+// Auto-apply filters when filter collapse is shown
+document.getElementById('filterCollapse').addEventListener('show.bs.collapse', function() {
+    applyFilters();
+});
+</script>
+
+<style>
+.student-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.filter-section {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.filter-group {
+    margin-bottom: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #495057;
+}
+
+#filteredCount {
+    font-size: 0.9em;
+}
+
+.collapse.show {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,339 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts.css') }}">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename= 'accounts_manage/semester_invoice.css')}}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+        <div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-cash-coin-fill"></i>
+                    </span> 
+                     Transaction History
+                </h1>
+                 <p class="text-muted">Complete financial transaction records - Newest First</p>
+            </div>
+
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('accounts.accounts_management') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to Accounts
+                        </a>
+                        <button class="btn btn-light" onclick="refreshPage()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card summary-card billing-summary">
+                <div class="card-body text-center">
+                    <i class="bi bi-receipt summary-icon"></i>
+                    <h3> {{ "%.2f"|format(total_billing) }}</h3>
+                    <p class="text-muted">Total Billing</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card summary-card payment-summary">
+                <div class="card-body text-center">
+                    <i class="bi bi-credit-card summary-icon"></i>
+                    <h3> {{ "%.2f"|format(total_clearing) }}</h3>
+                    <p class="text-muted">Total Payments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card summary-card balance-summary">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up summary-icon"></i>
+                    <h3> {{ "%.2f"|format(outstanding_balance) }}</h3>
+                    <p class="text-muted">Outstanding Balance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Transactions (Newest First)</h5>
+                    <div>
+                        <span class="badge bg-primary">{{ transactions|length }} transactions</span>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="exportToCSV()">
+                            <i class="bi bi-download"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if transactions and transactions|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover accounts-table" id="transactionsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Transaction Code</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Filter Reference</th>
+                                    <th>Debit</th>
+                                    <th>Credit </th>
+                                    <th>Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr class="{% if transaction.type == 'Billing' %}table-billing{% else %}table-clearing{% endif %}">
+                                    <td>
+                                        <strong>{{ transaction.created_at.strftime('%Y-%m-%d') if transaction.created_at else 'N/A' }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ transaction.created_at.strftime('%H:%M') if transaction.created_at else '' }}</small>
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary">{{ transaction.transaction_code }}</strong>
+                                        {% if transaction.batch_transaction %}
+                                        <br><small class="badge bg-info">Batch</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if transaction.type == 'Billing' %}bg-danger{% else %}bg-success{% endif %}">
+                                            {{ transaction.type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.description }}</td>
+                                    <td>
+                                        <small class="text-muted">{{ transaction.filter_reference or 'Direct Entry' }}</small>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if transaction.debit and transaction.debit > 0 %}
+                                        <strong class="text-danger">{{ "%.2f"|format(transaction.debit) }}</strong>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if transaction.credit and transaction.credit > 0 %}
+                                        <strong class="text-success">{{ "%.2f"|format(transaction.credit) }}</strong>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <strong class="{% if transaction.balance_after and transaction.balance_after > 0 %}text-warning{% else %}text-success{% endif %}">
+                                             {{ "%.2f"|format(transaction.balance_after) if transaction.balance_after else '0.00' }}
+                                        </strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editTransaction('{{ transaction._id }}')" title="Edit Transaction">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="5" class="text-end"><strong>Totals:</strong></td>
+                                    <td class="text-end"><strong> {{ "%.2f"|format(total_billing) }}</strong></td>
+                                    <td class="text-end"><strong> {{ "%.2f"|format(total_clearing) }}</strong></td>
+                                    <td class="text-end"><strong> {{ "%.2f"|format(outstanding_balance) }}</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-receipt display-4 text-muted"></i>
+                        <h5 class="text-muted mt-3">No Transactions Found</h5>
+                        <p class="text-muted">No financial transactions have been recorded yet.</p>
+                        <div class="mt-3">
+                            <a href="{{ url_for('accounts.create_invoice') }}" class="btn btn-primary me-2">
+                                <i class="bi bi-plus-circle"></i> Create First Transaction
+                            </a>
+                            <button class="btn btn-outline-secondary" onclick="refreshPage()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTransactionForm">
+                    <input type="hidden" id="editTransactionId">
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="editDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" class="form-control" id="editAmount" min="0.01" step="0.01" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateTransaction()">Update Transaction</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshPage() {
+    window.location.reload();
+}
+
+function exportToCSV() {
+    let csv = [];
+    // Add headers
+    csv.push(['Date & Time', 'Transaction Code', 'Type', 'Description', 'Filter Reference', 'Debit', 'Credit', 'Balance']);
+    
+    // Add data - transactions are already in descending order
+    {% for transaction in transactions %}
+    csv.push([
+        '{{ transaction.created_at.strftime("%Y-%m-%d %H:%M") if transaction.created_at else "N/A" }}',
+        '{{ transaction.transaction_code }}',
+        '{{ transaction.type }}',
+        '{{ transaction.description }}',
+        '{{ transaction.filter_reference or "Direct Entry" }}',
+        '{{ "%.2f"|format(transaction.debit) if transaction.debit else "0.00" }}',
+        '{{ "%.2f"|format(transaction.credit) if transaction.credit else "0.00" }}',
+        '{{ "%.2f"|format(transaction.balance_after) if transaction.balance_after else "0.00" }}'
+    ]);
+    {% endfor %}
+    
+    // Add totals
+    csv.push([]);
+    csv.push(['', '', '', '', 'TOTALS:', ' {{ "%.2f"|format(total_billing) }}', ' {{ "%.2f"|format(total_clearing) }}', ' {{ "%.2f"|format(outstanding_balance) }}']);
+    
+    // Convert to CSV string
+    const csvString = csv.map(row => 
+        row.map(field => `"${field}"`).join(',')
+    ).join('\n');
+    
+    // Create download link
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `transaction_history_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+function editTransaction(transactionId) {
+    // Fetch transaction details and populate modal
+    fetch(`/accounts/get_transaction/${transactionId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('editTransactionId').value = data.transaction._id;
+                document.getElementById('editDescription').value = data.transaction.description;
+                document.getElementById('editAmount').value = data.transaction.debit || data.transaction.credit;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
+                modal.show();
+            } else {
+                alert('Error loading transaction: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading transaction');
+        });
+}
+
+function updateTransaction() {
+    const transactionId = document.getElementById('editTransactionId').value;
+    const description = document.getElementById('editDescription').value;
+    const amount = parseFloat(document.getElementById('editAmount').value);
+
+    if (!description.trim()) {
+        alert('Please enter a description');
+        return;
+    }
+
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
+
+    fetch(`/accounts/update_transaction/${transactionId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: description,
+            amount: amount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Transaction updated successfully!');
+            // Close modal and refresh page
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editTransactionModal'));
+            modal.hide();
+            refreshPage();
+        } else {
+            alert('Error updating transaction: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating transaction');
+    });
+}
+
+// Auto-refresh every 30 seconds if there are no transactions
+{% if not transactions or transactions|length == 0 %}
+setTimeout(() => {
+    refreshPage();
+}, 30000);
+{% endif %}
+</script>
+{% endblock %}

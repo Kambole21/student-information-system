@@ -1,0 +1,173 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='student.css') }}">
+<link rel="stylesheet" href="{{url_for('static', filename='student_files/student_icons.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='student_files/student_card.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='student_files/student_btn.css')}}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </span> 
+                    Student Management
+                </h1>
+                <p class="text-light mt-2">Manage and monitor all students in the system</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-primary">{{ total_students }}</h3>
+                            <p class="text-muted mb-0">Total Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <img src="{{url_for('static', filename='icons/students.svg')}}" class="icon-total">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-success">{{ active_students }}</h3>
+                            <p class="text-muted mb-0">Active Students</p>
+                        </div>
+                        <div class="align-self-center">
+                           <img src="{{url_for('static', filename='icons/user-check.svg')}}" class="icon-acive">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-info">{{ total_students - active_students }}</h3>
+                            <p class="text-muted mb-0">Inactive Students</p>
+                        </div>
+                        <div class="align-self-center">
+                            <img src="{{url_for('static', filename='icons/user-cross.svg')}}" class="icon-inactive">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body clock">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="text-warning">0</h3>
+                            <p class="text-muted mb-0">Pending Registrations</p>
+                        </div>
+                        <div class="align-self-center clock-card">
+                            <img src="{{url_for('static', filename='icons/clock.svg')}}" class="icon-clock">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-6">
+
+                <div class="card student-access-card">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <img src="{{ url_for('static', filename='icons/student-access.svg') }}" alt="" class="header-icon">
+                        <h5 class="mb-0">Student Access</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row g-4 justify-content-center">
+
+                            {% if session.privilege_level in ['admin', 'registrar', 'admin_dvc', 'dean', 'deputy_dean', 'dean_of_students', 'hod', 'ict', 'accounts'] %}
+                            <div class="col-md-5 access-btn-wrapper">
+                                <a href="{{ url_for('student.student_registration') }}" class="btn btn-access">
+                                    <img src="{{ url_for('static', filename='icons/student-add.svg') }}" alt="">
+                                    <span>Register New Student</span>
+                                </a>
+                            </div>
+                            {% endif %}
+
+                            <div class="col-md-5 access-btn-wrapper">
+                                <a href="{{ url_for('student.student_list') }}" class="btn btn-access">
+                                    <img src="{{ url_for('static', filename='icons/list-2.svg') }}" alt="">
+                                    <span>View All Students</span>
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+                    
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><img src="{{url_for('static', filename='icons/computer-3.svg')}}" alt="" class="header-icon"> Systen Functions</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Student management dashboard. Use the quick actions to manage students.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Register new students
+                            <span class="badge bg-primary">Add</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            View and manage student records
+                            <span class="badge bg-success">Manage</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Course registration and enrollment
+                            <span class="badge bg-warning">Enroll</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Update academic information
+                            <span class="badge bg-info">Update</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

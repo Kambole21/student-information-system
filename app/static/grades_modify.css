@@ -1,0 +1,259 @@
+/* Grades Modify Styles */
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.page-header .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 1.1rem;
+}
+
+.filter-card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.filter-card .card-header {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.export-buttons .btn {
+    border: none;
+    font-weight: 500;
+}
+
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#gradesTable {
+    margin-bottom: 0;
+}
+
+#gradesTable thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 1rem 0.75rem;
+}
+
+#gradesTable tbody td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-color: #e9ecef;
+}
+
+#gradesTable tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Loading spinner styles */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Empty state styles */
+#emptyState {
+    padding: 3rem 1rem;
+}
+
+/* Filter form enhancements */
+.form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-select, .form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .export-buttons {
+        flex-direction: column;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .export-buttons .btn {
+        width: 100%;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    #gradesTable thead th,
+    #gradesTable tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .filter-card .card-body .row {
+        margin-bottom: -0.75rem;
+    }
+    
+    .filter-card .card-body .col-md-3,
+    .filter-card .card-body .col-md-2,
+    .filter-card .card-body .col-md-4 {
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* Custom scrollbar for table */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Alert customization */
+.alert {
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f1b0b7 100%);
+    color: #721c24;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #b6e3ea 100%);
+    color: #0c5460;
+}
+
+/* Button enhancements */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #42ba96 0%, #3aa981 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #3aa981 0%, #329c73 100%);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #df4759 0%, #c53d4d 100%);
+    border: none;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c53d4d 0%, #ab3442 100%);
+    transform: translateY(-1px);
+}
+
+/* Card enhancements */
+.card {
+    border: none;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.25rem 1.5rem;
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Animation for table rows */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#gradesTableBody tr {
+    animation: fadeIn 0.3s ease-in-out;
+}

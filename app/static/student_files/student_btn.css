@@ -1,0 +1,129 @@
+/* Card polish */
+.student-access-card {
+    border-radius: 18px;
+    border: none;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+}
+
+/* Header icon */
+.student-access-card .header-icon {
+    width: 40px;
+}
+
+/* Button wrapper */
+.access-btn-wrapper {
+    display: flex;
+    justify-content: center;
+}
+
+/* Main access button */
+.btn-access {
+    background: linear-gradient(135deg, #e3ecf5, #d6dfe7);
+    border: none;
+    border-radius: 18px;
+    padding: 1.2rem 1rem;
+    width: 100%;
+    max-width: 260px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+
+    font-weight: 600;
+    color: #1f2937;
+    text-decoration: none;
+
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Icon */
+.btn-access img {
+    width: 44px;
+    transition: transform 0.3s ease;
+}
+
+/* Hover effect */
+.btn-access:hover {
+    background: linear-gradient(135deg, #cfe3f6, #b9d4f0);
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 16px 35px rgba(26, 115, 232, 0.25);
+    color: #1a73e8;
+}
+
+/* Icon bounce */
+.btn-access:hover img {
+    transform: scale(1.15);
+}
+
+/* Mobile-friendly */
+@media (max-width: 576px) {
+    .btn-access {
+        max-width: 100%;
+    }
+}
+
+
+.back-btn{
+    background: linear-gradient(135deg, #e3ecf5, #d6dfe7);
+    border: none;
+    border-radius: 18px;
+    padding: 1.0rem 1.2rem;
+    width: 200px;
+
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    font-weight: 600;
+    color: #1f2937;
+    text-decoration: none;
+
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+.back-btn:hover{
+
+    background-color:linear-gradient(135deg, #b8cadc, #a1bad0);
+    color: #1f2937;
+    transition: transform 0.3s ease;
+    transform: translateY(-6px) scale(1.0);
+    box-shadow: 0 16px 35px #46ce88;
+
+}
+
+.btn-register{
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background-color: #d6dfe7;
+    border-color: #d6dfe7;
+    box-shadow: 0 13px 40px #d6dfe7;
+}
+.btn-register:hover{
+    background-color: #9bd2b7;
+
+}
+.btn-register:hover .icon-register{
+    background-color:#d6dfe7 ;
+}
+
+
+.btn-reset {
+    border: none;
+    padding: 0.5rem 1.1rem;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.btn-reset .icon-reset {
+    width: 30px;
+    height: 40px;
+    transition: transform 1s ease-in-out;
+}
+
+.btn-reset:hover .icon-reset {
+    transform: rotate(360deg);
+}

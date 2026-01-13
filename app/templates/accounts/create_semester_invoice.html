@@ -1,0 +1,616 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts_manage/semester_invoice.css') }}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-cash-coin-fill"></i>
+                    </span> 
+                   Create Semester Invoice
+                </h1>
+                <p class="text-light mt-2">Generates Semester-based invoices for students</p>
+            </div>
+
+            <div class="header-badge mt-3 mt-md-0">
+                <a href="{{url_for('accounts.accounts_management')}}" class="btn btn-light"> Back to Accounts</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+    <!-- Semester Invoice Form -->
+    <div class="row">
+        <!-- Student Selection Section -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Students</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Filter Type -->
+                        <div class="col-md-3">
+                            <label class="form-label">Filter By</label>
+                            <select class="form-select" id="filterType">
+                                <option value="all">All Students</option>
+                                <option value="program">Program</option>
+                                <option value="school">School</option>
+                                <option value="intake">Intake</option>
+                                <option value="semester_enrolled">Semester Enrolled</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Value Container -->
+                        <div class="col-md-3" id="filterValueContainer" style="display: none;">
+                            <label class="form-label" id="filterValueLabel">Select Value</label>
+                            <select class="form-select" id="filterValue">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+
+                        <!-- Academic Year -->
+                        <div class="col-md-2">
+                            <label class="form-label">Academic Year</label>
+                            <select class="form-select" id="academicYear">
+                                {% for year in academic_years %}
+                                <option value="{{ year }}">{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Semester -->
+                        <div class="col-md-2">
+                            <label class="form-label">Semester</label>
+                            <select class="form-select" id="semester">
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                            </select>
+                        </div>
+
+                        <!-- Load Button -->
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary w-100" onclick="loadStudentsForSemester()">
+                                <i class="bi bi-search"></i> Load Students
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-lg-8">
+            <!-- Students List -->
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Available Students</h5>
+                    <div>
+                        <span class="badge bg-primary" id="totalCount">0 students</span>
+                        <span class="badge bg-success ms-1" id="selectedCount">0 selected</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="studentsList" class="students-list-container" style="max-height: 500px; overflow-y: auto;">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-people display-4"></i>
+                            <p>Select filters and click "Load Students"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semester Invoice Details -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Invoice Details</h5>
+                </div>
+                <div class="card-body">
+                    <form id="semesterInvoiceForm">
+                        <!-- Fee Type -->
+                        <div class="mb-3">
+                            <label class="form-label">Fee Type</label>
+                            <select class="form-select" id="feeType">
+                                <option value="tuition">Tuition Fees</option>
+                                <option value="registration">Registration Fees</option>
+                                <option value="examination">Examination Fees</option>
+                                <option value="library">Library Fees</option>
+                                <option value="technology">Technology Fees</option>
+                                <option value="other">Other Fees</option>
+                            </select>
+                        </div>
+
+                        <!-- Fee Description -->
+                        <div class="mb-3">
+                            <label class="form-label">Fee Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Enter fee description..." required></textarea>
+                        </div>
+
+                        <!-- Fee Amount -->
+                        <div class="mb-3">
+                            <label class="form-label">Fee Amount per Student</label>
+                            <div class="input-group">
+                                <span class="input-group-text"></span>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="feeAmount" 
+                                       min="0" 
+                                       step="0.01" 
+                                       placeholder="Enter fee amount"
+                                       required>
+                            </div>
+                            <small class="text-muted">
+                                Enter the fee amount to charge each selected student.
+                            </small>
+                        </div>
+
+                        <!-- Current Filter Info -->
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Current Filter</h6>
+                            <p class="mb-0" id="currentFilterInfo">No filter applied</p>
+                        </div>
+
+                        <!-- Balance Threshold Info -->
+                        <div class="alert alert-warning">
+                            <h6><i class="bi bi-exclamation-triangle"></i> Balance Threshold</h6>
+                            <p class="mb-0">Students must pay at least <strong>{{ SystemConfig.BALANCE_THRESHOLD_PERCENTAGE }}%</strong> of semester fees to view their grades.</p>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" id="createSemesterInvoiceBtn" onclick="createSemesterInvoice()" disabled>
+                                <i class="bi bi-check-circle"></i> Create Semester Invoices
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearSelection()">
+                                <i class="bi bi-x-circle"></i> Clear Selection
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedStudents = new Set();
+let currentFilterType = '';
+let currentFilterValue = '';
+let currentFilterName = '';
+
+// Initialize filter type dropdown
+document.getElementById('filterType').addEventListener('change', function() {
+    const filterType = this.value;
+    currentFilterType = filterType;
+    
+    const container = document.getElementById('filterValueContainer');
+    const label = document.getElementById('filterValueLabel');
+    const select = document.getElementById('filterValue');
+
+    // Hide container initially
+    container.style.display = 'none';
+    
+    if (filterType === 'all') {
+        updateFilterInfo('All Students');
+        return;
+    }
+    
+    // Show container for other filter types
+    container.style.display = 'block';
+    
+    // Clear previous options
+    select.innerHTML = '<option value="">Loading...</option>';
+    
+    // Set label and load options based on filter type
+    switch(filterType) {
+        case 'program':
+            label.textContent = 'Select Program';
+            loadPrograms();
+            break;
+        case 'school':
+            label.textContent = 'Select School';
+            loadSchools();
+            break;
+        case 'intake':
+            label.textContent = 'Select Intake';
+            loadIntakes();
+            break;
+        case 'semester_enrolled':
+            label.textContent = 'Select Semester Status';
+            loadSemesterOptions();
+            break;
+    }
+});
+
+function loadPrograms() {
+    const select = document.getElementById('filterValue');
+    
+    // Use the programs data passed from the template
+    const programs = [
+        {% for program in programs %}
+        {id: '{{ program._id }}', name: '{{ program.name }}'},
+        {% endfor %}
+    ];
+    
+    select.innerHTML = '<option value="">Select Program</option>';
+    programs.forEach(program => {
+        select.innerHTML += `<option value="${program.id}">${program.name}</option>`;
+    });
+}
+
+function loadSchools() {
+    const select = document.getElementById('filterValue');
+    
+    const schools = [
+        {% for school in schools %}
+        {id: '{{ school._id }}', name: '{{ school.name }}'},
+        {% endfor %}
+    ];
+    
+    select.innerHTML = '<option value="">Select School</option>';
+    schools.forEach(school => {
+        select.innerHTML += `<option value="${school.id}">${school.name}</option>`;
+    });
+}
+
+function loadIntakes() {
+    const select = document.getElementById('filterValue');
+    select.innerHTML = `
+        <option value="">Select Intake</option>
+        <option value="1">January Intake</option>
+        <option value="2">July Intake</option>
+    `;
+}
+
+function loadSemesterOptions() {
+    const select = document.getElementById('filterValue');
+    select.innerHTML = `
+        <option value="">Select Option</option>
+        <option value="enrolled">Currently Enrolled</option>
+        <option value="not_enrolled">Not Enrolled</option>
+        <option value="any_semester">Any Semester Enrollment</option>
+    `;
+}
+
+function updateFilterInfo(filterText) {
+    document.getElementById('currentFilterInfo').textContent = filterText;
+}
+
+function loadStudentsForSemester() {
+    const filterType = document.getElementById('filterType').value;
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
+    let filterValue = '';
+    let intake = '';
+    
+    if (!academicYear || !semester) {
+        alert('Please select both academic year and semester');
+        return;
+    }
+
+    if (filterType !== 'all') {
+        filterValue = document.getElementById('filterValue').value;
+        if (!filterValue) {
+            alert('Please select a filter value');
+            return;
+        }
+        
+        // Set filter name for display
+        const filterSelect = document.getElementById('filterValue');
+        const selectedOption = filterSelect.options[filterSelect.selectedIndex];
+        currentFilterName = selectedOption.text;
+        
+        // If filter type is intake, set intake value
+        if (filterType === 'intake') {
+            intake = filterValue;
+        }
+        
+        updateFilterInfo(`${filterType.charAt(0).toUpperCase() + filterType.slice(1)}: ${currentFilterName}`);
+    } else {
+        updateFilterInfo('All Students');
+    }
+
+    const studentsList = document.getElementById('studentsList');
+    studentsList.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Loading students...</p></div>';
+
+    // Use the new endpoint for semester-specific filtering
+    fetch('/accounts/get_students_for_semester', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            filter_type: filterType,
+            filter_value: filterValue,
+            semester: semester,
+            academic_year: academicYear,
+            intake: intake
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.students && data.students.length > 0) {
+                displayStudentsForSemester(data.students, academicYear, semester);
+                document.getElementById('totalCount').textContent = `${data.students.length} students`;
+            } else {
+                studentsList.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-people display-4"></i>
+                        <h5 class="mt-3">No Students Found</h5>
+                        <p>No students match the selected criteria.</p>
+                    </div>
+                `;
+                document.getElementById('totalCount').textContent = '0 students';
+            }
+        } else {
+            studentsList.innerHTML = '<div class="text-center text-danger py-5">Error loading students</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        studentsList.innerHTML = '<div class="text-center text-danger py-5">Network error</div>';
+    });
+}
+
+function displayStudentsForSemester(students, academicYear, semester) {
+    const studentsList = document.getElementById('studentsList');
+    
+    let html = `
+        <div class="p-3 border-bottom bg-light">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+                <label class="form-check-label fw-bold" for="selectAll">
+                    Select All Students
+                </label>
+            </div>
+        </div>
+        <div class="students-grid p-2">
+    `;
+    
+    students.forEach(student => {
+        const isSelected = selectedStudents.has(student.id);
+        const intakeText = student.intake === '1' ? 'January' : 'July';
+        
+        html += `
+            <div class="student-card ${isSelected ? 'selected' : ''}" onclick="toggleStudent('${student.id}')">
+                <div class="student-checkbox">
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleStudent('${student.id}')">
+                </div>
+                <div class="student-info">
+                    <h6 class="mb-1">${student.name}</h6>
+                    <p class="mb-1 text-muted small">${student.student_number}</p>
+                    <div class="student-meta">
+                        <span class="badge bg-light text-dark small">${student.program}</span>
+                        <span class="badge bg-light text-dark small">${intakeText} Intake</span>
+                        <span class="badge bg-light text-dark small">${student.school}</span>
+                    </div>
+                    <div class="mt-1">
+                        <small class="badge ${student.current_balance > 0 ? 'bg-warning' : 'bg-success'}">
+                            Balance: ${student.current_balance.toFixed(2)}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    studentsList.innerHTML = html;
+    updateSelectedCount();
+}
+
+function toggleSelectAll(checkbox) {
+    const studentsList = document.getElementById('studentsList');
+    const studentCards = studentsList.querySelectorAll('.student-card');
+    
+    if (checkbox.checked) {
+        studentCards.forEach(card => {
+            const studentId = card.getAttribute('onclick').match(/'([^']+)'/)[1];
+            selectedStudents.add(studentId);
+            card.classList.add('selected');
+            card.querySelector('input[type="checkbox"]').checked = true;
+        });
+    } else {
+        selectedStudents.clear();
+        studentCards.forEach(card => {
+            card.classList.remove('selected');
+            card.querySelector('input[type="checkbox"]').checked = false;
+        });
+    }
+    
+    updateSelectedCount();
+}
+
+function toggleStudent(studentId) {
+    if (selectedStudents.has(studentId)) {
+        selectedStudents.delete(studentId);
+    } else {
+        selectedStudents.add(studentId);
+    }
+    updateSelectedCount();
+    
+    // Update visual state
+    const studentCards = document.querySelectorAll('.student-card');
+    studentCards.forEach(card => {
+        const cardStudentId = card.getAttribute('onclick').match(/'([^']+)'/)[1];
+        if (cardStudentId === studentId) {
+            if (selectedStudents.has(studentId)) {
+                card.classList.add('selected');
+                card.querySelector('input[type="checkbox"]').checked = true;
+            } else {
+                card.classList.remove('selected');
+                card.querySelector('input[type="checkbox"]').checked = false;
+            }
+        }
+    });
+}
+
+function updateSelectedCount() {
+    const count = selectedStudents.size;
+    document.getElementById('selectedCount').textContent = `${count} selected`;
+    document.getElementById('createSemesterInvoiceBtn').disabled = count === 0;
+}
+
+function clearSelection() {
+    selectedStudents.clear();
+    updateSelectedCount();
+    
+    // Update visual state
+    const studentCards = document.querySelectorAll('.student-card');
+    studentCards.forEach(card => {
+        card.classList.remove('selected');
+        card.querySelector('input[type="checkbox"]').checked = false;
+    });
+    
+    // Reset select all checkbox
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+    }
+}
+
+function createSemesterInvoice() {
+    const academicYear = document.getElementById('academicYear').value;
+    const semester = document.getElementById('semester').value;
+    const feeType = document.getElementById('feeType').value;
+    const description = document.getElementById('description').value;
+    const feeAmount = document.getElementById('feeAmount').value;
+    const filterType = document.getElementById('filterType').value;
+    let filterValue = '';
+    let intake = '';
+
+    // Validation
+    if (!description.trim()) {
+        alert('Please enter a fee description');
+        return;
+    }
+
+    if (!feeAmount || feeAmount <= 0 || isNaN(parseFloat(feeAmount))) {
+        alert('Please enter a valid fee amount greater than 0');
+        return;
+    }
+
+    if (selectedStudents.size === 0) {
+        alert('Please select at least one student');
+        return;
+    }
+
+    if (filterType !== 'all') {
+        filterValue = document.getElementById('filterValue').value;
+        if (filterType === 'intake') {
+            intake = filterValue;
+        }
+    }
+
+    const btn = document.getElementById('createSemesterInvoiceBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Creating...';
+
+    console.log('Sending request with data:', {
+        student_ids: Array.from(selectedStudents),
+        semester: semester,
+        academic_year: academicYear,
+        fee_type: feeType,
+        description: description,
+        fee_amount: parseFloat(feeAmount),
+        filter_type: filterType,
+        filter_value: filterValue,
+        intake: intake
+    });
+
+    // Send request with all parameters
+    fetch('/accounts/create_semester_invoice', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            student_ids: Array.from(selectedStudents),
+            semester: semester,
+            academic_year: academicYear,
+            fee_type: feeType,
+            description: description,
+            fee_amount: parseFloat(feeAmount),
+            filter_type: filterType,
+            filter_value: filterValue,
+            intake: intake
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            alert(data.message);
+            clearSelection();
+            document.getElementById('semesterInvoiceForm').reset();
+        } else {
+            alert('Error: ' + (data.error || 'Unknown error occurred'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred. Please check console for details.');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-populate description based on selections
+    document.getElementById('academicYear').addEventListener('change', updateDescription);
+    document.getElementById('semester').addEventListener('change', updateDescription);
+    document.getElementById('feeType').addEventListener('change', updateDescription);
+    
+    function updateDescription() {
+        const academicYear = document.getElementById('academicYear').value;
+        const semester = document.getElementById('semester').value;
+        const feeType = document.getElementById('feeType').value;
+        
+        if (academicYear && semester && feeType) {
+            const feeTypeText = {
+                'tuition': 'Tuition Fees',
+                'registration': 'Registration Fees',
+                'examination': 'Examination Fees',
+                'library': 'Library Fees',
+                'technology': 'Technology Fees',
+                'other': 'Other Fees'
+            }[feeType] || 'Fees';
+            
+            document.getElementById('description').value = 
+                `${feeTypeText} - ${academicYear}, Semester ${semester}`;
+        }
+    }
+});
+</script>
+{% endblock %}

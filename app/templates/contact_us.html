@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - University of Edenberg</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .contact-section {
+            padding: 60px 0;
+        }
+
+        .contact-title {
+            text-align: center;
+            font-weight: 600;
+            color: #003366;
+            margin-bottom: 30px;
+        }
+
+        .contact-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        .btn-submit {
+            background-color: #003366;
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 25px;
+            transition: 0.3s;
+        }
+
+        .btn-submit:hover {
+            background-color: #00509e;
+        }
+
+        .contact-info {
+            background: #003366;
+            color: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            height: 100%;
+        }
+
+        .contact-info h5 {
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        iframe {
+            border-radius: 15px;
+            width: 100%;
+            height: 250px;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Contact Section -->
+<section class="contact-section">
+    <div class="container">
+        <h2 class="contact-title">📞 Contact Us</h2>
+        <div class="row g-4">
+            <!-- Contact Form -->
+            <div class="col-md-7">
+                <div class="contact-card">
+                    <h4 class="mb-3">Send us a message</h4>
+                    <form>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" placeholder="Enter message subject">
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" rows="5" placeholder="Type your message here..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-submit">Send Message</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="col-md-5">
+                <div class="contact-info">
+                    <h5>University of Edenberg</h5>
+                    <p>📍 Gleenwood Park Campus</p>
+                    <p>📬   P.O Box 21041 Kitwe, Zambia</p>
+                    <p>📧 Email: edenberguniversity@gmail.com </p>
+                    <p>📞 Phone: +260 975862187 / +260 764445809</p>
+                    <p>🏣 ICT Department: +260 972067134</p>
+                    <p>🕒 Office Hours:<br> Mon - Fri, 8:00 AM - 4:00 PM</p>
+                    <hr style="border-color: rgba(255,255,255,0.2);">
+                    <h6>Find Us:</h6>
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d248985.01302128207!2d28.219171015590923!3d-12.818002656271892!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x196ce702bd1f75db%3A0xc964d43ec9244275!2sUniversity%20Of%20Edenberg%20(Main%20Campus)!5e0!3m2!1sen!2szm!4v1762850456802!5m2!1sen!2szm" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                            
+                        </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

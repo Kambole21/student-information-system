@@ -1,0 +1,284 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='accounts.css') }}">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='accounts_manage/semester_invoice.css')}}">
+<div class="container-fluid">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Header Section -->
+            <div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header-modern d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            
+            <!-- Left -->
+            <div class="header-text">
+                <h1>
+                    <span class="header-icon">
+                        <i class="bi bi-cash-coin-fill"></i>
+                    </span> 
+                    Balance Threshold Configuration
+                </h1>
+                        <h6 class="mt-3 text-muted">Last Updated</h6>
+                        <p class="text-muted">{{ last_updated }}</p>
+            </div>
+
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('accounts.accounts_management') }}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to Accounts
+                        </a>
+                    </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Current Settings -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> Current Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="setting-card">
+                                <div class="setting-icon bg-primary">
+                                    <i class="bi bi-percent"></i>
+                                </div>
+                                <div class="setting-content">
+                                    <h3 id="currentThreshold">{{ current_threshold }}%</h3>
+                                    <p class="text-muted">Current Balance Threshold</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="setting-card">
+                                <div class="setting-icon bg-info">
+                                    <i class="bi bi-eye"></i>
+                                </div>
+                                <div class="setting-content">
+                                    <h3>{{ total_students }}</h3>
+                                    <p class="text-muted">Total Students Affected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Important:</strong> Students must pay at least <strong>{{ current_threshold }}%</strong> of their semester fees to be able to view their grades and examination results.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-primary w-100 mb-2" onclick="showUpdateForm()">
+                        <i class="bi bi-pencil"></i> Update Threshold
+                    </button>
+                    <button class="btn btn-outline-secondary w-100" onclick="viewSystemConfig()">
+                        <i class="bi bi-info-circle"></i> View System Config
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Threshold Form (Initially Hidden) -->
+    <div class="row mb-4" id="updateFormSection" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pencil"></i> Update Balance Threshold</h5>
+                </div>
+                <div class="card-body">
+                    <form id="updateThresholdForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">New Threshold Percentage</label>
+                                    <div class="input-group">
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="newThreshold" 
+                                               min="0" 
+                                               max="100" 
+                                               step="1"
+                                               value="{{ current_threshold }}"
+                                               required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div class="form-text">
+                                        Enter a percentage between 0% and 100%. 
+                                        <strong>0%</strong> means students can view grades without any payment.
+                                        <strong>100%</strong> means students must pay all fees to view grades.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Reason for Change</label>
+                                    <textarea class="form-control" 
+                                              id="changeReason" 
+                                              rows="3" 
+                                              placeholder="Enter reason for changing the threshold..."
+                                              required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Impact Analysis</h6>
+                            <p class="mb-1">Current threshold: <strong>{{ current_threshold }}%</strong></p>
+                            <p class="mb-1">New threshold: <strong id="impactThreshold">0%</strong></p>
+                            <p class="mb-0">Change: <strong id="thresholdChange">0%</strong></p>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Update Threshold
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="hideUpdateForm()">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let currentThreshold = {{ current_threshold }};
+
+function showUpdateForm() {
+    document.getElementById('updateFormSection').style.display = 'block';
+    document.getElementById('newThreshold').value = currentThreshold;
+    updateImpactAnalysis();
+}
+
+function hideUpdateForm() {
+    document.getElementById('updateFormSection').style.display = 'none';
+    document.getElementById('updateThresholdForm').reset();
+}
+
+function updateImpactAnalysis() {
+    const newThreshold = parseInt(document.getElementById('newThreshold').value) || 0;
+    const change = newThreshold - currentThreshold;
+    
+    document.getElementById('impactThreshold').textContent = newThreshold + '%';
+    document.getElementById('thresholdChange').textContent = (change > 0 ? '+' : '') + change + '%';
+    
+    // Change color based on impact
+    const changeElement = document.getElementById('thresholdChange');
+    if (change > 0) {
+        changeElement.className = 'text-danger';
+    } else if (change < 0) {
+        changeElement.className = 'text-success';
+    } else {
+        changeElement.className = 'text-muted';
+    }
+}
+
+document.getElementById('newThreshold').addEventListener('input', updateImpactAnalysis);
+
+document.getElementById('updateThresholdForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const newThreshold = parseInt(document.getElementById('newThreshold').value);
+    const changeReason = document.getElementById('changeReason').value;
+    
+    if (newThreshold < 0 || newThreshold > 100) {
+        alert('Please enter a valid percentage between 0 and 100');
+        return;
+    }
+    
+    if (!changeReason.trim()) {
+        alert('Please provide a reason for changing the threshold');
+        return;
+    }
+    
+    // Show confirmation for significant changes
+    if (Math.abs(newThreshold - currentThreshold) >= 20) {
+        const confirmed = confirm(
+            `You are changing the threshold by ${Math.abs(newThreshold - currentThreshold)}%. ` +
+            `This is a significant change that may affect many students. Continue?`
+        );
+        if (!confirmed) return;
+    }
+    
+    fetch('/accounts/update_balance_threshold', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            new_threshold: newThreshold,
+            reason: changeReason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Threshold updated successfully!');
+            currentThreshold = newThreshold;
+            document.getElementById('currentThreshold').textContent = newThreshold + '%';
+            hideUpdateForm();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating threshold');
+    });
+});
+
+function viewSystemConfig() {
+    alert('System Configuration:\n\n' +
+          `Current Threshold: ${currentThreshold}%\n` +
+          'Staff can always view grades regardless of student balance.');
+}
+</script>
+
+<style>
+.setting-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+}
+
+.setting-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: white;
+    font-size: 1.5rem;
+}
+</style>
+{% endblock %}
